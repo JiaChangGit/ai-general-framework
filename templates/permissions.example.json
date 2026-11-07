@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "status": "policy_example_not_a_native_host_configuration",
+  "task_scope": {
+    "allowed_after_task_authorization": ["read_project", "edit_scoped_project_files", "run_relevant_tests", "local_commit"],
+    "separate_authorization": ["git_push", "create_pr", "deploy", "install_dependency", "install_or_connect_mcp", "change_global_configuration"]
+  },
+  "data": {
+    "secrets": "不把憑證寫入文件、範例、日誌或模型交接內容",
+    "remote_services": "依當次任務與既有授權決定可送出的資料；工具的可用性不等於外傳授權"
+  },
+  "enforcement": "由實際 host permissions、作業系統、sandbox 與 CI 執行；這份 JSON 本身不強制阻擋操作。"
+}

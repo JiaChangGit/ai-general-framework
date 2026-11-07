@@ -1,0 +1,4 @@
+SYNTHETIC TEST FIXTURE: not a captured debugging session.
+#0  validate_input (name="<example>") at example.c:12
+#1  process_request () at example.c:30
+#2  main () at example.c:48

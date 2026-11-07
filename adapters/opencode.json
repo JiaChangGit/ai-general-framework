@@ -1,0 +1,17 @@
+{
+  "host": "opencode",
+  "skills": ".agents/skills/<name>/SKILL.md",
+  "rules": "AGENTS.md",
+  "existing_rules": "preserve; OpenCode combines instructions and does not resolve conflicts",
+  "version_requirement": "Review V1 versus V2 before using native permissions, MCP or compaction configuration; examples use V2 documentation",
+  "model_switching": "Use /models in the same session; no framework handoff file is required for an ordinary model switch",
+  "hooks": {
+    "mechanism": "Review-only local JavaScript plugin template; V2 setup and V1 server object adapters share the Python checker",
+    "example_event": null,
+    "timeout_unit": "depends_on_plugin_API",
+    "schema_status": "documented_V2_setup_and_V1_1.18.29_server_contracts; installed-host version requires review",
+    "execution_status": "not_tested",
+    "source": "https://opencode.ai/docs/build/plugins/server"
+  },
+  "source": "https://opencode.ai/docs/skills/"
+}

@@ -1,0 +1,9 @@
+# Use: gdb -x templates/gdb.commands --args ./your-program arguments
+# Requires an executable built with suitable debug symbols. start runs to main.
+set pagination off
+set confirm on
+set print pretty on
+start
+bt
+info args
+info locals

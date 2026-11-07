@@ -1,0 +1,14 @@
+# 從 ai-general-framework 根目錄使用；需要已安裝的 Docker 與可用 image。
+services:
+  doctor:
+    image: python:3.11-slim
+    working_dir: /workspace
+    user: '10001:10001'
+    read_only: true
+    network_mode: none
+    environment:
+      PYTHONDONTWRITEBYTECODE: '1'
+    volumes:
+      - .:/workspace:ro
+    command: [python, scripts/agf.py, doctor]
+# image 拉取與 Docker 安裝屬另外授權的環境操作；本框架不會自動執行。

@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "description": "ai-general-framework 本身的品質檢查；不是所有目標專案的通用測試。",
+  "checks": [
+    {
+      "name": "unit-tests",
+      "argv": ["{python}", "-X", "utf8", "-m", "unittest", "discover", "-s", "tests", "-v"],
+      "cwd": ".",
+      "timeout": 180,
+      "profiles": ["quick", "full"]
+    },
+    {
+      "name": "framework-audit",
+      "argv": ["{python}", "scripts/agf.py", "audit"],
+      "cwd": ".",
+      "timeout": 60,
+      "profiles": ["full"]
+    }
+  ]
+}

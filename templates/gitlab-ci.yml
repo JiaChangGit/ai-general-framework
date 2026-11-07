@@ -1,0 +1,16 @@
+# 需由維護者準備以下 runner；這些 tags 不代表 GitLab 自動提供 runner。
+# linux-docker: Linux Docker executor，可拉取 python image。
+# windows-shell: Windows shell executor，PowerShell 與 Python 3.11+ 已可用。
+stages: [test]
+linux-core:
+  stage: test
+  image: python:3.11-slim
+  tags: [linux-docker]
+  script:
+    - python scripts/agf.py check --root . --config templates/quality.framework.json --profile full
+windows-core:
+  stage: test
+  tags: [windows-shell]
+  script:
+    - python scripts/agf.py check --root . --config templates/quality.framework.json --profile full
+# 此範例測框架自身。專案使用前請調整命令，並確認 runner shell 與 PATH。

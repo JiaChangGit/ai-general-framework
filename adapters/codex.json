@@ -1,0 +1,16 @@
+{
+  "host": "codex",
+  "skills": ".agents/skills/<name>/SKILL.md",
+  "rules": "AGENTS.md",
+  "existing_rules": "preserve; managed guidance is an explicit additional read",
+  "version_requirement": "Version with native Agent Skills support; inspect installed version before using optional hooks",
+  "hooks": {
+    "mechanism": ".codex/hooks.json or config.toml hooks",
+    "example_event": "Stop",
+    "timeout_unit": "seconds",
+    "schema_status": "official_documentation_example; installed-host version not verified",
+    "execution_status": "not_tested",
+    "source": "https://learn.chatgpt.com/docs/hooks"
+  },
+  "source": "https://learn.chatgpt.com/docs/build-skills"
+}

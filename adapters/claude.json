@@ -1,0 +1,17 @@
+{
+  "host": "claude",
+  "skills": ".claude/skills/<name>/SKILL.md",
+  "rules": "AGENTS.md, or CLAUDE.md imports",
+  "existing_rules": "preserve; create CLAUDE.md imports only when absent",
+  "version_requirement": "Direct AGENTS.md support requires Claude Code v2.1.277+ and appropriate settings; CLAUDE.md import remains a compatibility option",
+  "managed_copy": "Generated skill copies originate from the same framework source; do not edit copies independently",
+  "hooks": {
+    "mechanism": ".claude/settings.json hooks",
+    "example_event": "Stop",
+    "timeout_unit": "seconds",
+    "schema_status": "official_documentation_example; installed-host version not verified",
+    "execution_status": "not_tested",
+    "source": "https://code.claude.com/docs/en/hooks"
+  },
+  "source": "https://code.claude.com/docs/en/skills"
+}

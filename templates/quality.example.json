@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "description": "Python stdlib 專案範例；先確認 tests 是目標專案的真實測試入口，再存為 .agf/quality.json。",
+  "checks": [
+    {
+      "name": "unit-tests",
+      "argv": ["{python}", "-m", "unittest", "discover", "-s", "tests", "-v"],
+      "cwd": ".",
+      "timeout": 120,
+      "profiles": ["quick", "full"]
+    }
+  ]
+}

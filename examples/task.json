@@ -1,0 +1,11 @@
+{
+  "goal": "解釋一批工作加入失敗時，佇列狀態為何仍改變",
+  "scope": ["examples/learning/queue_walkthrough.py"],
+  "acceptance": ["區分錯誤回傳與狀態副作用", "以可重現輸入驗證最小修法"],
+  "decisions": ["先比較狀態變化，再判斷需要修改哪個步驟"],
+  "unknowns": ["真人能否獨立解釋另一個相近情境尚未驗證"],
+  "evidence": [
+    {"path": "examples/learning/queue_walkthrough.py", "note": "來源檔案；執行結果需另外取得"}
+  ],
+  "usage": {"source": "unavailable", "tokens": null, "cost": null}
+}

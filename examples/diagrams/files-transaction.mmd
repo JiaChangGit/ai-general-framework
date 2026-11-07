@@ -1,0 +1,12 @@
+%% Sources: [{"path": "agf/files.py", "symbol": "apply_plan", "basis": "source inspection; simplified control flow, not a captured trace"}]
+flowchart LR
+    Validate["重驗來源 hash 與目標碰撞"]
+    Stage["暫存全部原件"]
+    Copy["獨占建立新檔案"]
+    Restore["失敗時回復原件"]
+    Cleanup["成功後移除暫存原件"]
+    Validate -->|"全部有效"| Stage
+    Stage -->|"全部暫存完成"| Copy
+    Stage -->|"途中失敗"| Restore
+    Copy -->|"建立失敗"| Restore
+    Copy -->|"全部建立完成"| Cleanup

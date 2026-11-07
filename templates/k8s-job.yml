@@ -1,0 +1,35 @@
+# 可供觀察 Pod、logs、events 的最小 Job。套用前先核對 kube context/namespace。
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: agf-runtime-probe
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 60
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: probe
+          image: python:3.11-slim
+          command: [python, -c, 'import platform; print(platform.platform())']
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 250m
+              memory: 64Mi
+# 這只驗證環境範例，不會把任意專案變成已部署服務，也不代表本次已套用。

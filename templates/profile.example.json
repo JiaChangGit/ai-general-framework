@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "status": "example_not_automatically_loaded",
+  "language": "zh-TW",
+  "writing": {
+    "audience": "先依任務確認讀者程度",
+    "preferences": ["先說重點，再接因果與例子", "保留常用英文術語，首次出現時解釋", "避免空泛稱讚、翻譯腔與固定口號"]
+  },
+  "teaching": {
+    "default": "先問學習目標與先備知識，再選適當深度",
+    "trace": "入口、狀態變化、資料與資源生命週期、錯誤路徑",
+    "visualization": "選能解釋因果的圖；Mermaid 與 draw.io 渲染是可選能力"
+  },
+  "collaboration": {
+    "models": "保留使用者手動選擇；同一 OpenCode session 切模型不必搬運整段對話",
+    "questions": "需求矛盾或重要缺口才追問；已有答案不重問"
+  }
+}

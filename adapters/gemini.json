@@ -1,0 +1,16 @@
+{
+  "host": "gemini",
+  "skills": ".agents/skills/<name>/SKILL.md",
+  "rules": "GEMINI.md with imports; context.fileName is another opt-in native option",
+  "existing_rules": "preserve; do not overwrite GEMINI.md or settings.json",
+  "version_requirement": "Version with Agent Skills and .agents/skills alias support; inspect installed version",
+  "hooks": {
+    "mechanism": ".gemini/settings.json hooks",
+    "example_event": "AfterAgent",
+    "timeout_unit": "milliseconds",
+    "schema_status": "official_documentation_example; installed-host version not verified",
+    "execution_status": "not_tested",
+    "source": "https://geminicli.com/docs/hooks/"
+  },
+  "source": "https://geminicli.com/docs/cli/skills/"
+}

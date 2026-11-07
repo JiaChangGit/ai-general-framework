@@ -1,0 +1,11 @@
+.git
+.venv
+venv
+__pycache__
+*.pyc
+.env
+.env.*
+.agf/history
+node_modules
+*.pem
+*.key

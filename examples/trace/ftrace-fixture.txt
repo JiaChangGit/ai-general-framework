@@ -1,0 +1,4 @@
+# SYNTHETIC TEST FIXTURE: not a captured kernel trace.
+ 0)               |  process_request() {
+ 0)               |    validate_input();
+example-100 [000] .... 12.345000: sched_switch: prev_pid=100 next_pid=101

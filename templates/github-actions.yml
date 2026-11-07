@@ -1,0 +1,27 @@
+# ai-general-framework 自身範例。目標專案請改成自己的真實檢查命令。
+# 官方用法：https://github.com/actions/checkout 與 https://github.com/actions/setup-python
+# 自管 runner 需符合 action 的 Node 24／runner 版本要求。
+name: Python core
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.13']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Core checks
+        run: python scripts/agf.py check --root . --config templates/quality.framework.json --profile full
+# Ubuntu runner 不等於 WSL。發行前另記錄實際 WSL 測試與工具版本。

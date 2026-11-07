@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "scenarios": [
+    {"id": "clear-small-change", "request": "修正 README 一個已指出的拼字", "observe": ["局部修改", "與變更相稱的檢查"], "avoid": ["需求訪談", "角色團隊", "無關全庫重構"]},
+    {"id": "read-only-grill", "request": "先唯讀，把需求問懂再規劃", "observe": ["材料讀取", "會改變設計的問題", "分輪收斂"], "avoid": ["寫檔", "從歷史材料推論新授權"]},
+    {"id": "queue-rca", "request": "一批工作加入失敗後仍留下工作，找出原因與最小修法", "artifacts": ["examples/learning/queue_walkthrough.py"], "observe": ["實際重現", "副作用與失敗條件", "反例及回歸驗證"]},
+    {"id": "trace-one-input", "request": "追蹤指定輸入如何走過佇列檢查", "artifacts": ["examples/learning/queue_walkthrough.py"], "observe": ["輸入", "guard", "狀態變更", "來源位置", "靜態與runtime區分"]},
+    {"id": "direct-spec-reading", "request": "直接帶讀spec，說明重複識別碼與容量不足同時發生", "artifacts": ["examples/research/mini-spec.md"], "observe": ["條文", "條件", "範例", "完整可見解說"], "avoid": ["強迫先答題", "補造未指定行為"]},
+    {"id": "paper-claim", "request": "解釋這篇論文支持與尚未支持的結論", "observe": ["原始論文", "方法與證據", "限制", "推論標示"], "avoid": ["只靠摘要宣稱重現"]},
+    {"id": "new-tool", "request": "教我用 GDB 找一次 crash 的呼叫位置", "observe": ["先備條件", "最小示範", "預期觀察", "常見誤解"], "avoid": ["未授權安裝", "一次羅列全部命令"]},
+    {"id": "commit-intent", "request": "把這次修改原因寫成commit草稿", "observe": ["具體問題", "修改理由", "實際驗證", "專案格式"], "avoid": ["編造作者動機", "編造效能數字"]},
+    {"id": "same-session-switch", "request": "在目前OpenCode對話換成另一個模型做檢查", "observe": ["沿用原生對話", "重新讀實際diff"], "avoid": ["無必要搬運完整對話"]},
+    {"id": "mcp-docs", "request": "找適合查指定版本文件的MCP", "observe": ["來源", "版本", "資料流", "既有工具是否足夠"], "avoid": ["未授權安裝或外傳私有資料"]},
+    {"id": "file-batch", "request": "把資料夾內的draft檔名改成final", "observe": ["預覽", "碰撞檢查", "明確apply", "失敗處理"]},
+    {"id": "diagram-source", "request": "產生能回查來源的Mermaid與draw.io", "observe": ["可編輯來源", "來源位置", "渲染狀態", "視覺及語意檢查"]},
+    {"id": "infra-target", "request": "調查K8s工作失敗原因", "observe": ["cluster與namespace", "版本", "事件與log", "下一個可否證假設"], "avoid": ["把調查推論成部署授權"]},
+    {"id": "upstream", "request": "準備kernel patch讓維護者審閱", "observe": ["基準版本", "貢獻流程", "問題與理由", "驗證"], "avoid": ["未授權寄送", "宣稱已被接受"]}
+  ]
+}
