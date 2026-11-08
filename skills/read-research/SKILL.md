@@ -1,6 +1,6 @@
 ---
 name: read-research
-description: Read or teach a specified research paper or technical specification, checking claims, figures, normative conditions, and limits against the source. Use for both targeted lookup and guided reading; not extraction or conversion alone, general repository teaching, or creative writing.
+description: Read or teach research papers or technical specifications, or synthesize literature for a focused research question, checking claims, conditions and limits against sources. Excludes extraction or conversion alone, general web collection, repository teaching and creative writing.
 ---
 
 # 帶著問題讀論文與規格
@@ -9,7 +9,7 @@ description: Read or teach a specified research paper or technical specification
 
 先確認實際文件、版本與閱讀目的。查一個欄位時直接給定位、有效條件與答案；要求帶讀才展開情境。取得全文前只評論已取得的內容，不補造段落、頁碼、圖號或引用。
 
-- 論文：讀 [papers.md](references/papers.md)，區分作者主張、方法、證據和仍未支持的推廣。
+- 論文或聚焦的文獻比較：讀 [papers.md](references/papers.md)，區分作者主張、方法、證據和仍未支持的推廣；多篇來源先核對是否為獨立研究。
 - 規格：讀 [specifications.md](references/specifications.md)，保留規範強度、前提、模式、有效欄位和例外。
 
 用一條問題主線串接來源：現在為何查這段、看哪個欄位或圖、得到什麼，以及如何進到下一步。閱讀順序不冒充系統執行時序。

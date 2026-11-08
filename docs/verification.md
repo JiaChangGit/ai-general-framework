@@ -2,6 +2,20 @@
 
 最近更新：2026-11-09（Asia/Taipei）。這份紀錄分開列出腳本、宿主整合、來源閱讀與真人學習的證據；下方較早章節保留各輪當時的範圍。
 
+## 使用者連結去重與融合（2026-11-09）
+
+來源閱讀、固定版本、授權觀察與取捨見 [link-study.md](link-study.md)，未安裝或執行任何上游工具。五個 skills 與四份部署指引的數量不變；`read-research` 增加聚焦文獻比較，跨格式成果放一份按需參考。核心程式只擴充既有 audit 的 templates Markdown 掃描，沒有新依賴、索引器、記憶引擎、renderer 或 provider。
+
+- **可重現的腳本修正：** 新增 nested template 相鄰參考缺檔測試。修正前 Windows／WSL 各 4 通過、1 失敗，證明舊版錯誤回 PASS；修正後兩端各 5 項全通過、無跳過。補回檔案恢復 PASS，正常外部／頁內／mailto 連結不誤判。掃描仍只查本地檔案存在，不驗錨點、外部網址或完整 Markdown 語法。未重跑完整單元測試；前一輪 187 案另列於下方。
+- **配置與更新：** Windows Python 3.13.15 與 WSL Python 3.14.4，各自實際 install／update／status，含 shared、copy 及單獨選取 `read-research`。規則、四份 guides、技能本文及兩份 references 與本地修改版逐 bytes 相符；從目標執行正確 CLI 的 audit 皆通過，status ready。copy 有新成果參考及有效相鄰連結，沒有將維護者研究清單帶入 runtime。結果在本機 `.agf/qa/link-study-*/result.json`；Windows 仍於 WSL UNC 工作目錄測試。
+- **發布檔案核對：** 新參考最初命名為 `templates/artifacts/`，被既有 `artifacts/` 忽略規則排除；於提交前發現並改名 `templates/outputs/`，保留原忽略規則。內容未變，更名後兩端重新配置與更新核對；檔案也列入待提交清單，沒有以本機檔案存在冒充發布完整。
+- **獨立行為觀察：** 無本輪對話歷史的新代理，使用已部署的更名前同內容快照、候選 metadata 與原始合成材料，完成五項文字工作。僅文獻問題實際載入 `read-research`；R1 正式版取代預印本、部落格不算新研究，R2 僅摘要且條件不同，不編普遍有效結論。擷取任務辨認 caption 沒有圖表數字；空 caller 查詢結合未提交變更、截斷與函式指標引用判斷不可據此刪除，也正確指出 `#ifdef` 的已定義零值不等於停用。
+- **表達與創作觀察：** 同一代理保留 64 bytes、「必須／禁止／不得」與否定，沒有執行樣本內的上傳指令；依已定設定直接交付四行副歌及合計三十秒的估計分鏡，未捏造演唱或 MP4。答案與所讀來源在本機 `.agf/qa/link-behavior/answer.md`。本次限制不執行外部工具，因此未跑 profile show，也未假稱取得有效偏好。
+
+以上是少量 qualitative smoke，沒有無框架 baseline、真實 host 自動觸發率、真人風格／學習／觀眾評估或 provider usage；沒有真實 PDF／HTML／PPTX／音訊／歌曲／影片產出驗收。不能由代理自評、來源數或靜態 PASS 推論一般品質、完整安全性或 token 節省。
+
+Windows／WSL package audit 皆 PASS，零錯誤與警告；受影響的 `read-research` 通過官方 skill-creator validator；43 個案例的 ID 與 skill 參照靜態核對通過，`git diff --check` 無錯誤。案例數不表示全數已執行，來源回饋也不等於自行重現。
+
 ## 按需簡報指引（2026-11-09）
 
 本輪新增一份 `templates/presentations/README.md`，在既有規則、writing／tools 指引接上條件入口；五個 skills、四份部署指引與 Python 核心不變，未新增依賴、YAML schema、排版引擎或媒體服務。只改文字及行為案例，未重跑完整單元測試；下方 187 案屬前一輪二進位變更的證據。

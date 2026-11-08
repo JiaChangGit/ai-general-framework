@@ -57,7 +57,7 @@ python scripts/agf.py project rollback --target ../my-project
 | `trace-code` | 理解指定輸入的路徑、狀態、資料與資源生命週期 |
 | `debug-root-cause` | 對實際異常建立假設、重現並驗證原因與修正 |
 | `review-change` | 審查指定程式變更的可行動問題 |
-| `read-research` | 判讀論文或規格；依要求短答或完整帶讀 |
+| `read-research` | 判讀論文或規格、聚焦文獻比較；依要求短答或完整帶讀 |
 | `guide-learning` | 學習專案、工具或概念，調整示範與練習深度 |
 
 一般開發、需求對齊、寫作、多模型合作與工具選擇使用精簡的[工作指引](docs/workflow.md)、[表達與創作指引](docs/writing.md)、[工具指引](docs/tools.md)及[交付指引](docs/delivery.md)。不為 APP、股市程式、kernel、Boost、STM32、小說、作曲或影片各建一套重複技能；領域條件等具體任務出現再查。
@@ -89,6 +89,8 @@ MCP 選用由宿主代理讀取規則後，透過其工具探索能力執行。R
 要求畫流程、架構、狀態等技術圖時，AI 先選[圖解樣板](templates/diagrams/README.md)，只寫 Mermaid 文字，交 mermaid-cli 渲染 SVG／PNG。單張最多 15 節點，超過就拆圖；資料轉狀態圖先用 `diagram transitions` 統計，再畫實際觀察到的轉移。保留五個 skills，不另加畫圖技能或渲染依賴。
 
 簡報沿用[按需簡報指引](templates/presentations/README.md)：主題、Excel／CSV 或作品連結交給 AI，依已連接能力編輯帳號作品，或把內容交給既有版型工具；核對數字、缺值、版面與實際可編輯範圍。配音、影片和分享需有相應工具與授權，框架沒有內建簡報引擎或新增 skill。
+
+資料製成 PDF、HTML、文字、聲音、歌曲與影片時，按需讀[跨格式成果指引](templates/outputs/README.md)：共用確認內容與素材，先驗代表小樣，再依交付格式檢查實際結果。既有工具用時選，不預裝創作平台；這批使用者參考來源的重複、採納與未採納理由見[取捨紀錄](docs/link-study.md)。
 
 完整命令、權限範圍、共用工具與 hooks 見 [CLI 操作](docs/cli.md)。[設計說明](docs/design.md)與[研究紀錄](docs/research.md)交代採納和刪減理由。共用創作指引可協助小說、音樂與投影片式影片；真正使用時再選可用工具，分清企劃、草稿與可播放成品。
 

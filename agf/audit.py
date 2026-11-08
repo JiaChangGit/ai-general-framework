@@ -71,7 +71,7 @@ def audit(root):
             except (ValueError, UnicodeError) as exc:
                 errors.append(f"{path}: {exc}")
     markdown = [directory / "README.md", directory / "AGENTS.md"]
-    for folder in ("skills", "docs", "examples", "evals"):
+    for folder in ("skills", "docs", "examples", "evals", "templates"):
         markdown.extend((directory / folder).rglob("*.md"))
     for path in markdown:
         if not path.is_file() or path.name == "SKILL.md":
