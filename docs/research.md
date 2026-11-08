@@ -17,6 +17,18 @@
 
 小說、音樂與投影片式影片本輪只採共用創作指引：尊重既定設定，依目的選形式，分清草稿與實際成品；沒有新增 provider、媒體管線或宣稱作品品質已驗證。這是使用者的範圍取捨，不是上述工程來源證明的創作方法。
 
+## 依能力清單補強的結論
+
+2026-11-08 再次檢查能力清單後，多數需求已有對應指引。本輪只把實際缺口補進既有位置，維持五個 skills、四份部署指引與原有工具核心。
+
+| 查證的一手來源 | 建議與已完成的修改 | 適用限制 |
+|---|---|---|
+| [Anthropic context engineering](https://www.anthropic.com/research/effective-context-engineering-for-ai-agents)、[Aider repository map](https://aider.chat/docs/repomap.html) | 在 tools 指引補上依問題搜尋、摘錄、必要時擴讀與處理截斷；重用既有 context scripts | 不移植索引系統，不靠字元數宣稱省 token；必要條件與原始證據仍須保留 |
+| [Anthropic multi-agent research](https://www.anthropic.com/research/multi-agent-research-system)、[Building effective agents](https://www.anthropic.com/research/building-effective-agents) | 在 workflow 明示委派產物、相依工作先收斂、介面與失敗語意對齊、整合後驗證完整流程；把重要漏項的提醒接回具體結果 | 研究系統的成果與用量比例不推廣為本框架指標；不固定模型職位，也不要求每個任務跑完整團隊 |
+| [Google SRE：Effective Troubleshooting](https://sre.google/sre-book/effective-troubleshooting/) | 在 infra 參考區分緩解與根因確認；重大中斷不必等完整 RCA 才恢復 | 操作仍須已有授權；服務恢復不證明根因，小 bug 不套事故流程 |
+
+另複查 [Anthropic 開源 skill-creator](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md)、[humanizer](https://github.com/blader/humanizer/blob/main/SKILL.md)、Google 技術寫作與 Julia Evans 的解說方法。採用按需資源、具體任務驗證、對準讀者及保留原意；不採寬泛的「只要提到就觸發」描述、固定問卷或全域禁詞。現有 skills、教學與寫作指引已涵蓋這些原則，本輪不為重複建議新增檔案。
+
 ## Skills、工作流程與工具
 
 | 來源 | 採用的理由 | 沒有照搬或仍須確認的部分 |

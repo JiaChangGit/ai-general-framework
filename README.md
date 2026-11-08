@@ -54,6 +54,21 @@ python scripts/agf.py project rollback --target ../my-project
 
 預設先利用已有資料對齊想法，只追問會影響結果的未知；理解後直接做。問題中的專有名詞要用白話解釋。你已定的創作設定與工程限制都要尊重，驗收方式則依任務目的選擇。
 
+## 你要的能力，如何落實
+
+| 需求 | 目前做法 |
+|---|---|
+| 多模型、跨部門合作 | [分工指引](docs/workflow.md)先對齊成果、介面及失敗行為；模型與角色可互換，主責者整合驗證 |
+| 個人化、自然中文與教學 | `profile show --root DIR` 合併偏好；[表達指引](docs/writing.md)保留因果與真實修改理由；trace 與教學 skills 依讀者選圖和示範 |
+| 降低 token 消耗 | [按問題取資料](docs/tools.md)，機械操作重用現有 scripts；實際節省量尚未量測 |
+| 降低 bug | 最小修改、風險相稱的檢查與 `review-change`；用原始失敗與相關回歸驗證成果 |
+| 有效率找根因 | `debug-root-cause` 用能區分假設的觀察縮小範圍，將緩解與原因確認分開 |
+| Grill me、對齊想法 | [需求對齊](docs/workflow.md)只問會改變決策的未知，理解後執行 |
+| 提醒漏項與誤解 | 指出影響結果的矛盾和缺失條件，有材料先核對，需要取捨才提問 |
+| 不過度思考 | 相關驗證足夠即交付；沒有新增觀察價值時說明缺什麼，不無限重試 |
+| 不膨脹、易更新 | 五個明確 skills、按需 references、共用工具；[維護指引](docs/maintenance.md)要求改在最窄位置 |
+| 資安、隱私、CI/CD、hooks 邊界 | [依操作效果判斷授權](docs/delivery.md)，只使用所需資料；文字規則與 hook 不冒充強制隔離 |
+
 ## Scripts 提供原生工具之外的價值
 
 `files` 提供批次預覽、碰撞／來源重驗、轉換與差異；`context`／`source` 提供有限摘錄及來源位置；`diagram` 產生 Mermaid、draw.io 與 trace 檢視；`run`／`check` 記錄有界的執行結果。`task` 交接是選項，`git` 只處理 Git；GitHub、GitLab、SVN 等工作優先用現成 `gh`、`glab`、`svn` 及專案流程。
