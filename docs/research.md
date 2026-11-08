@@ -29,6 +29,26 @@
 
 另複查 [Anthropic 開源 skill-creator](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md)、[humanizer](https://github.com/blader/humanizer/blob/main/SKILL.md)、Google 技術寫作與 Julia Evans 的解說方法。採用按需資源、具體任務驗證、對準讀者及保留原意；不採寬泛的「只要提到就觸發」描述、固定問卷或全域禁詞。現有 skills、教學與寫作指引已涵蓋這些原則，本輪不為重複建議新增檔案。
 
+## MCP 自動選用與 RTK 查證
+
+查證日：2026-11-08。本次將任務訊號、品質／安全查核、原始使用者回饋與用量比較補進既有 tools 指引，並在專案入口提醒主動探索。自動判斷與呼叫由宿主代理執行，沒有新增背景掃描器、MCP 安裝器、固定排名或跨 host 路由服務。
+
+[MCP 安全文件](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices)指出本機 server 涉及執行程式；[tool annotations 說明](https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/)也將 read-only 等標記定位為提示。採用前看來源、實際副作用及資料流，沿已有授權操作；相關條件改變才重查，沒有每次呼叫重做研究。[GitHub MCP](https://github.com/github/github-mcp-server/blob/main/docs/server-configuration.md)的工具限制與 [Playwright MCP](https://github.com/microsoft/playwright-mcp#security)的瀏覽器設定，亦不代替底層存取邊界。
+
+RTK 採用固定 commit [`bd7f87e`](https://github.com/rtk-ai/rtk/commit/bd7f87eb6e21a17c47ee3c78f698e81b64d7fee5)查原始碼；另列測試和回饋的各自版本，不將 develop、release、prerelease tag 或不同 integrations 混成一版。
+
+| 證據 | 能支持的結論與限制 |
+|---|---|
+| [固定版 README](https://github.com/rtk-ai/rtk/blob/bd7f87eb6e21a17c47ee3c78f698e81b64d7fee5/README.md)、[Cargo](https://github.com/rtk-ai/rtk/blob/bd7f87eb6e21a17c47ee3c78f698e81b64d7fee5/Cargo.toml) | Shell 路徑是 CLI proxy 與 host hooks，另有 engine／API proxy；不是只憑 RTK 名稱就能判斷為某個 MCP。該快照 Cargo version 為 0.49.0，預設連結 engine；根目錄 Apache 標籤不能概括 engine 的 BUSL 條款，須看實際 edition 與 [engine LICENSE](https://github.com/rtk-ai/rtk/blob/bd7f87eb6e21a17c47ee3c78f698e81b64d7fee5/engine/LICENSE)。這是來源辨認，非本框架替商用使用作授權判定。 |
+| [estimate_tokens 實作](https://github.com/rtk-ai/rtk/blob/bd7f87eb6e21a17c47ee3c78f698e81b64d7fee5/text/src/lib.rs#L73)、[官方 savings 定義](https://github.com/rtk-ai/rtk/blob/bd7f87eb6e21a17c47ee3c78f698e81b64d7fee5/docs/guide/resources/savings-explained.md) | 以 UTF-8 bytes／4 向上取整估計，沒有模型 tokenizer。其 gain 可描述輸出 byte 縮減，不能當 provider token／帳單；官方也區分 Bash output 與 session 成本。 |
+| [JetBrains 一手 A/B](https://blog.jetbrains.com/ai/2026/07/rtk-claude-code-token-savings/) | RTK v0.43.0、Claude Code 2.1.201、Sonnet 5，SkillsBench 86 題，共報告 425 次 billed trials；成本配對中位數低推理強度 +7.6%、高強度 +0.1%，品質差異未顯著。這是提供 AI 產品的外部廠商測試，未見完整原始 run artifacts 可下載，本框架未重現；不推論最新 engine／proxy 或所有工作負載都無效，也不把差異全歸因於漏資訊。 |
+| [官方 security advisories](https://github.com/rtk-ai/rtk/security/advisories) | 查到 project-local filter 信任、permission-gate bypass 與 OpenClaw plugin 注入等不同問題，須逐 integration 核對修補；不能合稱所有 RTK 都受同一漏洞影響。[permission-gate 頁](https://github.com/rtk-ai/rtk/security/advisories/GHSA-7gxq-fvfc-g327)修補欄為 `>= 42.2`，與其他版號格式不同，不擅自修正為 `0.42.2` 或宣稱某版已安全。 |
+| [近期原始 issue #5000](https://github.com/rtk-ai/rtk/issues/5000) | 2026-11-04，goat-ssh，RTK 1.1.0／macOS，以 fake kubectl JSON 回報 Running 但未 ready／CrashLoopBackOff 被摘要隱藏；查閱時 Open，連到 PR #5001。本框架未重現，只作保真驗收的重要線索。 |
+| [原始正反討論](https://www.reddit.com/r/ClaudeCode/comments/1rvj76i/which_token_optimizer_do_you_use_rtk_causing_too/) | 有使用者表示效果不錯，也有人回報漏資訊與重試，均未提供完整 session usage；該串另有 Omni 作者與 Edgee 共同創辦人推廣自身產品，與一般使用者分開看。不以留言數量判定效果，帳號自述的經驗不能獨立驗真。 |
+| [作者 launch](https://www.reddit.com/r/ClaudeAI/comments/1r2tt7q/i_saved_10m_tokens_89_on_my_claude_code_sessions/)、[OpenCode 原串](https://www.reddit.com/r/opencodeCLI/comments/1rsg4m1/rtk_rust_token_killer_just_merged_opencode_support/) | Launch 的高節省比例是作者自述；OpenCode 使用者分享 gain，工作負載與數字一致性仍須核對。都不能取代實際 provider usage、快取、重跑與完成品質的配對比較。 |
+
+決定：保留 RTK 為可評估候選，不預設安裝或啟用全域 hook／proxy。Windows PATH 與 WSL 未發現 rtk，本次未安裝、未執行、未讀私人 usage，也未聲稱已測得本機省 token。若未來真的要採用，再以當時版本、元件、host 與任務作已授權的限定比較；新查核不永久沿用本節快照。
+
 ## Skills、工作流程與工具
 
 | 來源 | 採用的理由 | 沒有照搬或仍須確認的部分 |

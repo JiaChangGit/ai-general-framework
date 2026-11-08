@@ -68,6 +68,9 @@ python scripts/agf.py project rollback --target ../my-project
 | 不過度思考 | 相關驗證足夠即交付；沒有新增觀察價值時說明缺什麼，不無限重試 |
 | 不膨脹、易更新 | 五個明確 skills、按需 references、共用工具；[維護指引](docs/maintenance.md)要求改在最窄位置 |
 | 資安、隱私、CI/CD、hooks 邊界 | [依操作效果判斷授權](docs/delivery.md)，只使用所需資料；文字規則與 hook 不冒充強制隔離 |
+| 自動判斷 MCP 與工具品質 | [工具指引](docs/tools.md)依任務探索已連接能力，先查來源、安全與使用者回饋；省 token 工具另比較完整任務的實際用量與品質 |
+
+MCP 選用由宿主代理讀取規則後，透過其工具探索能力執行。RTK 等工具的來源查證、實測範圍與採用取捨保存在[研究紀錄](docs/research.md)，不是永久的推薦名單。
 
 ## Scripts 提供原生工具之外的價值
 
