@@ -9,6 +9,19 @@ from pathlib import Path
 
 from .common import AgfError
 
+MAX_SOURCE_UNITS = 50_000
+MAX_TEXT_BYTES = 50_000_000
+MAX_PDF_TEXT_CHARS = 20_000_000
+_LINE_BREAKS = "\n\r\v\f\x1c\x1d\x1e\x85\u2028\u2029"
+
+
+def _check_line_count(text: str) -> None:
+    # Count splitlines() units before allocating its list; CRLF is one break.
+    count = sum(text.count(character) for character in _LINE_BREAKS) - text.count("\r\n")
+    count += bool(text and text[-1] not in _LINE_BREAKS)
+    if count > MAX_SOURCE_UNITS:
+        raise AgfError(f"Source exceeds {MAX_SOURCE_UNITS} lines; select a smaller local source or use context extract for a known range")
+
 
 class SourceUnavailable(AgfError):
     pass
@@ -39,9 +52,12 @@ class _HTMLText(HTMLParser):
     def handle_data(self, data):
         if self.ignored:
             return
+        _check_line_count(data)
         start = self.getpos()[0]
         for offset, line in enumerate(data.splitlines()):
             if line.strip():
+                if len(self.entries) >= MAX_SOURCE_UNITS:
+                    raise AgfError(f"HTML source exceeds {MAX_SOURCE_UNITS} text units; select a smaller local source")
                 self.entries.append({"anchor": f"line:{start + offset}", "line": start + offset, "text": line.strip()})
 
 
@@ -50,6 +66,8 @@ def load_source(path: str | Path, pages: str | None = None, metadata_only: bool 
     if not path.is_file():
         raise AgfError(f"Local source not found: {path}")
     suffix = path.suffix.lower()
+    if suffix in {".html", ".htm", ".txt", ".md", ".rst", ".log"} and path.stat().st_size > MAX_TEXT_BYTES:
+        raise AgfError("Text source exceeds 50 MB; select a smaller local source")
     result = {"source": str(path.resolve()), "sha256": _hash(path)}
     if suffix == ".pdf":
         try:
@@ -61,10 +79,17 @@ def load_source(path: str | Path, pages: str | None = None, metadata_only: bool 
             if reader.is_encrypted:
                 raise AgfError("Encrypted PDF is not supported; provide an authorized decrypted local copy")
             total_pages = len(reader.pages)
+            if not pages and total_pages > MAX_SOURCE_UNITS:
+                raise AgfError(f"PDF exceeds {MAX_SOURCE_UNITS} pages; use a smaller PDF or source excerpt --pages for a smaller range")
             selected = _page_selection(pages, total_pages) if pages else set(range(1, total_pages + 1))
-            entries = [{"anchor": f"page:{index}", "page": index,
-                        "text": "" if metadata_only else (reader.pages[index - 1].extract_text() or "")}
-                       for index in sorted(selected)]
+            entries = []
+            extracted_chars = 0
+            for index in sorted(selected):
+                text = "" if metadata_only else (reader.pages[index - 1].extract_text() or "")
+                extracted_chars += len(text)
+                if extracted_chars > MAX_PDF_TEXT_CHARS:
+                    raise AgfError(f"PDF extracted text exceeds {MAX_PDF_TEXT_CHARS} characters; select a smaller page range")
+                entries.append({"anchor": f"page:{index}", "page": index, "text": text})
         except AgfError:
             raise
         except Exception as exc:
@@ -77,12 +102,11 @@ def load_source(path: str | Path, pages: str | None = None, metadata_only: bool 
     elif suffix in {".html", ".htm", ".txt", ".md", ".rst", ".log"}:
         if pages:
             raise AgfError("--pages applies only to PDF sources")
-        if path.stat().st_size > 50_000_000:
-            raise AgfError("Text source exceeds 50 MB; select a smaller local source")
         try:
             text = path.read_text(encoding="utf-8-sig")
         except UnicodeError as exc:
             raise AgfError("Source must be UTF-8; use an explicit encoding conversion first") from exc
+        _check_line_count(text)
         if suffix in {".html", ".htm"}:
             parser = _HTMLText()
             parser.feed(text)
@@ -123,7 +147,11 @@ def _page_selection(value: str, total: int) -> set[int]:
             first, last = int(bounds[0]), int(bounds[-1])
             if not 1 <= first <= last <= total:
                 raise ValueError()
+            if last - first + 1 > MAX_SOURCE_UNITS:
+                raise AgfError(f"Page selection exceeds {MAX_SOURCE_UNITS} pages; choose a smaller range")
             selected.update(range(first, last + 1))
+            if len(selected) > MAX_SOURCE_UNITS:
+                raise AgfError(f"Page selection exceeds {MAX_SOURCE_UNITS} pages; choose a smaller range")
     except ValueError as exc:
         raise AgfError(f"Pages must be within 1..{total}, for example 2,4-6") from exc
     return selected
@@ -190,7 +218,15 @@ def _diff(args):
     a, b = left.pop("entries"), right.pop("entries")
     aa = [" ".join(unit["text"].split()) for unit in a]
     bb = [" ".join(unit["text"].split()) for unit in b]
-    operations = [operation for operation in difflib.SequenceMatcher(a=aa, b=bb, autojunk=False).get_opcodes() if operation[0] != "equal"]
+    # Repeated lines can make SequenceMatcher quadratic before any output limit
+    # is applied. Reject comparisons beyond a conservative work budget instead
+    # of silently changing the matching heuristic or implying a complete diff.
+    if aa == bb:
+        operations = []
+    else:
+        if len(aa) + len(bb) > 10000 or len(aa) * len(bb) > 4_000_000:
+            raise AgfError("Source diff comparison exceeds the unit/work budget; compare smaller local sections.")
+        operations = [operation for operation in difflib.SequenceMatcher(a=aa, b=bb, autojunk=False).get_opcodes() if operation[0] != "equal"]
     changes, used = [], 0
     for kind, i, j, k, l in operations[:args.limit]:
         available = args.max_chars - used

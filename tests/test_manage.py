@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import shutil
 from pathlib import Path
 import tempfile
@@ -157,6 +158,272 @@ class ProjectTests(unittest.TestCase):
         self.assertEqual((self.root / ".agents/skills/trace/SKILL.md").read_bytes(), before)
         self.assertTrue(self.run_project("status")["clean"])
 
+    def test_update_preserves_edit_after_preflight(self):
+        self.run_project("install", True, tools="shared")
+        target = self.root / ".agents/skills/trace/SKILL.md"
+        manifest = self.root / ".agf/manifest.json"
+        original_manifest = manifest.read_bytes()
+        (self.source / "skills/trace/SKILL.md").write_bytes(target.read_bytes() + b" source update")
+        original = manage._write_snapshot
+        def concurrent_edit(root, path, text):
+            if path.parent.name == "history":
+                target.write_bytes(b"user edit after preflight")
+            return original(root, path, text)
+        with patch.object(manage, "_write_snapshot", side_effect=concurrent_edit):
+            with self.assertRaisesRegex(AgfError, "changed during operation"):
+                self.run_project("update", True, tools="shared")
+        self.assertEqual(target.read_bytes(), b"user edit after preflight")
+        self.assertEqual(manifest.read_bytes(), original_manifest)
+
+    def test_create_appearing_after_plan_is_preserved(self):
+        self.run_project("install", True, skills=[], tools="shared")
+        target = self.root / ".agents/skills/trace/SKILL.md"
+        original = manage._plan
+        def concurrent_create(*args):
+            plan = original(*args)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(b"another process created this")
+            return plan
+        with patch.object(manage, "_plan", side_effect=concurrent_create):
+            with self.assertRaisesRegex(AgfError, "appeared after planning"):
+                self.run_project("update", True, tools="shared")
+        self.assertEqual(target.read_bytes(), b"another process created this")
+
+    def test_update_preserves_existing_edit_between_plan_and_capture(self):
+        self.run_project("install", True, tools="shared")
+        target = self.root / ".agents/skills/trace/SKILL.md"
+        (self.source / "skills/trace/SKILL.md").write_bytes(target.read_bytes() + b" source update")
+        manifest = self.root / ".agf/manifest.json"
+        original_manifest = manifest.read_bytes()
+        original = manage._plan
+        def concurrent_edit(*args):
+            plan = original(*args)
+            target.write_bytes(b"user edit before capture")
+            return plan
+        with patch.object(manage, "_plan", side_effect=concurrent_edit):
+            with self.assertRaisesRegex(AgfError, "Project changed after planning"):
+                self.run_project("update", True, tools="shared")
+        self.assertEqual(target.read_bytes(), b"user edit before capture")
+        self.assertEqual(manifest.read_bytes(), original_manifest)
+
+    def test_rollback_preserves_edit_between_drift_check_and_capture(self):
+        self.run_project("install", True, tools="shared")
+        target = self.root / ".agents/skills/trace/SKILL.md"
+        (self.source / "skills/trace/SKILL.md").write_bytes(target.read_bytes() + b" updated")
+        self.run_project("update", True, tools="shared")
+        manifest = self.root / ".agf/manifest.json"
+        original_manifest = manifest.read_bytes()
+        original = manage.digest
+        def concurrent_edit(path):
+            result = original(path)
+            if path.name == "manifest.json":
+                target.write_bytes(b"new user data")
+            return result
+        with patch.object(manage, "digest", side_effect=concurrent_edit):
+            with self.assertRaisesRegex(AgfError, "changed during rollback"):
+                self.run_project("rollback", True, tools="shared")
+        self.assertEqual(target.read_bytes(), b"new user data")
+        self.assertEqual(manifest.read_bytes(), original_manifest)
+
+    def test_recovery_preserves_edit_to_our_prior_write(self):
+        self.run_project("install", True, tools="shared")
+        first = self.root / ".agents/skills/trace/SKILL.md"
+        second = self.root / ".agf/managed/guides/tools.md"
+        (self.source / "skills/trace/SKILL.md").write_bytes(first.read_bytes() + b" source update")
+        (self.source / "docs/tools.md").write_bytes(second.read_bytes() + b" source update")
+        manifest = self.root / ".agf/manifest.json"
+        manifest_before = manifest.read_bytes()
+        original = manage._write_checked
+        def edit_after_first(root, name, expected, data, touched):
+            result = original(root, name, expected, data, touched)
+            if name == ".agents/skills/trace/SKILL.md" and data and data.endswith(b" source update"):
+                first.write_bytes(b"user edit of updated skill")
+                second.write_bytes(b"user edit of later guide")
+            return result
+        with patch.object(manage, "_write_checked", side_effect=edit_after_first):
+            with self.assertRaisesRegex(AgfError, "recovery incomplete"):
+                self.run_project("update", True, tools="shared")
+        self.assertEqual(first.read_bytes(), b"user edit of updated skill")
+        self.assertEqual(second.read_bytes(), b"user edit of later guide")
+        self.assertEqual(manifest.read_bytes(), manifest_before)
+        self.assertTrue(list((self.root / ".agf/history").glob("*.json")))
+
+    def test_rollback_reverts_its_own_write_and_preserves_later_edit(self):
+        self.run_project("install", True, tools="shared")
+        first = self.root / ".agents/skills/trace/SKILL.md"
+        second = self.root / ".agf/managed/guides/tools.md"
+        first_before = first.read_bytes()
+        (self.source / "skills/trace/SKILL.md").write_bytes(first_before + b" updated")
+        (self.source / "docs/tools.md").write_bytes(second.read_bytes() + b" updated")
+        self.run_project("update", True, tools="shared")
+        updated_first = first.read_bytes()
+        manifest = self.root / ".agf/manifest.json"
+        manifest_before = manifest.read_bytes()
+        original = manage._write_checked
+        def edit_after_restore(root, name, expected, data, touched):
+            result = original(root, name, expected, data, touched)
+            if name == ".agents/skills/trace/SKILL.md" and data == first_before:
+                second.write_bytes(b"user edit during rollback")
+            return result
+        with patch.object(manage, "_write_checked", side_effect=edit_after_restore):
+            with self.assertRaisesRegex(AgfError, "changed during operation"):
+                self.run_project("rollback", True, tools="shared")
+        self.assertEqual(first.read_bytes(), updated_first)
+        self.assertEqual(second.read_bytes(), b"user edit during rollback")
+        self.assertEqual(manifest.read_bytes(), manifest_before)
+
+    def test_update_does_not_replace_concurrent_manifest(self):
+        self.run_project("install", True, tools="shared")
+        target = self.root / ".agents/skills/trace/SKILL.md"
+        prior = target.read_bytes()
+        (self.source / "skills/trace/SKILL.md").write_bytes(prior + b" source update")
+        manifest = self.root / ".agf/manifest.json"
+        original = manage._write_checked
+        def concurrent_manifest(root, name, expected, data, touched):
+            if name == manage.MANIFEST:
+                manifest.write_bytes(b"another process updated manifest")
+            return original(root, name, expected, data, touched)
+        with patch.object(manage, "_write_checked", side_effect=concurrent_manifest):
+            with self.assertRaisesRegex(AgfError, "changed during operation"):
+                self.run_project("update", True, tools="shared")
+        self.assertEqual(manifest.read_bytes(), b"another process updated manifest")
+        self.assertEqual(target.read_bytes(), prior)
+
+    @unittest.skipUnless(os.name == "posix", "POSIX permission bits only")
+    def test_new_state_directory_is_private_without_changing_existing_permissions(self):
+        self.run_project("install", True, tools="shared")
+        self.assertEqual((self.root / ".agf").stat().st_mode & 0o077, 0)
+        other = self.root.parent / (self.root.name + "-existing")
+        other.mkdir()
+        self.addCleanup(shutil.rmtree, other)
+        state = other / ".agf"
+        state.mkdir(mode=0o755)
+        state.chmod(0o755)
+        manage.project(argparse.Namespace(operation="install", target=str(other), source=str(self.source), host=["opencode"], skill=[], tools="shared", apply=True))
+        self.assertEqual(state.stat().st_mode & 0o777, 0o755)
+        self.assertEqual((state / "history").stat().st_mode & 0o077, 0)
+        self.assertEqual((state / "manifest.json").stat().st_mode & 0o077, 0)
+
+    @unittest.skipUnless(os.name == "posix", "POSIX permission bits only")
+    def test_existing_public_state_and_history_keep_modes_but_new_files_are_private(self):
+        state = self.root / ".agf"
+        history = state / "history"
+        history.mkdir(parents=True)
+        state.chmod(0o755)
+        history.chmod(0o755)
+        self.run_project("install", True, tools="shared")
+        self.assertEqual(state.stat().st_mode & 0o777, 0o755)
+        self.assertEqual(history.stat().st_mode & 0o777, 0o755)
+        self.assertEqual((state / "manifest.json").stat().st_mode & 0o077, 0)
+        for path in (state / "managed").rglob("*"):
+            if path.is_file():
+                self.assertEqual(path.stat().st_mode & 0o077, 0, str(path))
+        snapshots = list(history.glob("*.json"))
+        self.assertEqual(len(snapshots), 1)
+        self.assertEqual(snapshots[0].stat().st_mode & 0o077, 0)
+
+    def test_snapshot_collision_preserves_existing_file(self):
+        history = self.root / ".agf/history"
+        history.mkdir(parents=True)
+        snapshot = history / "existing.json"
+        snapshot.write_bytes(b"other process")
+        with self.assertRaises(AgfError):
+            manage._write_snapshot(self.root, snapshot, "our snapshot")
+        self.assertEqual(snapshot.read_bytes(), b"other process")
+
+    @unittest.skipUnless(os.name == "posix", "POSIX descriptor path only")
+    def test_snapshot_fdopen_failure_closes_fd_without_removing_file(self):
+        snapshot = self.root / ".agf/history/new.json"
+        descriptors = []
+        original_open = os.open
+        def open_and_record(*args, **kwargs):
+            descriptor = original_open(*args, **kwargs)
+            descriptors.append(descriptor)
+            return descriptor
+        with patch.object(manage.os, "open", side_effect=open_and_record), patch.object(manage.os, "fdopen", side_effect=OSError("injected failure")):
+            with self.assertRaisesRegex(AgfError, "inspect any partial snapshot"):
+                manage._write_snapshot(self.root, snapshot, "payload")
+        self.assertEqual(len(descriptors), 1)
+        with self.assertRaises(OSError):
+            os.fstat(descriptors[0])
+        self.assertTrue(snapshot.exists())
+
+    @unittest.skipUnless(os.name == "posix", "POSIX permission bits only")
+    def test_replace_writes_private_temporary_file_and_retains_target_mode(self):
+        target = self.root / "file.txt"
+        target.write_bytes(b"old")
+        target.chmod(0o640)
+        modes = []
+        original = os.fchmod
+        def observe_mode(descriptor, mode):
+            modes.append((os.fstat(descriptor).st_mode & 0o777, mode))
+            return original(descriptor, mode)
+        with patch.object(manage.os, "fchmod", side_effect=observe_mode):
+            manage._replace_bytes(target, b"new")
+        self.assertEqual(modes, [(0o600, 0o640)])
+        self.assertEqual(target.stat().st_mode & 0o777, 0o640)
+        self.assertEqual(target.read_bytes(), b"new")
+
+    @unittest.skipUnless(os.name == "posix", "POSIX permission bits only")
+    def test_update_and_rollback_preserve_private_managed_file_mode(self):
+        self.run_project("install", True, tools="shared")
+        target = self.root / ".agents/skills/trace/SKILL.md"
+        target.chmod(0o600)
+        source = self.source / "skills/trace/SKILL.md"
+        source.write_bytes(source.read_bytes() + b" update")
+        self.run_project("update", True, tools="shared")
+        self.assertEqual(target.stat().st_mode & 0o777, 0o600)
+        self.run_project("rollback", True, tools="shared")
+        self.assertEqual(target.stat().st_mode & 0o777, 0o600)
+
+    def test_existing_temporary_collision_is_never_deleted(self):
+        target = self.root / "file.txt"
+        target.write_bytes(b"original")
+        fake_id = type("FakeId", (), {"hex": "0" * 32})()
+        temporary = target.with_name(target.name + ".agf-" + fake_id.hex + ".tmp")
+        temporary.write_bytes(b"other process data")
+        with patch.object(manage.uuid, "uuid4", return_value=fake_id):
+            with self.assertRaises(FileExistsError):
+                manage._replace_bytes(target, b"updated")
+        self.assertEqual(temporary.read_bytes(), b"other process data")
+        self.assertEqual(target.read_bytes(), b"original")
+
+    @unittest.skipUnless(os.name == "posix", "POSIX descriptor path only")
+    def test_fdopen_failure_closes_descriptor_and_preserves_target(self):
+        target = self.root / "file.txt"
+        target.write_bytes(b"original")
+        descriptors = []
+        original_open = os.open
+        def open_and_record(*args, **kwargs):
+            descriptor = original_open(*args, **kwargs)
+            descriptors.append(descriptor)
+            return descriptor
+        with patch.object(manage.os, "open", side_effect=open_and_record), patch.object(manage.os, "fdopen", side_effect=OSError("injected fdopen failure")):
+            with self.assertRaisesRegex(OSError, "injected fdopen failure"):
+                manage._replace_bytes(target, b"updated")
+        self.assertEqual(len(descriptors), 1)
+        with self.assertRaises(OSError):
+            os.fstat(descriptors[0])
+        self.assertEqual(target.read_bytes(), b"original")
+        self.assertEqual(list(self.root.glob("file.txt.agf-*.tmp")), [])
+
+    @unittest.skipUnless(os.name == "posix", "Replace an open file only on POSIX")
+    def test_failed_temporary_open_preserves_replacement_by_other_process(self):
+        target = self.root / "file.txt"
+        target.write_bytes(b"original")
+        fake_id = type("FakeId", (), {"hex": "1" * 32})()
+        temporary = target.with_name(target.name + ".agf-" + fake_id.hex + ".tmp")
+        other = self.root / "competitor.txt"
+        other.write_bytes(b"other process")
+        def replace_then_fail(*args, **kwargs):
+            os.replace(other, temporary)
+            raise OSError("injected failure")
+        with patch.object(manage.uuid, "uuid4", return_value=fake_id), patch.object(manage.os, "fdopen", side_effect=replace_then_fail):
+            with self.assertRaises(OSError):
+                manage._replace_bytes(target, b"updated")
+        self.assertEqual(temporary.read_bytes(), b"other process")
+        self.assertEqual(target.read_bytes(), b"original")
+
     def test_invalid_source_does_not_create_target_files(self):
         (self.source / "skills/trace/SKILL.md").unlink()
         with self.assertRaises(AgfError):
@@ -274,8 +541,6 @@ class ProjectTests(unittest.TestCase):
         destination = self.root / ".agf/managed/project-rules.md"
         notes = self.root / "notes.txt"
         notes.write_text("User content", encoding="utf-8")
-        original_open = Path.open
-
         class BrokenWrite:
             def __init__(self, stream):
                 self.stream = stream
@@ -286,17 +551,52 @@ class ProjectTests(unittest.TestCase):
             def write(self, data):
                 self.stream.write(data[:3])
                 raise OSError("Injected write failure after partial creation")
+            def fileno(self):
+                return self.stream.fileno()
 
-        def open_file(path, mode="r", *args, **kwargs):
-            stream = original_open(path, mode, *args, **kwargs)
-            return BrokenWrite(stream) if path == destination and mode == "xb" else stream
+        original_create = manage._open_create
+        def open_file(path, private):
+            stream = original_create(path, private)
+            return BrokenWrite(stream) if path == destination else stream
 
-        with patch.object(Path, "open", open_file):
+        with patch.object(manage, "_open_create", side_effect=open_file):
             with self.assertRaises(AgfError):
                 self.run_project("install", True, tools="shared")
         self.assertFalse(destination.exists())
         self.assertFalse((self.root / ".agf/manifest.json").exists())
         self.assertEqual(notes.read_text(encoding="utf-8"), "User content")
+
+    @unittest.skipUnless(os.name == "posix", "Replace an open file only on POSIX")
+    def test_partial_create_replaced_by_equal_prefix_is_preserved(self):
+        destination = self.root / ".agf/managed/project-rules.md"
+        original_create = manage._open_create
+        observed = []
+        class ReplacedWrite:
+            def __init__(self, stream):
+                self.stream = stream
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                self.stream.close()
+            def fileno(self):
+                return self.stream.fileno()
+            def write(self, data):
+                prefix = data[:3]
+                self.stream.write(prefix)
+                self.stream.flush()
+                other = destination.with_name("other-file")
+                other.write_bytes(prefix)
+                os.replace(other, destination)
+                observed.append(prefix)
+                raise OSError("injected failure after another process replaced path")
+        def open_file(path, private):
+            stream = original_create(path, private)
+            return ReplacedWrite(stream) if path == destination else stream
+        with patch.object(manage, "_open_create", side_effect=open_file):
+            with self.assertRaisesRegex(AgfError, "recovery incomplete"):
+                self.run_project("install", True, tools="shared")
+        self.assertEqual(destination.read_bytes(), observed[0])
+        self.assertFalse((self.root / ".agf/manifest.json").exists())
 
     def test_mode_switch_is_planned_and_rollback_restores_the_mode(self):
         self.run_project("install", True, tools="shared")

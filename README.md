@@ -6,6 +6,8 @@
 
 第一次使用可看 [micro-os 逐步教學](docs/micro-os-guide.md)：從準備框架、既有與全新專案配置，到更新、回復和其他使用案例。
 
+本輪安全稽核的發現、修正及剩餘限制見[安全稽核紀錄](docs/security-review.md)。
+
 ## 先試一個任務
 
 在本框架目錄執行；Linux 的 Python 命令可能是 `python3`。

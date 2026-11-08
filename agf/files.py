@@ -212,8 +212,15 @@ def apply_plan(plan: dict) -> dict:
             src.rename(backup)
             staged.append((src, backup, dst))
         for src, backup, dst in staged:
-            with dst.open("xb") as output:
-                created.append(dst)
+            flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
+            fd = os.open(dst, flags, 0o600)
+            created.append(dst)
+            try:
+                output = os.fdopen(fd, "wb")
+            except BaseException:
+                os.close(fd)
+                raise
+            with output:
                 if plan["kind"] == "normalize":
                     output.write(replacements[src])
                 else:

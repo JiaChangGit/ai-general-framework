@@ -1,7 +1,9 @@
 import argparse
 import json
+import os
 from pathlib import Path
 import shutil
+import stat
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -166,6 +168,65 @@ class FileTests(unittest.TestCase):
                 files.apply_plan(plan)
         self.assertEqual(sorted(p.name for p in self.root.iterdir()), ["old1", "old2"])
         self.assertEqual((self.root / "old2").read_bytes(), b"two")
+
+    @unittest.skipUnless(os.name == "posix", "POSIX permission bits only")
+    def test_private_output_is_never_readable_by_others_during_write(self):
+        for kind in ("rename", "normalize"):
+            with self.subTest(kind=kind):
+                root = self.root / kind
+                root.mkdir()
+                source = root / "old.txt"
+                source.write_bytes(b"synthetic\r\n")
+                source.chmod(0o600)
+                if kind == "rename":
+                    plan = files.rename_plan(root, "old", "new")
+                    destination, expected = root / "new.txt", b"synthetic\r\n"
+                else:
+                    plan = files.normalize_plan(root, "utf-8", "utf-8", "lf")
+                    destination, expected = source, b"synthetic\n"
+
+                observed_modes = []
+                original_fdopen = os.fdopen
+
+                def monitored_fdopen(fd, *args, **kwargs):
+                    stream = original_fdopen(fd, *args, **kwargs)
+
+                    class MonitoredStream:
+                        def __enter__(self):
+                            return self
+
+                        def __exit__(self, *error):
+                            return stream.__exit__(*error)
+
+                        def write(self, data):
+                            observed_modes.append(stat.S_IMODE(os.fstat(stream.fileno()).st_mode))
+                            return stream.write(data)
+
+                    return MonitoredStream()
+
+                original_umask = os.umask(0o022)
+                try:
+                    with patch.object(files.os, "fdopen", monitored_fdopen):
+                        files.apply_plan(plan)
+                finally:
+                    os.umask(original_umask)
+                self.assertTrue(observed_modes)
+                self.assertTrue(all(mode & 0o077 == 0 for mode in observed_modes), observed_modes)
+                self.assertEqual(destination.read_bytes(), expected)
+                self.assertEqual(stat.S_IMODE(destination.stat().st_mode), 0o600)
+
+    def test_fdopen_failure_closes_descriptor_and_restores_source(self):
+        source = self.make("old.txt", b"synthetic")
+        plan = files.rename_plan(self.root, "old", "new")
+        real_close = os.close
+        with patch.object(files.os, "fdopen", side_effect=OSError("fdopen failed")), \
+             patch.object(files.os, "close", wraps=real_close) as closed:
+            with self.assertRaisesRegex(AgfError, "originals restored"):
+                files.apply_plan(plan)
+        closed.assert_called_once()
+        self.assertEqual(source.read_bytes(), b"synthetic")
+        self.assertFalse((self.root / "new.txt").exists())
+        self.assertFalse(any(self.root.glob(".agf-files-*")))
 
     def test_unsafe_target_and_traversal_refused(self):
         self.make("old.txt")

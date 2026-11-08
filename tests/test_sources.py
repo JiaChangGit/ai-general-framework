@@ -37,6 +37,39 @@ class SourceTests(unittest.TestCase):
         excerpt = invoke("source", "excerpt", str(path), "--query", "第三")
         self.assertEqual(excerpt["excerpts"][0]["line"], 3)
 
+    def test_text_unit_limit_rejects_before_splitlines_for_inspect_and_excerpt(self):
+        path = self.make("many.txt", "one\n\ntwo\nthree\n")
+        with patch.object(sources, "MAX_SOURCE_UNITS", 3):
+            for operation in ("inspect", "excerpt"):
+                with self.subTest(operation=operation), self.assertRaisesRegex(AgfError, "exceeds 3 lines"):
+                    invoke("source", operation, str(path))
+            path.write_text("one\n\ntwo\n", encoding="utf-8")
+            result = invoke("source", "excerpt", str(path))
+            self.assertEqual([unit["anchor"] for unit in result["excerpts"]], ["line:1", "line:3"])
+
+    def test_unicode_line_breaks_match_splitlines_limit(self):
+        with patch.object(sources, "MAX_SOURCE_UNITS", 2):
+            for content in ("a\r\nb\r\nc", "a\vb\vc", "a\x85b\x85c", "a\u2028b\u2028c"):
+                with self.subTest(content=repr(content)), self.assertRaisesRegex(AgfError, "exceeds 2 lines"):
+                    sources._check_line_count(content)
+            sources._check_line_count("a\r\nb\r\n")
+
+    def test_html_many_fragments_on_one_line_and_encoded_breaks_are_bounded(self):
+        path = self.make("many.html", "<b>x</b>" * 4)
+        with patch.object(sources, "MAX_SOURCE_UNITS", 3):
+            with self.assertRaisesRegex(AgfError, "exceeds 3 text units"):
+                invoke("source", "inspect", str(path))
+            path.write_text("<p>a&#10;b&#10;c&#10;d</p>", encoding="utf-8")
+            with self.assertRaisesRegex(AgfError, "exceeds 3 lines"):
+                invoke("source", "excerpt", str(path))
+
+    def test_oversized_text_rejected_before_hashing(self):
+        path = self.make("oversized.txt", "abc")
+        with patch.object(sources, "MAX_TEXT_BYTES", 2), patch.object(sources, "_hash") as hash_file:
+            with self.assertRaisesRegex(AgfError, "exceeds 50 MB"):
+                sources.load_source(path)
+            hash_file.assert_not_called()
+
     def test_excerpt_has_total_not_per_unit_budget(self):
         path = self.make("many.txt", "1234567890\nABCDEFGHIJ\nlast\n")
         result = invoke("source", "excerpt", str(path), "--max-chars", "12", "--limit", "3")
@@ -74,6 +107,21 @@ class SourceTests(unittest.TestCase):
             result = invoke("source", "excerpt", str(path), "--pages", "2")
         self.assertEqual(result["excerpts"][0]["anchor"], "page:2")
         self.assertIn("physical", result["anchor_basis"])
+
+    def test_pdf_unit_and_extracted_text_limits(self):
+        path = self.make("paper.pdf", "%PDF adapter fixture")
+        pages = [SimpleNamespace(extract_text=lambda: "abc") for _ in range(4)]
+        reader = SimpleNamespace(is_encrypted=False, pages=pages)
+        with patch.dict(sys.modules, {"pypdf": SimpleNamespace(PdfReader=lambda _: reader)}), patch.object(sources, "MAX_SOURCE_UNITS", 3):
+            with self.assertRaisesRegex(AgfError, "exceeds 3 pages"):
+                invoke("source", "inspect", str(path))
+            with self.assertRaisesRegex(AgfError, "exceeds 3 pages"):
+                invoke("source", "excerpt", str(path), "--pages", "1-4")
+            result = invoke("source", "excerpt", str(path), "--pages", "4")
+            self.assertEqual(result["excerpts"][0]["anchor"], "page:4")
+            with patch.object(sources, "MAX_PDF_TEXT_CHARS", 5):
+                with self.assertRaisesRegex(AgfError, "extracted text exceeds 5 characters"):
+                    invoke("source", "excerpt", str(path), "--pages", "1-2")
 
     def test_pdf_inspection_does_not_extract_page_text(self):
         path = self.make("paper.pdf", "%PDF adapter fixture")

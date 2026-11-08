@@ -1,10 +1,14 @@
 from pathlib import Path
+import os
+import shlex
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 
-from agf.gittools import scope, snapshot
+from agf.common import AgfError
+from agf.gittools import scope, snapshot, summary
 
 
 @unittest.skipUnless(shutil.which("git"), "Git unavailable")
@@ -34,3 +38,39 @@ class GitTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             subprocess.run(["git", "init", "-q", temp], check=True, capture_output=True)
             self.assertIsNone(snapshot(temp)["head"])
+
+    @unittest.skipUnless(os.name == "posix", "Invalid UTF-8 filenames require POSIX byte paths")
+    def test_snapshot_rejects_undecodable_status(self):
+        with tempfile.TemporaryDirectory() as temp:
+            subprocess.run(["git", "init", "-q", temp], check=True, capture_output=True)
+            first = os.fsencode(temp) + b"/\xff"
+            second = os.fsencode(temp) + b"/\xfe"
+            with open(first, "wb") as stream:
+                stream.write(b"x")
+            with self.assertRaisesRegex(AgfError, "reliably decode"):
+                snapshot(temp)
+            os.rename(first, second)
+            with self.assertRaisesRegex(AgfError, "reliably decode"):
+                snapshot(temp)
+
+    @unittest.skipUnless(os.name == "posix", "Git shell driver fixture uses POSIX command quoting")
+    def test_summary_does_not_execute_configured_text_conversion(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            def git(*args):
+                subprocess.run(["git", "-C", temp, *args], check=True, capture_output=True)
+            git("init", "-q")
+            git("config", "user.email", "fixture@example.invalid")
+            git("config", "user.name", "Fixture")
+            (root / ".gitattributes").write_text("*.txt diff=synthetic\n")
+            target = root / "test.txt"
+            target.write_text("before\n")
+            git("add", ".")
+            git("commit", "-qm", "fixture")
+            marker = root / "marker"
+            driver = root / "driver.py"
+            driver.write_text("from pathlib import Path\nPath(" + repr(str(marker)) + ").touch()\n")
+            git("config", "diff.synthetic.textconv", f"{shlex.quote(sys.executable)} {shlex.quote(str(driver))}")
+            target.write_text("after\n")
+            summary(root)
+            self.assertFalse(marker.exists())

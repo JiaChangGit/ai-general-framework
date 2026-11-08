@@ -2,6 +2,10 @@
 
 日期：2026-11-08（Asia/Taipei）。這份紀錄分開列出腳本、宿主整合、來源閱讀與真人學習的證據。
 
+本次安全稽核另重現並修正檔案權限、Git 狀態判讀、來源資源耗盡與受管理檔案並行修改等問題；詳細條件與尚未解決的 Git clean filter、非原子檔案競態等限制見[安全稽核紀錄](security-review.md)。本輪工作目錄與可到達歷史的有限秘密格式掃描未命中；這不能保證沒有其他秘密或私人資料。
+
+最終程式的完整測試：WSL Python 3.14.4 共 164 項全部通過，使用既有隔離 Node 24.22.1；Windows Python 3.13.15 共 164 項，151 通過、13 跳過。跳過包括 POSIX 權限／byte 檔名／descriptor 與替換開啟中檔案的測試，以及本機無權建立 symlink（WinError 1314）。Windows 從 WSL UNC 路徑執行；它的 ACL、原生 NTFS 及所有環境不能由這些測試推論。安全稽核的原始測試輸出與合成重現保存在本機忽略的 `.agf/qa/security-audit/`，沒有作為公開內容提交。
+
 ## 公開前檢查與 micro-os 教學
 
 本次以目前原始碼重新執行完整 unittest：WSL Python 3.14.4 共 137 案，135 通過，兩項 OpenCode 插件案例因 Node 未在 PATH 而 skip；再用既有隔離 Node 24.22.1 重跑 integration 16 案，包含這兩項，全部通過。Windows 原生 Python 3.13.15 共 137 案，135 通過；POSIX 權限測試不適用，另一項 symlink 測試因 WinError 1314 skip。Windows 是在 WSL UNC 共享資料夾執行 Python，這不是原生 NTFS 全面驗證。五個 skills 通過官方 skill-creator 格式 validator；結構檢查和單元測試不能證明沒有其他錯誤。

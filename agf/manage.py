@@ -11,10 +11,11 @@ import hashlib
 import os
 from pathlib import Path, PurePosixPath
 import shutil
+import stat
 import sys
 import uuid
 
-from .common import AgfError, digest, json_text, read_json, within, write_text
+from .common import AgfError, digest, json_text, read_json, within
 
 
 HOSTS = ("codex", "claude", "gemini", "opencode")
@@ -256,32 +257,154 @@ def _plan(root: Path, source: Path, hosts: list[str], old: dict | None, selected
     return report, desired
 
 
-def _replace_bytes(path: Path, data: bytes) -> None:
+def _replace_bytes(path: Path, data: bytes) -> tuple[int, int] | None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + ".agf-" + uuid.uuid4().hex + ".tmp")
+    created = False
+    identity = None
     try:
-        with temporary.open("xb") as stream:
-            stream.write(data)
+        if os.name == "posix":
+            try:
+                previous_mode = stat.S_IMODE(path.stat().st_mode)
+            except FileNotFoundError:
+                previous_mode = None
+            descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            created = True
+            try:
+                identity = _identity(os.fstat(descriptor))
+            except OSError:
+                pass
+            try:
+                stream = os.fdopen(descriptor, "wb")
+            except BaseException:
+                os.close(descriptor)
+                raise
+            with stream:
+                stream.write(data)
+                stream.flush()
+                if previous_mode is not None:
+                    os.fchmod(stream.fileno(), previous_mode)
+        else:
+            stream = temporary.open("xb")
+            created = True
+            with stream:
+                try:
+                    identity = _identity(os.fstat(stream.fileno()))
+                except (OSError, AttributeError):
+                    pass
+                stream.write(data)
         os.replace(temporary, path)
+        return identity
     finally:
-        if temporary.exists():
+        if created and identity is not None and temporary.exists() and _identity(temporary.lstat()) == identity:
             temporary.unlink()
 
 
-def _restore(root: Path, before: dict, manifest_bytes: bytes | None) -> None:
-    for name, data in before.items():
-        path = _path(root, name)
-        if data is None:
-            if path.is_file():
-                path.unlink()
-        else:
-            _replace_bytes(path, data)
-    manifest_path = _path(root, MANIFEST)
-    if manifest_bytes is None:
-        if manifest_path.is_file():
-            manifest_path.unlink()
+def _content(path: Path) -> bytes | None:
+    if path.is_file():
+        return path.read_bytes()
+    if path.exists() or path.is_symlink():
+        raise AgfError(f"Destination is not a regular file: {path}")
+    return None
+
+
+def _identity(info) -> tuple[int, int] | None:
+    # Some filesystems do not provide a useful file ID; never infer ownership.
+    return (info.st_dev, info.st_ino) if info.st_ino else None
+
+
+def _open_create(path: Path, private: bool):
+    if private and os.name == "posix":
+        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        try:
+            return os.fdopen(descriptor, "wb")
+        except BaseException as exc:
+            os.close(descriptor)
+            if isinstance(exc, OSError):
+                raise AgfError(f"Cannot open newly created file {path}; it may remain and needs inspection: {exc}") from exc
+            raise
+    return path.open("xb")
+
+
+def _write_snapshot(root: Path, path: Path, text: str) -> None:
+    directory = _path(root, ".agf/history")
+    directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+    try:
+        with _open_create(path, private=True) as stream:
+            stream.write(text.encode("utf-8"))
+    except (OSError, AgfError) as exc:
+        # No project mutations have started. Do not remove an ambiguous file.
+        raise AgfError(f"Cannot write rollback snapshot {path}; project changes were not started; inspect any partial snapshot: {exc}") from exc
+
+
+def _write_checked(root: Path, name: str, expected: bytes | None, data: bytes | None, touched: dict) -> None:
+    """Recheck each destination; exclusive create protects an absent path.
+
+    This narrows concurrent edits but cannot make a comparison and replace
+    atomic against another process. Never treat this as a filesystem lock.
+    """
+    path = _path(root, name)
+    if _content(path) != expected:
+        raise AgfError(f"Destination changed during operation: {name}")
+    if expected == data:
+        return
+    if data is None:
+        touched[name] = (expected, None)
+        path.unlink()
+    elif expected is None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        created = False
+        identity = None
+        try:
+            with _open_create(path, private=name.startswith(".agf/")) as stream:
+                created = True
+                try:
+                    identity = _identity(os.fstat(stream.fileno()))
+                except (OSError, AttributeError):
+                    pass
+                stream.write(data)
+        except (OSError, AgfError):
+            # Preserve an independent creator's file when exclusive open fails.
+            # A partially created file can be cleaned only when it still looks
+            # like the bytes this write attempted; otherwise leave it for review.
+            if created:
+                try:
+                    actual = _content(_path(root, name))
+                    touched[name] = (None, actual if actual is not None and data.startswith(actual) else data, identity)
+                except (OSError, AgfError):
+                    touched[name] = (None, data, identity)
+            raise
+        touched[name] = (None, data, identity)
     else:
-        _replace_bytes(manifest_path, manifest_bytes)
+        # Register before replacement so recovery also handles a failure raised
+        # after the filesystem changed, without overwriting an unrelated edit.
+        touched[name] = (expected, data, None)
+        identity = _replace_bytes(path, data)
+        touched[name] = (expected, data, identity)
+
+
+def _recover(root: Path, touched: dict) -> list[str]:
+    """Undo our completed writes only if they still contain what we wrote."""
+    failures = []
+    for name, operation in reversed(list(touched.items())):
+        prior, written = operation[:2]
+        try:
+            actual = _content(_path(root, name))
+            if actual == prior:
+                continue
+            if len(operation) == 3:
+                owner = operation[2]
+                current = _identity(_path(root, name).lstat())
+                if owner is None or current != owner:
+                    failures.append(f"{name}: partial file ownership cannot be confirmed; preserved")
+                    continue
+            if actual != written:
+                failures.append(f"{name}: changed after our write; preserved")
+                continue
+            _write_checked(root, name, written, prior, {})
+        except (OSError, AgfError) as exc:
+            failures.append(f"{name}: {exc}")
+    return failures
 
 
 def project(args: argparse.Namespace) -> dict:
@@ -329,7 +452,13 @@ def project(args: argparse.Namespace) -> dict:
     if not changed and old and old.get("hosts") == hosts and old.get("source") == str(source) and old.get("tools_mode", "copy") == tools_mode:
         report.update({"applied": False, "unchanged": True})
         return report
-    before = {item["path"]: (_path(root, item["path"]).read_bytes() if _path(root, item["path"]).is_file() else None) for item in changed}
+    before = {}
+    for item in changed:
+        name = item["path"]
+        data = _content(_path(root, name))
+        if item["action"] == "create" and data is not None:
+            raise AgfError(f"Destination appeared after planning: {name}; no files were changed.")
+        before[name] = data
     manifest_path = _path(root, MANIFEST)
     previous_bytes = manifest_path.read_bytes() if old else None
     transaction = uuid.uuid4().hex
@@ -349,28 +478,22 @@ def project(args: argparse.Namespace) -> dict:
         path = _path(root, name)
         if (path.read_bytes() if path.is_file() else None) != data:
             raise AgfError(f"Destination changed after planning: {name}")
-    write_text(history_path, json_text(snapshot))
+    # A new private state directory may contain paths and rollback contents.
+    # exist_ok preserves the permissions of any existing user directory.
+    _path(root, ".agf").mkdir(mode=0o700, exist_ok=True)
+    _write_snapshot(root, history_path, json_text(snapshot))
     touched = {}
     try:
         for item in changed:
-            path = _path(root, item["path"])
-            if item["action"] in ("remove", "retire"):
-                path.unlink()
-            elif item["action"] == "create":
-                path.parent.mkdir(parents=True, exist_ok=True)
-                with path.open("xb") as stream:
-                    touched[item["path"]] = None
-                    stream.write(desired[item["path"]]["data"])
-            else:
-                _replace_bytes(path, desired[item["path"]]["data"])
-            touched[item["path"]] = before[item["path"]]
-        _replace_bytes(manifest_path, json_text(new_manifest).encode("utf-8"))
+            name = item["path"]
+            data = None if item["action"] in ("remove", "retire") else desired[name]["data"]
+            _write_checked(root, name, before[name], data, touched)
+        _write_checked(root, MANIFEST, previous_bytes, json_text(new_manifest).encode("utf-8"), touched)
     except (OSError, AgfError) as exc:
-        try:
-            _restore(root, touched, previous_bytes)
-        except (OSError, AgfError) as recovery:
-            raise AgfError(f"Configuration failed: {exc}; recovery also failed: {recovery}. Snapshot: {history_path}") from exc
-        raise AgfError(f"Configuration failed and previous managed contents were restored: {exc}") from exc
+        failures = _recover(root, touched)
+        if failures:
+            raise AgfError(f"Configuration failed: {exc}; recovery incomplete: {'; '.join(failures)}. Snapshot: {history_path}") from exc
+        raise AgfError(f"Configuration failed; completed writes were reverted where unchanged: {exc}. Snapshot: {history_path}") from exc
     report.update({"applied": True, "transaction": transaction, "manifest": str(manifest_path)})
     return report
 
@@ -409,13 +532,24 @@ def _rollback(root: Path, old: dict | None, apply: bool) -> dict:
         return report
     if drift:
         raise AgfError("Rollback blocked by local drift. No files were changed; preserve and reconcile the local changes first.")
-    current = {name: (_path(root, name).read_bytes() if _path(root, name).is_file() else None) for name in before}
+    current = {name: _content(_path(root, name)) for name in before}
     manifest_bytes = _path(root, MANIFEST).read_bytes()
+    if _sha(manifest_bytes) != snapshot.get("after_manifest_sha256"):
+        raise AgfError("Manifest changed during rollback; no files were changed.")
+    for name, data in current.items():
+        actual = _sha(data) if data is not None else None
+        if actual != snapshot["after_files"][name]:
+            raise AgfError(f"Destination changed during rollback: {name}; no files were changed.")
+    touched = {}
     try:
-        _restore(root, before, previous_bytes)
-    except OSError as exc:
-        _restore(root, current, manifest_bytes)
-        raise AgfError(f"Rollback failed and current managed contents were restored: {exc}") from exc
+        for name, data in before.items():
+            _write_checked(root, name, current[name], data, touched)
+        _write_checked(root, MANIFEST, manifest_bytes, previous_bytes, touched)
+    except (OSError, AgfError) as exc:
+        failures = _recover(root, touched)
+        if failures:
+            raise AgfError(f"Rollback failed: {exc}; recovery incomplete: {'; '.join(failures)}. Snapshot: {history}") from exc
+        raise AgfError(f"Rollback failed; completed writes were reverted where unchanged: {exc}. Snapshot: {history}") from exc
     report["applied"] = True
     return report
 

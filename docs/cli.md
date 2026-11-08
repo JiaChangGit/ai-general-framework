@@ -17,6 +17,8 @@ python scripts/agf.py profile show --no-user
 
 `doctor` 只找執行檔及明確提供目錄的管理資料標記；不驗證登入或 repository 有效性，也不從安裝了 gh／glab 推定專案平台。自管 GitLab、企業 GitHub 與 SVN 的實際連線由原生工具和當次任務處理。
 
+配置、更新或回復時，避免其他程序同時修改相同的受管理檔案。工具會在寫入前再核對內容，若無法安全回復會保留競爭修改並回報快照；核對與檔案替換之間仍有競態，這不是跨程序鎖。
+
 新配置預設不額外選 skills、共用工具。`--tools copy` 才帶工具副本。舊 manifest 沒有模式欄位時視為 copy；更新沿用選擇，明確指定才改。更新會列出來源已移除的受管理 skill，套用前保留 drift、未受管理檔與回復檢查；沒有永久別名或中央專案登錄服務。
 
 偏好來源為框架預設、使用者設定、專案 `.agf/profile.json`，較近的物件逐層合併，清單取代。Windows 使用者路徑為 `%APPDATA%/ai-general-framework/profile.json`；Linux 為 `${XDG_CONFIG_HOME:-~/.config}/ai-general-framework/profile.json`。可明示 `--user`／`--project`；`profile init --output PATH` 先預覽，`--apply` 才建立且不覆寫。個人偏好不授予工具權限。
@@ -34,6 +36,10 @@ python scripts/agf.py diagram create examples/diagrams/files-transaction.json --
 ```
 
 `context search` 使用既有 ripgrep。PDF 抽字需選用 pypdf，`inspect` 只查 metadata，`excerpt --pages 2,4-6` 才抽指定實體頁。靜態頁用 `source fetch URL --output FILE` 預覽，加 `--execute` 才連網保存；[範例](../examples/research/web-fetch.md)列出 robots、上限及 TLS 行為。
+
+`source fetch` 的回傳紀錄包含要求的網址及重新導向資訊；網址查詢參數可能含權杖或私人識別資訊，分享輸出前先檢查。它也能連線本機及內網網址，不是網路隔離工具；目的地必須在當次授權內。`run` 的結果與可選紀錄包含完整命令參數，避免把密碼或權杖直接放進參數；工具不會自動辨識或遮罩秘密。
+
+為降低大型或重複資料耗盡資源的風險，文字來源限 50 MB、50,000 行，HTML 另限 50,000 個文字單位；PDF 單次選取不超過 50,000 頁、抽取文字總計不超過 2,000 萬字元。超限明確報錯，不把未讀內容當成完整結果；可縮小檔案或 PDF 選頁，已知行號可用 `context extract`。不同來源的 `source diff` 另限兩側單位合計 10,000 且數量乘積不超過 400 萬，相同的正規化內容可直接比較；超過時先縮小本地比對範圍。輸出 `--limit` 不等於運算時間或記憶體上限。PDF 解析器仍可能在抽取單頁前消耗大量資源，這些限制不是隔離機制。
 
 `files rename/normalize` 預設預覽，可保存計畫後以 `files apply PLAN --apply` 套用。管理資料 `.git`、`.svn`、`.hg` 在列檔與套用時都受保護；一般隱藏檔仍照常處理。它不解讀 `.gitignore` 或 `svn:ignore`。碰撞、來源重驗與失敗回復見[批次範例](../examples/files/README.md)。
 
@@ -57,6 +63,8 @@ python scripts/agf.py git scope --repo . --allow agf --allow tests
 POSIX 環境以 `0700` 建立最終保存目錄，不調整既有父目錄；其他平台依本機存取控制處理，這不是隔離或自動隱私保證。若命令完成後 metadata 保存失敗，回傳的 `evidence.metadata_saved` 為 false，並保留實際執行結果；命令的 PASS／FAIL 與紀錄是否存妥須分開看。先查原始輸出及當前狀態，不為補紀錄重跑已完成的寫入。啟動前的準備失敗可能留下新建目錄與空檔，錯誤會明示命令未啟動。
 
 Task 記錄可明列任何本地檔案，不依賴 Git。只有選用 `--repo` 才保存 Git 身分；SVN revision 或其他版本條件可用原生命令取得並列為證據。hash 相同只是檔案身分檢查，接手仍需讀來源及目前變更。`git summary/scope` 維持 Git 專用，不包裝成通用版本控制 API。
+
+Git 狀態無法可靠解碼為 UTF-8 時，交接紀錄會報錯，不將替代字元當成原始路徑。`git summary/scope` 和 `task record --repo` 會執行本機 Git：雖然 diff 已停用 textconv／external diff，Git 仍可能依本機設定啟動 clean filter（將工作檔轉換後再交給 Git 的外部程式）。對不可信的工作目錄或 Git 設定應先審查、使用適當隔離；這些命令不是 sandbox。停用文字轉換後，較早記錄的 Git 狀態雜湊可能改變；先檢查實際差異，再決定是否重新記錄交接。
 
 ## Hooks 與範本
 
