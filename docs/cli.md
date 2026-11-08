@@ -43,6 +43,7 @@ python scripts/agf.py diagram create examples/diagrams/files-transaction.json --
 
 ```console
 python scripts/agf.py run --cwd . --timeout 10 -- python examples/learning/queue_walkthrough.py
+python scripts/agf.py run --output-dir .agf/runs/queue-01 --max-chars 2000 -- python examples/learning/queue_walkthrough.py
 python scripts/agf.py check --root . --config templates/quality.framework.json --profile full
 python scripts/agf.py task record --input examples/task.json --root . --output .agf/task.json
 python scripts/agf.py task check .agf/task.json
@@ -50,6 +51,10 @@ python scripts/agf.py git scope --repo . --allow agf --allow tests
 ```
 
 `run` 會真的執行傳入的程式，需在當次授權內。它用參數陣列，支援 `--max-chars`、`--encoding`、逾時與截斷回報；`.cmd/.bat` 需專用接線。品質 JSON 的 `{python}` 換成目前 interpreter；空檢查不能通過。
+
+需要回查完整診斷時，可選 `run --output-dir DIR`。路徑相對於呼叫 CLI 的目錄，不隨 `--cwd` 改變；目錄必須尚未存在，包含 symlink 在內的既有目的地一律拒絕。命令啟動前先建立並開啟三個檔案：`stdout.bin`、`stderr.bin` 保存原始 bytes，`result.json` 記錄退出碼、編碼、byte 數、摘要是否截斷及檔案路徑。非零退出和逾時的輸出也會保存；未指定此選項時不留下額外紀錄。保存的內容沒有自動脫敏，依任務選擇本機位置與分享範圍。
+
+POSIX 環境以 `0700` 建立最終保存目錄，不調整既有父目錄；其他平台依本機存取控制處理，這不是隔離或自動隱私保證。若命令完成後 metadata 保存失敗，回傳的 `evidence.metadata_saved` 為 false，並保留實際執行結果；命令的 PASS／FAIL 與紀錄是否存妥須分開看。先查原始輸出及當前狀態，不為補紀錄重跑已完成的寫入。啟動前的準備失敗可能留下新建目錄與空檔，錯誤會明示命令未啟動。
 
 Task 記錄可明列任何本地檔案，不依賴 Git。只有選用 `--repo` 才保存 Git 身分；SVN revision 或其他版本條件可用原生命令取得並列為證據。hash 相同只是檔案身分檢查，接手仍需讀來源及目前變更。`git summary/scope` 維持 Git 專用，不包裝成通用版本控制 API。
 

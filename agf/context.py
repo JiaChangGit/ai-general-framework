@@ -50,7 +50,7 @@ def extract(path, start=1, end=None, max_chars=16000, encoding="utf-8-sig", max_
 def search(pattern, root=".", glob=None, max_results=30):
     executable = shutil.which("rg")
     if not executable:
-        raise AgfError("ripgrep is unavailable; use context extract on known files, or authorize its installation separately.")
+        raise AgfError("ripgrep is unavailable in this environment; use a scoped native search (for example grep on Linux or Select-String on Windows), then context extract on known files. Installation is optional and requires task authorization.")
     if max_results < 1:
         raise AgfError("max-results must be positive.")
     argv = [executable, "--json", "--max-count", str(max_results + 1)]

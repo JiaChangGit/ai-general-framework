@@ -2,6 +2,23 @@
 
 這份紀錄說明框架為何採用某些方法、哪些做法沒有照搬，以及證據能支持到哪裡。它是設計依據，不代表所有整合、模型與教學方法都已在本框架驗證。外部工具會變動，實際操作仍需核對使用版本的文件。
 
+## 實用工具方向的融合
+
+查閱日期：2026-11-08。依現有能力補強原生工具的選用判斷、相容性、驗證及交付；仍使用五個技能入口與四份部署指引。下列官方文件支持工具能力和使用限制，不等於已完成個人環境的安全、授權、口碑與效果驗收；真正採用前仍按 tools 指引查核，不自動安裝或加 hook。
+
+| 原始來源 | 融合與取捨 |
+|---|---|
+| [ripgrep](https://github.com/BurntSushi/ripgrep)、[jq manual](https://jqlang.org/manual/) | 先定位再摘錄，結構資料用現有過濾器；缺工具時提供原生替代入口，不重寫搜尋器或 JSON 語言。忽略規則、缺值和輸出截斷各自辨認。 |
+| [difftastic](https://github.com/Wilfred/difftastic)、[Ruff linter](https://docs.astral.sh/ruff/linter/) | 依需要輔助差異閱讀、格式及靜態檢查；不把結構相近當語意正確，不以啟用所有規則或全面自動修正取代範圍判斷。 |
+| [hyperfine](https://github.com/sharkdp/hyperfine) | 命令 benchmark 可重複、記錄快取條件和結果；不自建效能平台，也不以執行時間當 AI token 用量。僅對可安全重複的命令測量。 |
+| [Hypothesis introduction](https://hypothesis.readthedocs.io/en/latest/tutorial/introduction.html)、[replaying failures](https://hypothesis.readthedocs.io/en/latest/tutorial/replaying-failures.html)、[LLVM libFuzzer](https://llvm.org/docs/LibFuzzer.html) | 依實際不變條件產生反例，保存可讀失敗輸入成回歸；不是每次修改都加 fuzzing。Hypothesis 資料庫與 reproduction blob 不保證跨變更／版本永遠回放；libFuzzer 官方說明原作者已停止積極開發新功能，僅作可選工具例子，不固定唯一推薦。 |
+| [Pact 適用情境](https://docs.pact.io/getting_started/what_is_pact_good_for) | 先使用既有消費端案例驗證界面、舊輸入與升級；只有可協調的消費／提供端持續協作時才評估契約工具，不另建通用 migration runner。 |
+| [Playwright best practices](https://playwright.dev/docs/best-practices)、[accessibility testing](https://playwright.dev/docs/accessibility-testing)、[W3C evaluation](https://www.w3.org/WAI/test-evaluate/) | 驗證使用者可觀察的流程與相關頁面狀態；自動掃描、人工與使用者檢查各有範圍，不以一次 axe 通過宣稱完整無障礙或合規。 |
+| [Gitleaks](https://github.com/gitleaks/gitleaks)、[原始 issue 2296](https://github.com/gitleaks/gitleaks/issues/2296) | 以既有可信 scanner 為先，不新增通用秘密辨識器。查閱時 README 已宣告 feature complete、僅 security patches；不因此強迫移轉到作者新工具。issue 回報 v8.30.1 將 redact 放設定檔未生效，未在本框架重現；採納的是核對實際遮罩與報告範圍，並非宣稱所有版本都有同一問題。 |
+| [OpenAI：skill evals](https://developers.openai.com/blog/eval-skills)、[Anthropic：agent evals](https://www.anthropic.com/research/demystifying-evals-for-ai-agents) | 入門補真實 host 的發現、載入與成果三層核對；同規則／工具／材料下比較有無技能，先看品質、越界與返工，再看實際 usage。不建立另一套模型呼叫或評測平台。 |
+
+唯一新增的執行能力是在既有 `run` 加可選的原始 stdout／stderr 保存，避免為恢復截斷的診斷重跑已完成命令。預設不留檔，也不新增依賴、服務或工具包裝。開源貢獻則在既有帶讀參考補上從小問題、來源、patch 到 review 修訂的學習方式；真人是否已理解仍待實際觀察。
+
 ## v0.2 的減法與支援邊界
 
 本輪依實際使用方向，將自動技能入口由十三個收斂成五個明確目的。一般開發交給宿主，需求對齊、分工、表達、創作及工具選擇改成四份按需指引；新專案只配置明示選取的 skills。共用工具為預設，離線交付才選工具副本。這減少重複配置與選擇面，尚不能據此宣稱降低多少 token 或實際宿主誤觸率。

@@ -20,12 +20,18 @@ python scripts/agf.py context extract examples/learning/queue_walkthrough.py --s
 
 預設共用這份框架的工具；專案僅配置規則、按需指引及你選取的 skills。沒有 `--skill` 就不額外安裝技能入口。選取後由宿主依請求自動考慮使用。
 
+第一次先依眼前任務選一到兩個：追一筆輸入的執行路徑選 `trace-code`；已有錯誤現象選 `debug-root-cause`；想學陌生專案或工具選 `guide-learning`，需要追具體路徑時再搭配 `trace-code`。一般功能實作可以先不加 skill。下例適合需要追程式並找問題的專案；請換成自己的目標目錄與選擇。
+
 ```console
 python scripts/agf.py project plan --target ../my-project --host opencode --skill trace-code --skill debug-root-cause
 python scripts/agf.py project install --target ../my-project --host opencode --skill trace-code --skill debug-root-cause --apply
 ```
 
 `--host`、`--skill` 可重複指定。目標目錄須已存在；工具保留既有規則、未受管理檔案及本地修改。專案的 `.agf/managed/project-rules.md` 會列出目前環境可用的工具入口；不必複製或手改整套程式。
+
+配置後執行 `python scripts/agf.py project status --target ../my-project`，再從目標專案開啟宿主的新對話，確認它的技能清單或探索工具看得到所選 skill。`status` 只驗證受管理檔案與工具入口，不代表宿主真的載入了技能。接著交付一個有原始材料的小任務，例如「請追這筆輸入到回傳結果，指出中途狀態怎麼變」；從宿主提供的載入紀錄與實際成果確認行為，不只採信 AI 自稱已啟用。詳細對照方式見[行為驗收](evals/README.md)。
+
+OpenCode 可在同一個 session 手動切換模型；一般切換不用額外建立交接檔。只有換對話、換工具或需要留存決策時，再使用交接紀錄。
 
 需要離線或獨立交付時，加 `--tools copy`，把當時工具複製成專案內的快照。日常預設是 `--tools shared`；共享來源移動後用 `--source` 更新入口。Windows 與 WSL 的路徑各自核對，工具不默默跨環境執行。
 
@@ -74,7 +80,7 @@ MCP 選用由宿主代理讀取規則後，透過其工具探索能力執行。R
 
 ## Scripts 提供原生工具之外的價值
 
-`files` 提供批次預覽、碰撞／來源重驗、轉換與差異；`context`／`source` 提供有限摘錄及來源位置；`diagram` 產生 Mermaid、draw.io 與 trace 檢視；`run`／`check` 記錄有界的執行結果。`task` 交接是選項，`git` 只處理 Git；GitHub、GitLab、SVN 等工作優先用現成 `gh`、`glab`、`svn` 及專案流程。
+`files` 提供批次預覽、碰撞／來源重驗、轉換與差異；`context`／`source` 提供有限摘錄及來源位置；`diagram` 產生 Mermaid、draw.io 與 trace 檢視；`run`／`check` 記錄有界的執行結果，`run --output-dir DIR` 可另存完整原始輸出，避免為取回診斷重跑命令。`task` 交接是選項，`git` 只處理 Git；GitHub、GitLab、SVN 等工作優先用現成 `gh`、`glab`、`svn` 及專案流程。
 
 完整命令、權限範圍、共用工具與 hooks 見 [CLI 操作](docs/cli.md)。[設計說明](docs/design.md)與[研究紀錄](docs/research.md)交代採納和刪減理由。共用創作指引可協助小說、音樂與投影片式影片；真正使用時再選可用工具，分清企劃、草稿與可播放成品。
 

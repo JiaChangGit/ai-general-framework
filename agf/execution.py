@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import codecs
+from contextlib import ExitStack
 import math
 import os
 from pathlib import Path
@@ -14,7 +15,7 @@ import sys
 import tempfile
 import time
 
-from .common import AgfError, read_json, within
+from .common import AgfError, json_text, read_json, within
 
 
 def _validate_options(timeout, max_chars, encoding):
@@ -28,7 +29,7 @@ def _validate_options(timeout, max_chars, encoding):
         raise AgfError(f"Unknown output encoding: {encoding!r}") from exc
 
 
-def run_command(argv, *, cwd=None, timeout=60, max_chars=16000, encoding="utf-8"):
+def run_command(argv, *, cwd=None, timeout=60, max_chars=16000, encoding="utf-8", output_dir=None):
     if not argv or not all(isinstance(item, str) and item and "\x00" not in item for item in argv):
         raise AgfError("Command must be a nonempty argument list, without NUL characters.")
     _validate_options(timeout, max_chars, encoding)
@@ -49,7 +50,22 @@ def run_command(argv, *, cwd=None, timeout=60, max_chars=16000, encoding="utf-8"
     started = time.monotonic()
     timed_out = False
     cleanup = "not_needed"
-    with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
+    with ExitStack() as stack:
+        metadata = None
+        if output_dir is None:
+            stdout = stack.enter_context(tempfile.TemporaryFile())
+            stderr = stack.enter_context(tempfile.TemporaryFile())
+        else:
+            # Reserve every destination before starting the supplied command.
+            # absolute(), unlike resolve(), does not follow an existing final symlink.
+            evidence_dir = Path(output_dir).absolute()
+            try:
+                evidence_dir.mkdir(mode=0o700, parents=True, exist_ok=False)
+                stdout = stack.enter_context((evidence_dir / "stdout.bin").open("x+b"))
+                stderr = stack.enter_context((evidence_dir / "stderr.bin").open("x+b"))
+                metadata = stack.enter_context((evidence_dir / "result.json").open("xb", buffering=0))
+            except OSError as exc:
+                raise AgfError(f"Cannot prepare a new output directory {evidence_dir}; command was not started: {exc}") from exc
         options = {"start_new_session": True} if os.name != "nt" else {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
         try:
             process = subprocess.Popen(command, cwd=directory, stdin=subprocess.DEVNULL,
@@ -98,7 +114,21 @@ def run_command(argv, *, cwd=None, timeout=60, max_chars=16000, encoding="utf-8"
             result[name + "_truncated"] = count > max_chars * 4 + 4 or len(decoded) > max_chars
             result[name + "_decode_errors"] = decode_errors
         result["encoding"] = encoding
-    result["status"] = "PASS" if result["exit_code"] == 0 else "FAIL"
+        result["status"] = "PASS" if result["exit_code"] == 0 else "FAIL"
+        if metadata is not None:
+            result["evidence"] = {"directory": str(evidence_dir),
+                                  "stdout": str(evidence_dir / "stdout.bin"),
+                                  "stderr": str(evidence_dir / "stderr.bin"),
+                                  "result": str(evidence_dir / "result.json"),
+                                  "metadata_saved": True,
+                                  "meaning": "Raw output bytes; no redaction. Command exit status is independent of evidence saving."}
+            try:
+                encoded = json_text(result).encode("utf-8")
+                if metadata.write(encoded) != len(encoded):
+                    raise OSError("Incomplete metadata write")
+            except (OSError, UnicodeError) as exc:
+                result["evidence"]["metadata_saved"] = False
+                result["evidence"]["error"] = f"Command already ran; metadata could not be fully saved: {exc}. Do not rerun it solely to recover output."
     return result
 
 
@@ -144,10 +174,12 @@ def register(subparsers):
     run.add_argument("--timeout", type=float, default=60)
     run.add_argument("--max-chars", type=int, default=16000)
     run.add_argument("--encoding", default="utf-8", help="Actual child output encoding; decoding errors are reported")
+    run.add_argument("--output-dir", help="New directory for raw stdout/stderr and result JSON; relative to the invoking directory")
     run.add_argument("argv", nargs=argparse.REMAINDER)
     def execute(args):
         argv = args.argv[1:] if args.argv[:1] == ["--"] else args.argv
-        result = run_command(argv, cwd=args.cwd, timeout=args.timeout, max_chars=args.max_chars, encoding=args.encoding)
+        result = run_command(argv, cwd=args.cwd, timeout=args.timeout, max_chars=args.max_chars, encoding=args.encoding,
+                             output_dir=args.output_dir)
         result["_exit_code"] = 0 if result["status"] == "PASS" else 1
         return result
     run.set_defaults(func=execute)

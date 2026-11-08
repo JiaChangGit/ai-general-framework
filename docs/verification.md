@@ -2,6 +2,23 @@
 
 日期：2026-11-08（Asia/Taipei）。這份紀錄分開列出腳本、宿主整合、來源閱讀與真人學習的證據。
 
+## 入門、工具方向與原始診斷保存
+
+本輪維持五個 skills、四份部署指引及零個新增依賴／常駐服務。入門補上零技能預設、依任務選技能，以及配置、宿主發現、實際載入的區別。新研究融合進既有 tools、workflow、delivery 與帶讀參考；原生工具列為候選，未安裝或宣稱個人環境已驗收。唯一新增的 CLI 能力是 `run --output-dir` 選擇保存原始 stdout／stderr 及執行資訊；缺少 rg 時補上原生搜尋替代提示，不重寫搜尋器。
+
+- **相關單元測試：** Windows 原生 execution 18 案中 17 通過、POSIX 權限案 skip；context 6 案通過。WSL execution 18 案及 context 6 案全數通過。本輪未重跑完整單元測試。
+- **實際 CLI：** Windows／WSL 均驗證大量且含非 UTF-8 bytes 的完整輸出保存、非零退出、metadata 與 JSON 回傳相符，以及既有目錄被拒絕且命令副作用未發生。執行後 metadata 失敗、timeout、預設不留檔及相對路徑另有單元測試。
+- **獨立審查：** 找出持久原始輸出在 POSIX 預設權限下可能對同機其他使用者可讀；改為以 0700 建立最終目錄後重驗。其他平台的存取控制不由 POSIX mode 測試推論。
+- **配置與結構：** Windows／WSL 隔離專案的 shared 配置為 ready、6 個受管理檔案、零個預設技能，部署指引與來源逐 bytes 核對。兩端 package audit 通過，guide-learning 官方 validator 以 UTF-8 模式通過；行為案例 ID／候選技能的靜態檢查通過，新增三案後為 34 案。
+
+真實宿主只嘗試一次已安裝的 codex-cli 0.167.0-alpha.3.2：以 ephemeral、ignore-user-config、read-only、skip-git-repo-check 在隔離 trace-code 專案執行新對話。CLI 啟動且 exit 0，但讀規則與技能的 PowerShell 命令被政策拒絕，來源未讀、追蹤任務為 BLOCKED；不能列為技能載入或分析成功。沒有放寬 sandbox、修改 safe.directory 或重試。目標檔案 SHA 前後一致；全域／祖先技能影響及模型身分未確認。CLI 提供該次實際 usage，但沒有 baseline，不推論框架成本或節省。
+
+當次 doctor 在兩端 PATH 只找到 Codex，未找到 Claude、Gemini 或 OpenCode，不代表其他安裝位置或服務不存在；這三者的真實 session 仍未測試。先前直接從 WSL 呼叫 rg 失敗，但本輪 Python 的 PATH 找到 bundled rg，兩端實際搜尋測試皆通過，不能將先前結果推成必須安裝。
+
+CLI、配置、原始紀錄及 native Codex 證據保存在本機 `.agf/qa/practical-tools/`；未將私人認證、原始 session 或 QA 暫存物加入公開來源。這些結果仍不能證明真人學習、四個宿主的一般化觸發率，或 token／費用改善。
+
+另以全新代理只讀部署後規則、按需指引與三份原始材料，完成唯讀評估：用兩筆姓名合併後相同的反例指出資料無法由程式降版還原；批次測試依需求保留先前成功項目、不強套整批原子性；將初始 axe 掃描與完整流程、人工無障礙驗證分開。審閱實際答案確認沒有安裝、執行轉換或宣稱未做的測試；答案在本機 `cases/answer.md`。這是三項定性 smoke，沒有無框架 baseline，也不代表 34 案全數通過。
+
 ## MCP 自動選用與用量宣稱
 
 本輪只改既有規則、指引、研究與行為案例，五個 skills 及 Python 核心未變，沒有新增 runtime、依賴或安裝器；完整單元測試未重跑。Windows／WSL 的隔離配置仍是 shared、6 個受管理檔案、零個預設 skills，更新後的 tools 指引與專案規則逐 bytes 核對相符。
@@ -118,4 +135,4 @@ v0.1 另有一次獨立 forward-test，使用適當 skills 與最少原始材料
 - Spec 帶讀：依條文確認 duplicate 與 capacity 同時成立時的順序，直接提供完整情境說明。
 - 小拼字修改：辨認為局部工作，沒有啟動 Grill Me、角色團隊或無關測試。
 
-上述都是少量 behavior smoke。佇列原始檔已包含故障提示及正確對照，不能當成盲測 RCA benchmark。真人理解、長期保留、一般化觸發率、成本及 token 改善比例皆未量測。[行為驗收](../evals/README.md)目前收錄 31 個可重跑案例，不代表 31 項皆已執行或通過。特殊授權只驗證指引與案例表述，未連接券商、燒錄／抹除板子或寫入 SVN repository。
+上述都是少量 behavior smoke。佇列原始檔已包含故障提示及正確對照，不能當成盲測 RCA benchmark。真人理解、長期保留、一般化觸發率、成本及 token 改善比例皆未量測。[行為驗收](../evals/README.md)目前收錄 34 個可重跑案例，不代表 34 項皆已執行或通過。特殊授權只驗證指引與案例表述，未連接券商、燒錄／抹除板子或寫入 SVN repository。

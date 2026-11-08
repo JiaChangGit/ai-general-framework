@@ -1,6 +1,7 @@
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from agf.common import AgfError
 from agf.context import extract, search
@@ -8,6 +9,12 @@ import shutil
 
 
 class ContextTests(unittest.TestCase):
+    def test_missing_search_tool_does_not_execute_or_install(self):
+        with patch("agf.context.shutil.which", return_value=None), patch("agf.context.run_command") as run:
+            with self.assertRaisesRegex(AgfError, "scoped native search"):
+                search("needle")
+            run.assert_not_called()
+
     def test_source_lines_identity_and_truncation(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "中文 log.txt"
