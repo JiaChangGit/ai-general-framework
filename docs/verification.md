@@ -2,6 +2,18 @@
 
 最近更新：2026-11-09（Asia/Taipei）。這份紀錄分開列出腳本、宿主整合、來源閱讀與真人學習的證據；下方較早章節保留各輪當時的範圍。
 
+## 有界二進位讀取（2026-11-09）
+
+沿用五個 skills 與既有 CLI，新增純標準庫的 `binary bytes|bits|dump`；沒有新增獨立 skill、依賴或安裝步驟。預設數值為無號 little-endian、bits 為 LSB-first，`bytes --endian big` 需明示；不因欄位名稱猜測檔案 offset，也不把檔案讀取擴張成硬體連線。
+
+- **測試：** 新增 14 項二進位測試，WSL 全通過；Windows 12 通過、2 跳過（POSIX FIFO 與缺少 symlink 權限）。WSL Python 3.14.4 配既有隔離 Node 24.22.1 的完整 187 項皆通過；Windows Python 3.13.15 本輪只重跑這 14 項，沒有重跑全部 187 項。Windows 仍在 WSL UNC 工作目錄執行。
+- **讀取行為：** 用已知 bytes 驗證 uint24 兩種端序、uint64／uint512 十進位字串精度、跨 byte 欄位，以及 bit offset 7／寬度 64 需讀 9 bytes 的案例。選定片段的 hash 與整檔 hash 分開，控制字元不會原樣出現在 dump 的 ASCII 區。
+- **錯誤與副作用：** 負數、零／過大長度及越界位置在接觸來源前拒絕；檔尾不足的數值讀取回 ERROR／非零退出，dump 回 PARTIAL／退出 1。另驗證 descriptor 類型重驗、短讀累積、失敗後關閉，以及合成來源內容保持不變。一般檔案類型檢查不是沙箱或原子快照，也不證明虛擬檔案系統內容是靜態資料。
+- **真實 CLI 與配置：** Windows／WSL 各以教學用合成 bytes 執行六種命令，核對 LE／BE、位元欄位、dump、部分讀取及錯誤的值與退出碼。兩端各自實際配置 shared／copy 隔離目標，從目標目錄執行新命令並確認部署 tools 指引包含新規則。另把教學建立檔案的原始命令交給 PowerShell／Bash 執行，確認 bytes 正確，重複執行會拒絕覆寫。沒有讀取真實韌體、記憶體裝置或硬體暫存器。
+- **審查：** 獨立唯讀審查核對數值順序、讀取上限、檔案類型與資源關閉，沒有發現需修正的實質問題；靜態 package audit 通過。這些合成案例不能保證沒有其他 bug 或所有平台皆相容。
+
+本機原始紀錄放在忽略的 `.agf/qa/binary-qa-*.json`、`binary-wsl-tests.log` 與 `binary-windows-tests.log`；教學與參數見 [CLI 二進位操作](cli.md)。
+
 ## 圖源、樣板與轉移統計（2026-11-09）
 
 本輪沿用五個 skills、四份部署指引和既有 `diagram` 命令，增加八份文字樣板及一個有界的 `diagram transitions` 統計子命令，沒有新增依賴、技能或服務。一般圖解直接寫 `.mmd`，渲染交 mermaid-cli；這是代理工作指引，不是強制宿主攔截器，也未重新驗證四種真實 AI session 的選用行為。
@@ -16,7 +28,7 @@
 
 本次安全稽核另重現並修正檔案權限、Git 狀態判讀、來源資源耗盡與受管理檔案並行修改等問題；詳細條件與尚未解決的 Git clean filter、非原子檔案競態等限制見[安全稽核紀錄](security-review.md)。本輪工作目錄與可到達歷史的有限秘密格式掃描未命中；這不能保證沒有其他秘密或私人資料。
 
-最終程式的完整測試：WSL Python 3.14.4 共 164 項全部通過，使用既有隔離 Node 24.22.1；Windows Python 3.13.15 共 164 項，151 通過、13 跳過。跳過包括 POSIX 權限／byte 檔名／descriptor 與替換開啟中檔案的測試，以及本機無權建立 symlink（WinError 1314）。Windows 從 WSL UNC 路徑執行；它的 ACL、原生 NTFS 及所有環境不能由這些測試推論。安全稽核的原始測試輸出與合成重現保存在本機忽略的 `.agf/qa/security-audit/`，沒有作為公開內容提交。
+2026-11-08 安全稽核版本的完整測試：WSL Python 3.14.4 共 164 項全部通過，使用既有隔離 Node 24.22.1；Windows Python 3.13.15 共 164 項，151 通過、13 跳過。跳過包括 POSIX 權限／byte 檔名／descriptor 與替換開啟中檔案的測試，以及本機無權建立 symlink（WinError 1314）。Windows 從 WSL UNC 路徑執行；它的 ACL、原生 NTFS 及所有環境不能由這些測試推論。安全稽核的原始測試輸出與合成重現保存在本機忽略的 `.agf/qa/security-audit/`，沒有作為公開內容提交。
 
 ## 公開前檢查與 micro-os 教學
 

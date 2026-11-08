@@ -49,6 +49,45 @@ python scripts/agf.py diagram create examples/diagrams/files-transaction.json --
 
 `diagram validate` 能辨識上述三類、block／block-beta、timeline、gantt 與前置設定，只檢查宣告及回報 neo 檔頭提示，不解析完整語法、不計算自寫圖的節點或字數。`render ... --execute` 才啟動原生工具，可用 `--tool` 與重複 `--tool-arg` 指定真正的 executable／JS 入口，保留既有輸出。缺 `mmdc` 回報 UNAVAILABLE，不安裝或改用 AI 生成圖片；成功輸出仍須檢查圖意與版面。[圖解範例](../examples/diagrams/README.md)與[trace 範例](../examples/trace/README.md)各列觀察範圍。
 
+## 二進位檔：數值、位元欄位與 hex dump
+
+`binary` 只需標準庫，唯讀指定的已儲存檔案，任何副檔名皆可。下列步驟在框架根目錄執行；已配置專案改用規則所列的 CLI 路徑。`offset` 是從檔案開頭算起、以 byte 為單位的位移；整數參數可用十進位或 `0x` 十六進位。
+
+先建立 8 bytes 的教學檔；這段只建立合成資料，若檔案已存在會拒絕覆寫。可以在 PowerShell 或 Linux shell 貼上整段：
+
+```console
+python -c "from pathlib import Path
+p = Path('.agf/artifacts/bin-demo.bin')
+p.parent.mkdir(parents=True, exist_ok=True)
+with p.open('xb') as f:
+    f.write(bytes.fromhex('34 12 AB 80 01 FF 00 41'))"
+```
+
+再讀兩個 bytes、讀跨 byte 欄位，以及查看完整原始排列：
+
+```console
+python scripts/agf.py binary bytes .agf/artifacts/bin-demo.bin 0x0 2
+python scripts/agf.py binary bits .agf/artifacts/bin-demo.bin 0x3 7 2
+python scripts/agf.py binary dump .agf/artifacts/bin-demo.bin 0 8
+python scripts/agf.py binary bytes .agf/artifacts/bin-demo.bin 0 2 --endian big
+```
+
+第一個結果是 `value_hex: "0x1234"`、`value_decimal: "4660"`；第二個從 `80 01` 的第一個 byte 之 bit 7 開始讀 2 bits，得到 `0x3`／`"3"`。最後一個明確改為 big-endian，得到 `0x3412`／`"13330"`。`dump_lines` 每列含位移、至多 16 bytes 的 hex 及可列印 ASCII；控制字元顯示為 `.`，原始資料未被改寫。
+
+| 命令 | 範圍與解讀 |
+|---|---|
+| `binary bytes FILE OFFSET SIZE [--endian little\|big]` | 一次將 1–64 bytes 當成無號整數；預設 little-endian |
+| `binary bits FILE OFFSET BIT_OFFSET NUM_BITS` | `BIT_OFFSET` 0–7、`NUM_BITS` 1–64；固定 little-endian／LSB-first，最多跨 9 bytes |
+| `binary dump FILE OFFSET LENGTH` | 1–4096 bytes 的原始 hex／ASCII；不做端序轉換 |
+
+little-endian 表示低位元組在前；LSB-first 表示先從最低位元起算。它們是兩項獨立約定，不能因為檔案是 big-endian，就推定 bit 0 的位置。只提供欄位名、硬體位址或 signed／MSB 編號時，先核對規格及檔案對照，不直接猜參數。更大的檔案可分段讀，不先掃整檔。
+
+成功數值包含 `raw_hex`、`value_hex`、十進位字串 `value_decimal` 及實際 `byte_order`；bits 另列位元順序、起點與寬度。共用資訊含要求／實得 bytes、開檔時大小與 `range_sha256`，後者只對實際片段計算，不是整檔雜湊，也不證明來源沒有並行變更。JSON 的十進位用字串，保留超過一般 JavaScript 整數精度的數值。
+
+負數、零長度、超限或 `offset + 讀取量` 超過有號 64-bit 檔案位置時，讀檔前就拒絕。`bytes/bits` 檔尾不足回傳 ERROR 與非零退出碼，不輸出假數值；`dump` 則回傳已讀列、`PARTIAL`、要求／實得長度，退出碼為 1。上述示範改為 `dump ... 0 16` 就會得到 8／16 bytes 的部分結果；呼叫者必須檢查狀態與退出碼。缺檔、無權讀取及一般操作錯誤為非零；參數解析錯誤使用標準 help／錯誤輸出。
+
+開啟前後都確認一般檔案，POSIX 系統可用時加非阻塞旗標，避免檔案被換成 FIFO（具名管道）後卡住；一般檔案的 symlink 仍可沿用系統讀取行為。虛擬或網路檔案系統也可能呈現一般檔案，類型檢查不證明內容是靜態快照。這不是沙箱，也不保證所有檔案系統的競態或特殊路徑皆被隔離。沒有 Python 時使用已安裝的 `python3` 或 Windows `py -3`，不自動安裝解譯器。端序語意參考 [Python `int.from_bytes`](https://docs.python.org/3/library/stdtypes.html#int.from_bytes)，檔案操作依 [Python `os`](https://docs.python.org/3/library/os.html)。
+
 ## 執行、檢查與交接
 
 ```console

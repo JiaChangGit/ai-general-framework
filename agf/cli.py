@@ -13,8 +13,8 @@ def parser():
     result = argparse.ArgumentParser(prog="agf", description="Portable engineering and learning helpers. No installation or model calls on startup.")
     result.add_argument("--version", action="version", version=__version__)
     children = result.add_subparsers(dest="command", required=True)
-    from . import audit, context, diagrams, evidence, execution, files, gittools, integrations, manage, profiles, sources
-    for module in (manage, profiles, integrations, context, execution, evidence, gittools, files, diagrams, sources, audit):
+    from . import audit, binary, context, diagrams, evidence, execution, files, gittools, integrations, manage, profiles, sources
+    for module in (manage, profiles, integrations, context, execution, evidence, gittools, files, diagrams, sources, binary, audit):
         module.register(children)
     return result
 
