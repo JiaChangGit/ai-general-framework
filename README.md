@@ -88,6 +88,8 @@ MCP 選用由宿主代理讀取規則後，透過其工具探索能力執行。R
 
 要求畫流程、架構、狀態等技術圖時，AI 先選[圖解樣板](templates/diagrams/README.md)，只寫 Mermaid 文字，交 mermaid-cli 渲染 SVG／PNG。單張最多 15 節點，超過就拆圖；資料轉狀態圖先用 `diagram transitions` 統計，再畫實際觀察到的轉移。保留五個 skills，不另加畫圖技能或渲染依賴。
 
+簡報沿用[按需簡報指引](templates/presentations/README.md)：主題、Excel／CSV 或作品連結交給 AI，依已連接能力編輯帳號作品，或把內容交給既有版型工具；核對數字、缺值、版面與實際可編輯範圍。配音、影片和分享需有相應工具與授權，框架沒有內建簡報引擎或新增 skill。
+
 完整命令、權限範圍、共用工具與 hooks 見 [CLI 操作](docs/cli.md)。[設計說明](docs/design.md)與[研究紀錄](docs/research.md)交代採納和刪減理由。共用創作指引可協助小說、音樂與投影片式影片；真正使用時再選可用工具，分清企劃、草稿與可播放成品。
 
 ## 維護與驗證

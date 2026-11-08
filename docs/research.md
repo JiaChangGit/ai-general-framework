@@ -2,6 +2,19 @@
 
 這份紀錄說明框架為何採用某些方法、哪些做法沒有照搬，以及證據能支持到哪裡。它是設計依據，不代表所有整合、模型與教學方法都已在本框架驗證。外部工具會變動，實際操作仍需核對使用版本的文件。
 
+## 簡報工作方式（2026-11-09）
+
+將使用者提供的「帳號內作品」與「結構化內容交給既定版型」案例融合成一份按需簡報參考，沿用五個 skills、四份部署指引及既有 templates 複製方式。這兩條路由當次可用能力選擇，不新增通用 YAML schema、PPTX 引擎、版型庫或媒體 provider。這是範圍取捨，不是已驗證所有簡報功能。
+
+| 一手來源 | 採納與限制 |
+|---|---|
+| [Pandoc reference-doc](https://pandoc.org/MANUAL.html#option--reference-doc)、[speaker notes](https://pandoc.org/MANUAL.html#speaker-notes) | 相容 layout 與講稿可由既有工具處理；缺 layout 可能警告並用預設值，不承諾任意範本都能完整套母片。 |
+| [Marp CLI](https://github.com/marp-team/marp-cli#convert-to-powerpoint-presentation-pptx)、[Slidev exporting](https://sli.dev/guide/exporting) | 預設 PPTX 是圖片不等於沒有任何可編輯路線。Marp 的實驗模式需 browser／LibreOffice，保真較低且無講稿；Slidev 現有 `pptx-editable`，但 Mermaid／SVG 仍為圖片，部分頁會 fallback。依實際物件與模式驗證，不從副檔名宣稱全部可改。 |
+| [PptxGenJS 型別註解](https://github.com/gitbrent/PptxGenJS/blob/master/types/index.d.ts)、[原始 issue #1449](https://github.com/gitbrent/PptxGenJS/issues/1449) | 自動文字 fit 不能代替實際渲染與可讀性檢查。2026-03-31 的回報描述 3.x 產物在 LibreOffice 正常、PowerPoint 要求 repair；查閱時 open，未自行重現，也不採納作者全部診斷。不將單一版本回報推廣為現版普遍缺陷或安全結論。 |
+| [PyYAML 文件](https://pyyaml.org/wiki/PyYAMLDocumentation#loading-yaml)、[Microsoft 隱藏資料檢查](https://support.microsoft.com/en-us/office/collab-files/remove-hidden-data-and-personal-information-by-inspecting-documents-presentations-or-workbooks) | 若日後有 YAML renderer，使用安全資料 loader 並限制 schema、資源與大小；分享前看講稿、隱藏內容、metadata 與嵌入資料。安全 loader、清 metadata 或文件檢查器都不代表完整隔離或無私人資料。 |
+
+上述工具未在本輪安裝或執行；來源與原始使用者回報只支持工作方式與驗證邊界，不構成預設採用、安全背書或省 token 證據。
+
 ## 實用工具方向的融合
 
 查閱日期：2026-11-08。依現有能力補強原生工具的選用判斷、相容性、驗證及交付；仍使用五個技能入口與四份部署指引。下列官方文件支持工具能力和使用限制，不等於已完成個人環境的安全、授權、口碑與效果驗收；真正採用前仍按 tools 指引查核，不自動安裝或加 hook。

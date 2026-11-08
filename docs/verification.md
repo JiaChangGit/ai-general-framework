@@ -2,6 +2,18 @@
 
 最近更新：2026-11-09（Asia/Taipei）。這份紀錄分開列出腳本、宿主整合、來源閱讀與真人學習的證據；下方較早章節保留各輪當時的範圍。
 
+## 按需簡報指引（2026-11-09）
+
+本輪新增一份 `templates/presentations/README.md`，在既有規則、writing／tools 指引接上條件入口；五個 skills、四份部署指引與 Python 核心不變，未新增依賴、YAML schema、排版引擎或媒體服務。只改文字及行為案例，未重跑完整單元測試；下方 187 案屬前一輪二進位變更的證據。
+
+- **配置與更新：** Windows 原生 Python 3.13.15 與 WSL Python 3.14.4，在各自的隔離目標實際 install／update／status。shared 仍為 6 個受管理檔案、零個預設 skills；copy 包含新簡報參考，兩端指引與來源逐 bytes 相符、status ready，且相鄰圖解連結可解析。本機核對結果在 `.agf/qa/presentations-*/result.json`；Windows 測試仍位於 WSL UNC 工作目錄。
+- **獨立行為觀察：** 沒有本輪對話歷史的新代理，只取得部署入口、按需參考、原始合成 CSV 與本地替身工具，完成四項任務。月報正確呈現 81%、77%、70%、65%，區分月差與百分點，未提供目標時不判達標或補零，亦未編造下降原因。作品先讀實際頁面 ID，只改第三頁標題與三欄配置；一次 update 後讀回 version 8，其他頁、原欄位內容、主題與 private 分享設定保持不變，已另行比對。
+- **缺能力時的成果：** 缺 YAML schema／renderer、音訊與影片工具時，交付內容稿和講稿，沒有編造 YAML 規格、PPTX、MP4 或作品 URL。流程圖保留 Mermaid 文字與原始分支，明確區分圖源、SVG 嵌入與 PowerPoint 原生節點編輯；未渲染、未分享，也沒有將內部成本資料上傳。四項答案、產物及替身 action log 留在本機 `.agf/qa/presentation-behavior/`，不隨公開來源散布。
+
+這是少量合成任務的定性 smoke，沒有無框架 baseline，不代表所有 host／模型都會照做，也不證明簡報設計品質或 token 改善。Pandoc、Marp、Slidev、PptxGenJS 只查一手文件及原始回報，本輪未安裝／執行；沒有真實 PPTX 排版、PowerPoint 開啟、配音、MP4、離線 HTML 或帳號分享驗收。
+
+本輪 Windows／WSL package audit 均 PASS、零錯誤與警告；另核對新參考的本地連結與 38 個案例的 ID／skill 參照，`git diff --check` 通過。這些靜態結果不等於 38 案全數已執行，也不保證沒有其他缺陷或私人資料。
+
 ## 有界二進位讀取（2026-11-09）
 
 沿用五個 skills 與既有 CLI，新增純標準庫的 `binary bytes|bits|dump`；沒有新增獨立 skill、依賴或安裝步驟。預設數值為無號 little-endian、bits 為 LSB-first，`bytes --endian big` 需明示；不因欄位名稱猜測檔案 offset，也不把檔案讀取擴張成硬體連線。
@@ -177,4 +189,4 @@ v0.1 另有一次獨立 forward-test，使用適當 skills 與最少原始材料
 - Spec 帶讀：依條文確認 duplicate 與 capacity 同時成立時的順序，直接提供完整情境說明。
 - 小拼字修改：辨認為局部工作，沒有啟動 Grill Me、角色團隊或無關測試。
 
-上述都是少量 behavior smoke。佇列原始檔已包含故障提示及正確對照，不能當成盲測 RCA benchmark。真人理解、長期保留、一般化觸發率、成本及 token 改善比例皆未量測。[行為驗收](../evals/README.md)目前收錄 34 個可重跑案例，不代表 34 項皆已執行或通過。特殊授權只驗證指引與案例表述，未連接券商、燒錄／抹除板子或寫入 SVN repository。
+上述都是少量 behavior smoke。佇列原始檔已包含故障提示及正確對照，不能當成盲測 RCA benchmark。真人理解、長期保留、一般化觸發率、成本及 token 改善比例皆未量測。[行為驗收](../evals/README.md)該輪收錄 34 個可重跑案例，不代表 34 項皆已執行或通過；後續新增數量見上方紀錄。特殊授權只驗證指引與案例表述，未連接券商、燒錄／抹除板子或寫入 SVN repository。
