@@ -101,6 +101,8 @@ python scripts/agf.py git scope --repo . --allow agf --allow tests
 
 `run` 會真的執行傳入的程式，需在當次授權內。它用參數陣列，支援 `--max-chars`、`--encoding`、逾時與截斷回報；`.cmd/.bat` 需專用接線。品質 JSON 的 `{python}` 換成目前 interpreter；空檢查不能通過。
 
+`--max-chars` 只限制回傳的文字摘要，並不限制命令寫出的 stdout／stderr 大小。執行期間兩者會先完整寫入暫存檔；指定 `--output-dir` 時則寫入該目錄，這些檔案都沒有大小上限。大量輸出可能在逾時前耗盡磁碟；執行前應依命令特性控制輸出或選擇適當的隔離與磁碟配額。
+
 需要回查完整診斷時，可選 `run --output-dir DIR`。路徑相對於呼叫 CLI 的目錄，不隨 `--cwd` 改變；目錄必須尚未存在，包含 symlink 在內的既有目的地一律拒絕。命令啟動前先建立並開啟三個檔案：`stdout.bin`、`stderr.bin` 保存原始 bytes，`result.json` 記錄退出碼、編碼、byte 數、摘要是否截斷及檔案路徑。非零退出和逾時的輸出也會保存；未指定此選項時不留下額外紀錄。保存的內容沒有自動脫敏，依任務選擇本機位置與分享範圍。
 
 POSIX 環境以 `0700` 建立最終保存目錄，不調整既有父目錄；其他平台依本機存取控制處理，這不是隔離或自動隱私保證。若命令完成後 metadata 保存失敗，回傳的 `evidence.metadata_saved` 為 false，並保留實際執行結果；命令的 PASS／FAIL 與紀錄是否存妥須分開看。先查原始輸出及當前狀態，不為補紀錄重跑已完成的寫入。啟動前的準備失敗可能留下新建目錄與空檔，錯誤會明示命令未啟動。
@@ -110,6 +112,12 @@ Task 記錄可明列任何本地檔案，不依賴 Git。只有選用 `--repo` �
 Git 狀態無法可靠解碼為 UTF-8 時，交接紀錄會報錯，不將替代字元當成原始路徑。`git summary/scope` 和 `task record --repo` 會執行本機 Git：雖然 diff 已停用 textconv／external diff，Git 仍可能依本機設定啟動 clean filter（將工作檔轉換後再交給 Git 的外部程式）。對不可信的工作目錄或 Git 設定應先審查、使用適當隔離；這些命令不是 sandbox。停用文字轉換後，較早記錄的 Git 狀態雜湊可能改變；先檢查實際差異，再決定是否重新記錄交接。
 
 ## Hooks 與範本
+
+Docker 範本是執行 `doctor` 的最小示範，不包含完整框架。從框架根目錄使用 `docker build -f templates/Dockerfile -t agf-doctor .` 時，Docker 會讀取同目錄的 `templates/Dockerfile.dockerignore`；它允許的原始程式檔只有 `agf/*.py` 與 `scripts/agf.py`，Dockerfile 也只複製這些檔案。Docker 仍需把 Dockerfile 和忽略檔本身送給 builder（建置器），這些檔案也不應包含秘密。建置會取得基礎 image，執行前應依當次授權處理。
+
+若透過 `integration template` 匯出，需同時匯出 `dockerfile` 和 `dockerfile-ignore`，把後者命名為「Dockerfile 檔名加上 `.dockerignore`」並放在 Dockerfile 旁；例如 `Dockerfile` 搭配 `Dockerfile.dockerignore`。Dockerfile 專屬忽略檔會優先於 context 根目錄的 `.dockerignore`，因此不能以為兩者會自動合併。通用的 `dockerignore` 範本另需放到 context 根目錄並命名 `.dockerignore`，用途與專屬白名單不同。兩者都不保證辨識所有秘密：檢查實際 build context、允許的來源檔、使用的 builder 與影像，再決定是否建置或分享。Docker 端的行為見[官方文件](https://docs.docker.com/build/concepts/context/#dockerignore-files)。
+
+另一個 doctor 範本可從框架根目錄執行 `docker compose -f templates/docker-compose.yml run --rm doctor`。Compose 預設以該設定檔所在目錄解析相對路徑，兩個唯讀掛載分別指向框架的 `agf/` 與 `scripts/agf.py`；使用 `--project-directory` 或搬移設定檔時須重新核對路徑。唯讀掛載仍讓容器讀取整個 `agf/` 目錄，請先檢查內容；`network_mode: none` 不阻止事前拉取 image。掛載與權限需依實際 Docker／Windows 環境驗證。
 
 ```console
 python scripts/agf.py integration list

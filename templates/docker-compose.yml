@@ -1,4 +1,5 @@
-# 從 ai-general-framework 根目錄使用；需要已安裝的 Docker 與可用 image。
+# 從 ai-general-framework 根目錄執行 docker compose -f templates/docker-compose.yml。
+# 預設以此 Compose 檔的目錄解析相對路徑；使用 --project-directory 會改變基準。
 services:
   doctor:
     image: python:3.11-slim
@@ -9,6 +10,7 @@ services:
     environment:
       PYTHONDONTWRITEBYTECODE: '1'
     volumes:
-      - .:/workspace:ro
+      - ../agf:/workspace/agf:ro
+      - ../scripts/agf.py:/workspace/scripts/agf.py:ro
     command: [python, scripts/agf.py, doctor]
 # image 拉取與 Docker 安裝屬另外授權的環境操作；本框架不會自動執行。

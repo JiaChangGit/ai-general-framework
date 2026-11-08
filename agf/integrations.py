@@ -22,6 +22,7 @@ TEMPLATES = {
     "quality-framework": "quality.framework.json",
     "permissions": "permissions.example.json",
     "dockerfile": "Dockerfile",
+    "dockerfile-ignore": "Dockerfile.dockerignore",
     "docker-compose": "docker-compose.yml",
     "dockerignore": "dockerignore",
     "k8s-job": "k8s-job.yml",

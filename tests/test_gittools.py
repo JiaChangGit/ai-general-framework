@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 from agf.common import AgfError
-from agf.gittools import scope, snapshot, summary
+from agf.gittools import changed_paths, scope, snapshot, summary
 
 
 @unittest.skipUnless(shutil.which("git"), "Git unavailable")
@@ -39,6 +39,14 @@ class GitTests(unittest.TestCase):
             subprocess.run(["git", "init", "-q", temp], check=True, capture_output=True)
             self.assertIsNone(snapshot(temp)["head"])
 
+    def test_valid_replacement_character_filename_is_not_a_decode_error(self):
+        with tempfile.TemporaryDirectory() as temp:
+            subprocess.run(["git", "init", "-q", temp], check=True, capture_output=True)
+            name = "valid-\ufffd.txt"
+            (Path(temp) / name).write_text("fixture", encoding="utf-8")
+            self.assertEqual(changed_paths(temp), [name])
+            self.assertEqual(scope(temp, ["."])["status"], "IN_SCOPE")
+
     @unittest.skipUnless(os.name == "posix", "Invalid UTF-8 filenames require POSIX byte paths")
     def test_snapshot_rejects_undecodable_status(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -49,6 +57,8 @@ class GitTests(unittest.TestCase):
                 stream.write(b"x")
             with self.assertRaisesRegex(AgfError, "reliably decode"):
                 snapshot(temp)
+            with self.assertRaisesRegex(AgfError, "reliably decode"):
+                changed_paths(temp)
             os.rename(first, second)
             with self.assertRaisesRegex(AgfError, "reliably decode"):
                 snapshot(temp)

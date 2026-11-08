@@ -42,7 +42,7 @@ def changed_paths(repo):
                       ("diff", "--cached", "--name-only", "--no-renames", "--no-ext-diff", "--no-textconv", "-z"),
                       ("ls-files", "--others", "--exclude-standard", "-z")):
         result = git(repo, *arguments, max_chars=1000000)
-        if result["stdout_truncated"] or "\ufffd" in result["stdout"]:
+        if result["stdout_truncated"] or result["stdout_decode_errors"]:
             raise AgfError("Cannot reliably decode the complete Git path list.")
         names.update(name for name in result["stdout"].split("\x00") if name)
     return sorted(names)

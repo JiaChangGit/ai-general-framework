@@ -1,0 +1,6 @@
+# 僅此 doctor 範本所需的來源可送入 build context。仍須審查允許的檔案。
+**
+!agf/
+!agf/*.py
+!scripts/
+!scripts/agf.py

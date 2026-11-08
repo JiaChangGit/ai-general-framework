@@ -75,6 +75,24 @@ class IntegrationTests(unittest.TestCase):
                 value = integrations.template(argparse.Namespace(name=name, output=None, apply=False))
                 self.assertTrue(value["content"])
 
+    def test_doctor_image_uses_minimal_sources_that_run_independently(self):
+        dockerfile = (integrations.SOURCE / "templates/Dockerfile").read_text(encoding="utf-8")
+        ignore = integrations.template(argparse.Namespace(name="dockerfile-ignore", output=None, apply=False))["content"]
+        rules = [line for line in ignore.splitlines() if line and not line.startswith("#")]
+        self.assertEqual(rules, ["**", "!agf/", "!agf/*.py", "!scripts/", "!scripts/agf.py"])
+        copies = [line for line in dockerfile.splitlines() if line.startswith("COPY ")]
+        self.assertEqual(copies, ["COPY agf/*.py /workspace/agf/", "COPY scripts/agf.py /workspace/scripts/agf.py"])
+        # Docker's actual context processing still requires an engine-backed check.
+        (self.root / "agf").mkdir()
+        (self.root / "scripts").mkdir()
+        for source in (integrations.SOURCE / "agf").glob("*.py"):
+            shutil.copyfile(source, self.root / "agf" / source.name)
+        shutil.copyfile(integrations.SOURCE / "scripts/agf.py", self.root / "scripts/agf.py")
+        result = subprocess.run([sys.executable, "-B", str(self.root / "scripts/agf.py"), "doctor"],
+                                cwd=self.root, capture_output=True, encoding="utf-8", timeout=30, check=False)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(json.loads(result.stdout)["command"], "doctor")
+
     def test_framework_quality_uses_real_cli_contract(self):
         value = json.loads(integrations.template(argparse.Namespace(name="quality-framework", output=None, apply=False))["content"])
         self.assertEqual(value["version"], 1)
