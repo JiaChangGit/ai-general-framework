@@ -21,6 +21,7 @@ HOSTS = ("codex", "claude", "gemini", "opencode")
 SOURCE = Path(__file__).resolve().parent.parent
 MANIFEST = ".agf/manifest.json"
 SCHEMA = 1
+GUIDES = ("workflow.md", "writing.md", "tools.md", "delivery.md")
 
 
 def _sha(data: bytes) -> str:
@@ -62,6 +63,8 @@ def _manifest(root: Path) -> dict | None:
         raise AgfError("Invalid project source in manifest.")
     if "skills" in value and (not isinstance(value["skills"], list) or not all(isinstance(name, str) and name for name in value["skills"])):
         raise AgfError("Invalid skill selection in manifest.")
+    if value.get("tools_mode", "copy") not in ("shared", "copy"):
+        raise AgfError("Invalid tools_mode in project manifest.")
     for name, entry in files.items():
         if not _managed_name(name) or not isinstance(entry, dict):
             raise AgfError(f"Invalid manifest entry: {name}")
@@ -99,19 +102,33 @@ def doctor(args: argparse.Namespace) -> dict:
             "authentication": "not_checked",
             "native_integration": "not_executed",
         }
+    project_info = None
+    if getattr(args, "root", None):
+        root = Path(args.root).resolve()
+        if not root.is_dir():
+            raise AgfError(f"Project directory is missing: {root}")
+        markers = []
+        for kind, marker in (("git", ".git"), ("svn", ".svn"), ("mercurial", ".hg")):
+            for directory in (root, *root.parents):
+                if (directory / marker).exists():
+                    markers.append({"tool": kind, "metadata_root": str(directory)})
+                    break
+        project_info = {"root": str(root), "markers": markers, "hosting_platform": "not_determined",
+                        "meaning": "Local markers only; use native tools to verify the working copy. No remote configuration or credentials were read."}
     return {
         "command": "doctor", "platform": sys.platform,
         "python": {"executable": sys.executable, "version": sys.version.split()[0], "supported": sys.version_info >= (3, 11)},
         "hosts": hosts,
-        "optional_tools": {name: shutil.which(name) for name in ("git", "docker", "kubectl", "gdb", "gdb-multiarch", "qemu-system-aarch64", "mmdc", "drawio")},
-        "scope": "PATH discovery only; no CLI execution, sign-in check, installation, or network requests.",
+        "optional_tools": {name: shutil.which(name) for name in ("git", "svn", "gh", "glab", "rg", "node", "docker", "kubectl", "gdb", "gdb-multiarch", "qemu-system-aarch64", "mmdc", "drawio")},
+        "project": project_info,
+        "scope": "Executable discovery and optional local project markers only; no CLI execution, sign-in check, installation, or network requests.",
     }
 
 
-def _desired(source: Path, root: Path, hosts: list[str], old: dict | None, selected: list[str]) -> tuple[dict, list[str]]:
+def _desired(source: Path, root: Path, hosts: list[str], old: dict | None, selected: list[str], tools_mode: str) -> tuple[dict, list[str]]:
     skills = source / "skills"
-    if not skills.is_dir() or not any(skills.glob("*/SKILL.md")):
-        raise AgfError(f"No skills found in framework source: {skills}")
+    if not skills.is_dir() or not (source / "scripts/agf.py").is_file():
+        raise AgfError(f"Framework source is incomplete: {source}; skills/ and scripts/agf.py are required.")
     files: dict[str, dict] = {}
     notices = []
 
@@ -141,16 +158,25 @@ def _desired(source: Path, root: Path, hosts: list[str], old: dict | None, selec
     rules = source / "templates" / "project-rules.md"
     if not rules.is_file():
         raise AgfError(f"Missing framework project rules: {rules}")
-    add(".agf/managed/project-rules.md", rules.read_bytes(), "templates/project-rules.md")
-    for template in ("profile.example.json", "quality.example.json", "permissions.example.json"):
-        file = source / "templates" / template
-        if file.is_file():
-            add(f".agf/managed/{template}", file.read_bytes(), f"templates/{template}")
+    script = str(source / "scripts/agf.py") if tools_mode == "shared" else ".agf/managed/runtime/scripts/agf.py"
+    mode_note = "共用同一份工具；原始框架目錄必須保持可用。" if tools_mode == "shared" else "這是離線工具快照；執行工具不依賴原始框架目錄。"
+    instructions = rules.read_text(encoding="utf-8").rstrip() + "\n\n"
+    instructions += f"工具模式：`{tools_mode}`。{mode_note}\nCLI 腳本路徑：`{script}`。執行時將這個路徑當作 Python 的單一參數；skills 中的 `scripts/agf.py` 範例請替換為此路徑，其餘參數保留。\n"
+    instructions += "按任務讀取 `.agf/managed/guides/` 的 workflow、writing、tools 或 delivery 指引；不要每次載入全部。\n"
+    add(".agf/managed/project-rules.md", instructions.encode("utf-8"), "templates/project-rules.md")
+    for name in GUIDES:
+        file = source / "docs" / name
+        if not file.is_file():
+            raise AgfError(f"Missing framework guide: {file}")
+        within(source, file)
+        if file.is_symlink():
+            raise AgfError(f"Framework guides must not be symlinks: {file}")
+        add(f".agf/managed/guides/{name}", file.read_bytes(), f"docs/{name}")
 
-    # A target checkout must actually be able to run the skill helpers. Keep a
-    # small, hash-managed stdlib runtime, not an absolute link to this machine.
+    # Copy mode is an explicit, hash-managed tools snapshot. Shared mode keeps
+    # one source entry instead of copying the runtime to every project.
     # Only these source directories are copied; never recurse into target .agf.
-    for directory in ("agf", "scripts", "templates", "adapters"):
+    for directory in (("agf", "scripts", "templates", "adapters") if tools_mode == "copy" else ()):
         for file in sorted((source / directory).rglob("*")):
             relative = file.relative_to(source)
             if not file.is_file() or any(part.startswith(".") or part == "__pycache__" for part in relative.parts) or file.suffix == ".pyc":
@@ -173,8 +199,8 @@ def _desired(source: Path, root: Path, hosts: list[str], old: dict | None, selec
     return files, notices
 
 
-def _plan(root: Path, source: Path, hosts: list[str], old: dict | None, selected: list[str]) -> tuple[dict, dict]:
-    desired, notices = _desired(source, root, hosts, old, selected)
+def _plan(root: Path, source: Path, hosts: list[str], old: dict | None, selected: list[str], tools_mode: str) -> tuple[dict, dict]:
+    desired, notices = _desired(source, root, hosts, old, selected, tools_mode)
     drift = _drift(root, old)
     conflicts = []
     operations = []
@@ -184,11 +210,19 @@ def _plan(root: Path, source: Path, hosts: list[str], old: dict | None, selected
     for name, entry in previous.items():
         if name.startswith((".agents/skills/", ".claude/skills/")):
             skill = name.split("/")[2]
-            if skill not in selected and not (name.startswith(".claude/") and "claude" not in hosts):
+            if skill not in selected and (source / "skills" / skill / "SKILL.md").is_file() and not (name.startswith(".claude/") and "claude" not in hosts):
                 path = _path(root, name)
                 if path.is_file():
                     desired[name] = {"data": path.read_bytes(), "sha256": entry["sha256"], "source": entry.get("source", "preserved"),
                                      "source_root": entry.get("source_root", old.get("source"))}
+    # Enabling Claude must also expose retained, unrefreshed skills. Copy their
+    # installed bytes, not a newer source version outside this targeted update.
+    if "claude" in hosts:
+        for name, entry in list(desired.items()):
+            if name.startswith(".agents/skills/"):
+                counterpart = ".claude/skills/" + name.removeprefix(".agents/skills/")
+                if counterpart not in desired:
+                    desired[counterpart] = dict(entry)
     for name, entry in desired.items():
         path = _path(root, name)
         if name in previous:
@@ -200,7 +234,8 @@ def _plan(root: Path, source: Path, hosts: list[str], old: dict | None, selected
             action = "create"
         operations.append({"path": name, "action": action, "source": entry["source"], "sha256": entry["sha256"]})
     for name in previous.keys() - desired.keys():
-        operations.append({"path": name, "action": "remove", "source": previous[name].get("source")})
+        retired = name.startswith((".agents/skills/", ".claude/skills/")) and not (source / "skills" / name.split("/")[2] / "SKILL.md").is_file()
+        operations.append({"path": name, "action": "retire" if retired else "remove", "source": previous[name].get("source")})
     folded: dict[str, str] = {}
     for name in desired:
         key = name.casefold()
@@ -210,11 +245,13 @@ def _plan(root: Path, source: Path, hosts: list[str], old: dict | None, selected
     report = {
         "command": "project", "target": str(root), "source": str(source),
         "mode": "update" if old else "install", "hosts": hosts, "applied": False,
+        "tools_mode": tools_mode, "previous_tools_mode": old.get("tools_mode", "copy") if old else None,
         "refresh_skills": selected,
+        "available_skills": sorted(entry.parent.name for entry in (source / "skills").glob("*/SKILL.md")),
         "operations": sorted(operations, key=lambda item: item["path"]),
         "drift": drift, "conflicts": conflicts, "notices": notices,
         "ready": not drift and not conflicts,
-        "scope": "Managed file synchronization only. No tools, dependencies, hooks, credentials or native host settings are installed.",
+        "scope": "Managed rules, skills and guides; shared references the source tools, copy includes a Python tools snapshot. No external dependencies, hooks, credentials or native settings are installed.",
     }
     return report, desired
 
@@ -254,37 +291,50 @@ def project(args: argparse.Namespace) -> dict:
     old = _manifest(root)
     if args.operation == "status":
         drift = _drift(root, old)
+        tools_mode = old.get("tools_mode", "copy") if old else None
+        entry = Path(old["source"]) / "scripts/agf.py" if tools_mode == "shared" else root / ".agf/managed/runtime/scripts/agf.py"
+        tools_available = old is not None and entry.is_absolute() and entry.is_file()
         return {"command": "project status", "target": str(root), "installed": old is not None,
                 "hosts": (old or {}).get("hosts", []), "managed_files": len((old or {}).get("files", {})),
                 "drift": drift, "clean": old is not None and not drift,
-                "source": (old or {}).get("source"), "_exit_code": 1 if drift else 0}
+                "tools_mode": tools_mode, "tools_available": tools_available,
+                "ready": old is not None and not drift and tools_available,
+                "skills": (old or {}).get("skills", []),
+                "source": (old or {}).get("source"), "_exit_code": 1 if drift or (old and not tools_available) else 0}
     if args.operation == "rollback":
         return _rollback(root, old, args.apply)
     if args.operation == "install" and old is not None:
         raise AgfError("Framework already managed here; use project update or project plan.")
     if args.operation == "update" and old is None:
         raise AgfError("No managed installation found; use project install first.")
-    source = Path(args.source or (old or {}).get("source") or SOURCE).resolve()
+    recorded_source = (old or {}).get("source")
+    if not args.source and recorded_source and not Path(recorded_source).is_absolute():
+        raise AgfError("Recorded framework source is not a native absolute path in this environment. Provide --source with an accessible checkout; no implicit path conversion was attempted.")
+    source = Path(args.source or recorded_source or SOURCE).resolve()
     hosts = sorted(set(args.host or (old or {}).get("hosts") or ["opencode"]))
-    installed_skills = (old or {}).get("skills") or sorted({name.split("/")[2] for name in (old or {}).get("files", {}) if name.startswith(".agents/skills/")})
+    installed_skills = old["skills"] if old and "skills" in old else sorted({name.split("/")[2] for name in (old or {}).get("files", {}) if name.startswith(".agents/skills/")})
     if not (source / "skills").is_dir():
         raise AgfError(f"Framework source is unavailable or incomplete: {source}. Provide --source with a complete framework checkout; no project files were changed.")
-    selected = sorted(set(getattr(args, "skill", None) or installed_skills or [entry.parent.name for entry in (source / "skills").glob("*/SKILL.md")]))
-    report, desired = _plan(root, source, hosts, old, selected)
+    available = {entry.parent.name for entry in (source / "skills").glob("*/SKILL.md")}
+    requested = getattr(args, "skill", None)
+    selected = sorted(set(requested if requested is not None else (set(installed_skills) & available if old else [])))
+    tools_mode = getattr(args, "tools", None) or (old.get("tools_mode", "copy") if old else "shared")
+    report, desired = _plan(root, source, hosts, old, selected, tools_mode)
     if not args.apply or args.operation == "plan":
         report["_exit_code"] = 0 if report["ready"] else 1
         return report
     if not report["ready"]:
         raise AgfError("Configuration blocked by local drift or an existing unmanaged file; inspect project plan. No files were changed.")
     changed = [item for item in report["operations"] if item["action"] != "keep"]
-    if not changed and old and old.get("hosts") == hosts and old.get("source") == str(source):
+    if not changed and old and old.get("hosts") == hosts and old.get("source") == str(source) and old.get("tools_mode", "copy") == tools_mode:
         report.update({"applied": False, "unchanged": True})
         return report
     before = {item["path"]: (_path(root, item["path"]).read_bytes() if _path(root, item["path"]).is_file() else None) for item in changed}
     manifest_path = _path(root, MANIFEST)
     previous_bytes = manifest_path.read_bytes() if old else None
     transaction = uuid.uuid4().hex
-    new_manifest = {"version": SCHEMA, "source": str(source), "hosts": hosts, "skills": sorted(set(installed_skills) | set(selected)), "transaction": transaction,
+    new_manifest = {"version": SCHEMA, "source": str(source), "hosts": hosts, "tools_mode": tools_mode,
+                    "skills": sorted({name.split("/")[2] for name in desired if name.startswith(".agents/skills/")}), "transaction": transaction,
                     "source_fingerprint": _sha(json_text({name: entry["sha256"] for name, entry in sorted(desired.items())}).encode("utf-8")),
                     "files": {name: {"sha256": entry["sha256"], "source": entry["source"], "source_root": entry["source_root"]} for name, entry in desired.items()}}
     snapshot = {"version": SCHEMA, "before_manifest": base64.b64encode(previous_bytes).decode("ascii") if previous_bytes else None,
@@ -304,11 +354,12 @@ def project(args: argparse.Namespace) -> dict:
     try:
         for item in changed:
             path = _path(root, item["path"])
-            if item["action"] == "remove":
+            if item["action"] in ("remove", "retire"):
                 path.unlink()
             elif item["action"] == "create":
                 path.parent.mkdir(parents=True, exist_ok=True)
                 with path.open("xb") as stream:
+                    touched[item["path"]] = None
                     stream.write(desired[item["path"]]["data"])
             else:
                 _replace_bytes(path, desired[item["path"]]["data"])
@@ -372,6 +423,7 @@ def _rollback(root: Path, old: dict | None, apply: bool) -> dict:
 def register(subparsers) -> None:
     probe = subparsers.add_parser("doctor", help="Discover executables without running or installing them")
     probe.add_argument("--host", choices=(*HOSTS, "all"), default="all")
+    probe.add_argument("--root", help="Optionally inspect a project directory for local .git/.svn/.hg markers")
     probe.set_defaults(func=doctor)
     command = subparsers.add_parser("project", help="Plan, synchronize and restore managed project files")
     operations = command.add_subparsers(dest="operation", required=True)
@@ -380,6 +432,7 @@ def register(subparsers) -> None:
         parser.add_argument("--target", required=True)
         parser.add_argument("--source", help="Framework checkout; defaults to this package or the recorded source")
         parser.add_argument("--host", choices=HOSTS, action="append", help="Repeat for selected hosts; defaults to recorded hosts or opencode")
-        parser.add_argument("--skill", action="append", help="Repeat for selected skills; targeted updates preserve other installed skills")
+        parser.add_argument("--skill", action="append", help="Install only named skills (repeatable). New projects get no skills by default; updates preserve existing selections except retired skills.")
+        parser.add_argument("--tools", choices=("shared", "copy"), help="shared: use one framework tools checkout (new-install default); copy: include tools for offline delivery. Updates keep the recorded mode unless this is explicit.")
         parser.add_argument("--apply", action="store_true", help="Write the reviewed plan (plan and status always remain read-only)")
         parser.set_defaults(func=project)

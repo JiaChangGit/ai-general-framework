@@ -1,11 +1,13 @@
 ---
 name: read-research
-description: Guide source-backed reading of a research paper or technical specification, including claims, assumptions, figures, applicability, and limits. Use for understanding the document; not for treating a summary as verified implementation behavior.
+description: Read or teach a specified research paper or technical specification, checking claims, figures, normative conditions, and limits against the source. Use for both targeted lookup and guided reading; not extraction or conversion alone, general repository teaching, or creative writing.
 ---
 
 # 帶著問題讀論文與規格
 
-先確認實際文件、版本與閱讀目的。取得全文前只評論已取得的內容，不補造段落、頁碼、圖號或引用。使用者有指定來源時優先讀它，再查需要的延伸。
+指定論文或 spec 的帶讀也由本 skill 處理，不另啟動 `guide-learning`。純下載、擷取文字或格式轉換直接使用合適工具，不需要此 skill。
+
+先確認實際文件、版本與閱讀目的。查一個欄位時直接給定位、有效條件與答案；要求帶讀才展開情境。取得全文前只評論已取得的內容，不補造段落、頁碼、圖號或引用。
 
 - 論文：讀 [papers.md](references/papers.md)，區分作者主張、方法、證據和仍未支持的推廣。
 - 規格：讀 [specifications.md](references/specifications.md)，保留規範強度、前提、模式、有效欄位和例外。

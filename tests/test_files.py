@@ -39,6 +39,84 @@ class FileTests(unittest.TestCase):
         self.assertFalse(source.exists())
         self.assertEqual((self.root / "New.txt").read_bytes(), b"original")
 
+    def test_recursive_rename_skips_vcs_metadata_but_keeps_other_hidden_files(self):
+        protected = [self.make(f"{directory}/old-data", b"metadata")
+                     for directory in (".git", ".SvN", "nested/.HG")]
+        ordinary = [self.make("old.txt"), self.make("nested/old.txt"), self.make(".settings/old.txt")]
+        before = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
+        plan = files.rename_plan(self.root, "old", "new", recursive=True)
+        self.assertEqual({op["source"] for op in plan["operations"]},
+                         {p.relative_to(self.root).as_posix() for p in ordinary})
+        self.assertEqual(before, {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()})
+        files.apply_plan(plan)
+        for path in protected:
+            self.assertEqual(path.read_bytes(), b"metadata")
+        for path in ordinary:
+            self.assertFalse(path.exists())
+            self.assertEqual(path.with_name("new.txt").read_bytes(), b"original")
+
+    def test_recursive_normalize_does_not_read_or_change_metadata(self):
+        protected = [self.make(f"{directory}/wc.db", b"\xff\x00\r\n")
+                     for directory in (".git", ".svn", "nested/.hG")]
+        ordinary = [self.make("input.txt", b"text\r\n"), self.make(".hidden/input.txt", b"hidden\r\n")]
+        plan = files.normalize_plan(self.root, "utf-8", "utf-8", "lf", recursive=True)
+        self.assertEqual({op["source"] for op in plan["operations"]},
+                         {p.relative_to(self.root).as_posix() for p in ordinary})
+        self.assertEqual([path.read_bytes() for path in ordinary], [b"text\r\n", b"hidden\r\n"])
+        files.apply_plan(plan)
+        self.assertEqual([path.read_bytes() for path in protected], [b"\xff\x00\r\n"] * 3)
+        self.assertEqual([path.read_bytes() for path in ordinary], [b"text\n", b"hidden\n"])
+
+    def test_metadata_marker_files_are_not_renamed(self):
+        # Git worktrees can use a .git file instead of a directory.
+        markers = [self.make(name, b"metadata marker") for name in (".GiT", ".SVN", ".hg")]
+        self.make(".env", b"ordinary hidden file")
+        plan = files.rename_plan(self.root, "^", "prefix-")
+        self.assertEqual([op["source"] for op in plan["operations"]], [".env"])
+        files.apply_plan(plan)
+        self.assertTrue((self.root / "prefix-.env").is_file())
+        self.assertEqual([path.read_bytes() for path in markers], [b"metadata marker"] * 3)
+
+    def test_saved_plans_cannot_use_metadata_sources_or_targets(self):
+        regular = self.make("ordinary.txt", b"ordinary")
+        protected = self.make(".SvN/old-data", b"protected")
+        cases = [
+            {"source": ".SvN/old-data", "target": ".SvN/new-data", "sha256": files._hash(protected)},
+            {"source": "ordinary.txt", "target": ".hG", "sha256": files._hash(regular)},
+        ]
+        for kind in ("rename", "normalize"):
+            for index, operation in enumerate(cases):
+                with self.subTest(kind=kind, operation=operation):
+                    # The first operation is valid; a later forbidden one must
+                    # stop the whole plan before any ordinary source is moved.
+                    first = {"source": "ordinary.txt", "target": "ordinary.txt" if kind == "normalize" else "renamed.txt",
+                             "sha256": files._hash(regular)}
+                    plan = {"schema": 1, "kind": kind, "root": str(self.root), "operations": [first, operation],
+                            "settings": {"from_encoding": "utf-8", "to_encoding": "utf-8", "newline": "lf"}}
+                    saved = Path(self.temp.name) / f"forged-{kind}-{index}.json"
+                    saved.write_text(json.dumps(plan), encoding="utf-8")
+                    for apply_args in ((), ("--apply",)):
+                        with self.assertRaisesRegex(AgfError, "VCS metadata"):
+                            invoke("files", "apply", str(saved), *apply_args)
+                    self.assertEqual(regular.read_bytes(), b"ordinary")
+                    self.assertEqual(protected.read_bytes(), b"protected")
+                    self.assertFalse((self.root / "renamed.txt").exists())
+                    self.assertFalse(any(self.root.glob(".agf-files-*")))
+
+    def test_metadata_root_or_ancestor_is_refused_even_in_saved_plan(self):
+        for directory in (".git", ".sVn", ".HG"):
+            source = self.make(f"{directory}/nested/ordinary.txt", b"metadata")
+            for root in (source.parent, source.parent.parent):
+                with self.subTest(root=root):
+                    with self.assertRaisesRegex(AgfError, "VCS metadata"):
+                        files.rename_plan(root, "ordinary", "new", recursive=True)
+                    with self.assertRaisesRegex(AgfError, "VCS metadata"):
+                        files.normalize_plan(root, "utf-8", "utf-8", "lf", recursive=True)
+                    # Empty operations do not bypass the root restriction.
+                    with self.assertRaisesRegex(AgfError, "VCS metadata"):
+                        files.apply_plan({"schema": 1, "kind": "rename", "root": str(root), "operations": []})
+            self.assertEqual(source.read_bytes(), b"metadata")
+
     def test_source_drift_refuses_whole_batch(self):
         first = self.make("old1")
         self.make("old2")

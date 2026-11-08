@@ -2,6 +2,21 @@
 
 這份紀錄說明框架為何採用某些方法、哪些做法沒有照搬，以及證據能支持到哪裡。它是設計依據，不代表所有整合、模型與教學方法都已在本框架驗證。外部工具會變動，實際操作仍需核對使用版本的文件。
 
+## v0.2 的減法與支援邊界
+
+本輪依實際使用方向，將自動技能入口由十三個收斂成五個明確目的。一般開發交給宿主，需求對齊、分工、表達、創作及工具選擇改成四份按需指引；新專案只配置明示選取的 skills。共用工具為預設，離線交付才選工具副本。這減少重複配置與選擇面，尚不能據此宣稱降低多少 token 或實際宿主誤觸率。
+
+| 原始來源 | 採納決策 |
+|---|---|
+| [Anthropic Skill authoring](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)、[Agent Skills 規格](https://agentskills.io/specification) | 只補足任務所需資訊，先以真實請求觀察有無 skill 的差異；格式通過不代表應保留每個入口。只在改選用邊界時檢查路由，其他維護驗證其實際行為。 |
+| [Anthropic 工具設計](https://www.anthropic.com/research/writing-tools-for-agents)、[Fowler YAGNI](https://martinfowler.com/bliki/Yagni.html) | 原生工具足夠就直接用。保留有額外價值的預覽、邊界與證據；移除純文字拼接的 git intent 及低頻、易過期的 Python MCP 名單，不預作通用 SCM 抽象。 |
+| [GitHub CLI](https://cli.github.com/manual/gh)、[GitLab CLI](https://docs.gitlab.com/cli/) | GitHub／GitLab 是協作平台，優先使用既有 gh／glab、connector 與專案慣例；可執行、已登入、已授權各自辨認。GitLab 自管主機不應被硬編成 gitlab.com。 |
+| [Subversion Quick Start](https://subversion.apache.org/quick-start)、[基本流程](https://svnbook.red-bean.com/en/1.7/svn.tour.cycle.html)、[ignore 屬性](https://svnbook.red-bean.com/en/1.7/svn.advanced.props.special.ignore.html) | 工作副本的 status／diff 與寫入 repository 不同；SVN commit 和某些 URL 操作會發布變更，不能套 Git 本地 commit 授權。忽略私人資料用該 VCS 的機制，不把 .gitignore 當通用規則。書籍連結為 1.7 版基本語意，實際選項仍查使用版本。 |
+| [Boost.GIL 貢獻文件](https://github.com/boostorg/gil/blob/develop/CONTRIBUTING.md)、[FreeRTOS troubleshooting](https://freertos.gitbook.io/mastering-the-freertos-tm-real-time-kernel/mastering.ch13)、[ST UM2576](https://www.st.com/resource/en/user_manual/dm00613038-stm32cubeide-st-link-gdb-server-stmicroelectronics.pdf) | library、port、板子與工具鏈條件依真實對象查證。建置、實際燒錄、寫入驗證及板端行為分開，不為每個領域新增一套通用開發 skill。 |
+| [Wilson 等：研究運算實踐](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005510) | 分析程式保留來源、原始資料、轉換與可重跑結果；個人股市分析不推導為券商連線或送單授權。 |
+
+小說、音樂與投影片式影片本輪只採共用創作指引：尊重既定設定，依目的選形式，分清草稿與實際成品；沒有新增 provider、媒體管線或宣稱作品品質已驗證。這是使用者的範圍取捨，不是上述工程來源證明的創作方法。
+
 ## Skills、工作流程與工具
 
 | 來源 | 採用的理由 | 沒有照搬或仍須確認的部分 |

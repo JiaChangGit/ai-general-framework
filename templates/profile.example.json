@@ -3,11 +3,11 @@
   "status": "example_not_automatically_loaded",
   "language": "zh-TW",
   "writing": {
-    "audience": "先依任務確認讀者程度",
-    "preferences": ["先說重點，再接因果與例子", "保留常用英文術語，首次出現時解釋", "避免空泛稱讚、翻譯腔與固定口號"]
+    "audience": "先從對話、專案和現有資料理解讀者；未知且影響表達時才問",
+    "preferences": ["先說重點，再接因果與例子", "術語用白話解釋，必要時保留原文供查找", "避免空泛稱讚、翻譯腔與固定口號"]
   },
   "teaching": {
-    "default": "先問學習目標與先備知識，再選適當深度",
+    "default": "先理解學習目標與先備知識；現有資訊不足且會影響教法時才問",
     "trace": "入口、狀態變化、資料與資源生命週期、錯誤路徑",
     "visualization": "選能解釋因果的圖；Mermaid 與 draw.io 渲染是可選能力"
   },

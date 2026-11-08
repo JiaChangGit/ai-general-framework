@@ -1,5 +1,6 @@
 import argparse
 import json
+import shutil
 from pathlib import Path
 import tempfile
 import subprocess
@@ -24,9 +25,14 @@ class ProjectTests(unittest.TestCase):
         (skill / "SKILL.md").write_text("---\nname: trace\ndescription: Trace a repository\n---\nRead evidence.\n", encoding="utf-8")
         (self.source / "templates").mkdir()
         (self.source / "templates" / "project-rules.md").write_text("Keep task scope.\n", encoding="utf-8")
+        (self.source / "scripts").mkdir()
+        (self.source / "scripts/agf.py").write_text("print('fixture tools')\n", encoding="utf-8")
+        (self.source / "docs").mkdir()
+        for name in manage.GUIDES:
+            (self.source / "docs" / name).write_text(f"Fixture guide: {name}\n", encoding="utf-8")
 
-    def run_project(self, operation="plan", apply=False, hosts=None, skills=None):
-        return manage.project(argparse.Namespace(operation=operation, target=str(self.root), source=str(self.source), host=hosts, skill=skills, apply=apply))
+    def run_project(self, operation="plan", apply=False, hosts=None, skills=None, tools="copy"):
+        return manage.project(argparse.Namespace(operation=operation, target=str(self.root), source=str(self.source), host=hosts, skill=["trace"] if skills is None else skills, tools=tools, apply=apply))
 
     def test_plan_is_read_only_and_uses_opencode_by_default(self):
         result = self.run_project()
@@ -167,14 +173,14 @@ class ProjectTests(unittest.TestCase):
     def test_parser_registers_all_project_operations(self):
         parser = argparse.ArgumentParser()
         manage.register(parser.add_subparsers(required=True))
-        args = parser.parse_args(["project", "plan", "--target", str(self.root), "--host", "claude", "--host", "opencode"])
+        args = parser.parse_args(["project", "plan", "--target", str(self.root), "--source", str(self.source), "--host", "claude", "--host", "opencode"])
         self.assertTrue(args.func(args)["ready"])
 
     def test_targeted_update_preserves_other_installed_skills(self):
         other = self.source / "skills" / "debug"
         other.mkdir()
         (other / "SKILL.md").write_text("Debug version one", encoding="utf-8")
-        self.run_project("install", True)
+        self.run_project("install", True, skills=["trace", "debug"])
         (other / "SKILL.md").write_text("Debug version two", encoding="utf-8")
         trace = self.source / "skills/trace/SKILL.md"
         trace.write_text("Trace version two", encoding="utf-8")
@@ -194,10 +200,22 @@ class ProjectTests(unittest.TestCase):
         self.assertTrue((self.root / ".agents/skills/trace/SKILL.md").is_file())
         self.assertFalse((self.root / ".agents/skills/debug").exists())
 
+    def test_added_host_receives_retained_skill_without_refreshing_it(self):
+        self.run_project("install", True, hosts=["opencode"], skills=["trace"], tools="shared")
+        installed = (self.root / ".agents/skills/trace/SKILL.md").read_bytes()
+        (self.source / "skills/trace/SKILL.md").write_text("Newer source, not selected for refresh", encoding="utf-8")
+        other = self.source / "skills/debug"
+        other.mkdir()
+        (other / "SKILL.md").write_text("Debug instructions", encoding="utf-8")
+        self.run_project("update", True, hosts=["opencode", "claude"], skills=["debug"], tools="shared")
+        self.assertEqual((self.root / ".claude/skills/trace/SKILL.md").read_bytes(), installed)
+        self.assertEqual((self.root / ".agents/skills/trace/SKILL.md").read_bytes(), installed)
+        self.assertTrue((self.root / ".claude/skills/debug/SKILL.md").is_file())
+
     def test_installed_runtime_runs_from_destination_cwd(self):
-        available = sorted((manage.SOURCE / "skills").glob("*/SKILL.md"))
-        self.assertTrue(available, "A real framework skill is required for this end-to-end check")
-        args = argparse.Namespace(operation="install", target=str(self.root), source=str(manage.SOURCE), host=["opencode"], skill=[available[0].parent.name], apply=True)
+        shutil.copytree(manage.SOURCE / "agf", self.source / "agf", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        shutil.copytree(manage.SOURCE / "scripts", self.source / "scripts", dirs_exist_ok=True)
+        args = argparse.Namespace(operation="install", target=str(self.root), source=str(self.source), host=["opencode"], skill=["trace"], tools="copy", apply=True)
         manage.project(args)
         cli = self.root / ".agf/managed/runtime/scripts/agf.py"
         for command in (["doctor", "--host", "opencode"], ["files", "--help"], ["diagram", "--help"]):
@@ -209,6 +227,131 @@ class ProjectTests(unittest.TestCase):
         manifest = json.loads((self.root / ".agf/manifest.json").read_text(encoding="utf-8"))
         self.assertIn(".agf/managed/runtime/agf/cli.py", manifest["files"])
         self.assertNotIn(".agf/managed/runtime/.agf", manifest["files"])
+
+    def test_new_defaults_are_shared_rules_and_guides_without_skills(self):
+        parser = argparse.ArgumentParser()
+        manage.register(parser.add_subparsers(required=True))
+        args = parser.parse_args(["project", "install", "--target", str(self.root), "--source", str(self.source), "--apply"])
+        result = args.func(args)
+        self.assertEqual(result["tools_mode"], "shared")
+        self.assertEqual(result["refresh_skills"], [])
+        self.assertEqual(result["available_skills"], ["trace"])
+        value = json.loads((self.root / ".agf/manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(value["skills"], [])
+        self.assertEqual(len(value["files"]), 6)
+        self.assertFalse((self.root / ".agents").exists())
+        self.assertFalse((self.root / ".agf/managed/runtime").exists())
+        self.assertFalse((self.root / ".agf/managed/profile.example.json").exists())
+        self.assertIn(str(self.source / "scripts/agf.py"), (self.root / ".agf/managed/project-rules.md").read_text(encoding="utf-8"))
+
+    def test_shared_status_reports_missing_tools_even_when_managed_files_are_clean(self):
+        self.run_project("install", True, tools="shared")
+        (self.source / "scripts/agf.py").unlink()
+        result = self.run_project("status")
+        self.assertTrue(result["clean"])
+        self.assertFalse(result["tools_available"])
+        self.assertFalse(result["ready"])
+        self.assertEqual(result["_exit_code"], 1)
+
+    def test_foreign_recorded_source_requires_explicit_native_source(self):
+        self.run_project("install", True, tools="shared")
+        path = self.root / ".agf/manifest.json"
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        # Windows would silently resolve this POSIX path against the current
+        # drive/share. Linux must likewise reject an inherited Windows path.
+        manifest["source"] = "/" + self.source.as_posix()[len(self.source.anchor):] if sys.platform == "win32" else "C:\\framework"
+        path.write_text(json.dumps(manifest), encoding="utf-8")
+        before = path.read_bytes()
+        args = argparse.Namespace(operation="update", target=str(self.root), source=None, host=None, skill=None, tools=None, apply=True)
+        with self.assertRaisesRegex(AgfError, "native absolute path"):
+            manage.project(args)
+        self.assertEqual(path.read_bytes(), before)
+        args.source = str(self.source)
+        self.assertTrue(manage.project(args)["applied"])
+        self.assertTrue(self.run_project("status")["ready"])
+
+    def test_failed_create_cleans_its_partial_file_but_preserves_user_files(self):
+        destination = self.root / ".agf/managed/project-rules.md"
+        notes = self.root / "notes.txt"
+        notes.write_text("User content", encoding="utf-8")
+        original_open = Path.open
+
+        class BrokenWrite:
+            def __init__(self, stream):
+                self.stream = stream
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                self.stream.close()
+            def write(self, data):
+                self.stream.write(data[:3])
+                raise OSError("Injected write failure after partial creation")
+
+        def open_file(path, mode="r", *args, **kwargs):
+            stream = original_open(path, mode, *args, **kwargs)
+            return BrokenWrite(stream) if path == destination and mode == "xb" else stream
+
+        with patch.object(Path, "open", open_file):
+            with self.assertRaises(AgfError):
+                self.run_project("install", True, tools="shared")
+        self.assertFalse(destination.exists())
+        self.assertFalse((self.root / ".agf/manifest.json").exists())
+        self.assertEqual(notes.read_text(encoding="utf-8"), "User content")
+
+    def test_mode_switch_is_planned_and_rollback_restores_the_mode(self):
+        self.run_project("install", True, tools="shared")
+        preview = self.run_project("update", tools="copy")
+        self.assertEqual(preview["previous_tools_mode"], "shared")
+        self.assertTrue(any(item["path"].startswith(".agf/managed/runtime/") for item in preview["operations"]))
+        self.assertFalse((self.root / ".agf/managed/runtime/scripts/agf.py").exists())
+        self.run_project("update", True, tools="copy")
+        self.assertTrue((self.root / ".agf/managed/runtime/scripts/agf.py").is_file())
+        self.run_project("rollback", True)
+        self.assertEqual(self.run_project("status")["tools_mode"], "shared")
+        self.assertFalse((self.root / ".agf/managed/runtime/scripts/agf.py").is_file())
+
+    def test_legacy_manifest_without_mode_keeps_copy_behavior(self):
+        self.run_project("install", True, tools="copy")
+        path = self.root / ".agf/manifest.json"
+        value = json.loads(path.read_text(encoding="utf-8"))
+        del value["tools_mode"]
+        path.write_text(json.dumps(value), encoding="utf-8")
+        self.assertEqual(self.run_project("status")["tools_mode"], "copy")
+        result = self.run_project("update", True, tools=None)
+        self.assertEqual(result["tools_mode"], "copy")
+        self.assertTrue((self.root / ".agf/managed/runtime/scripts/agf.py").is_file())
+
+    def test_retired_skill_requires_apply_and_can_be_restored(self):
+        self.run_project("install", True, tools="shared")
+        target = self.root / ".agents/skills/trace/SKILL.md"
+        original = target.read_bytes()
+        (self.source / "skills/trace/SKILL.md").unlink()
+        args = argparse.Namespace(operation="update", target=str(self.root), source=None, host=None, skill=None, tools=None, apply=False)
+        preview = manage.project(args)
+        self.assertEqual([item["action"] for item in preview["operations"] if item["path"].endswith("trace/SKILL.md")], ["retire"])
+        self.assertEqual(target.read_bytes(), original)
+        args.apply = True
+        manage.project(args)
+        self.assertFalse(target.exists())
+        self.assertEqual(self.run_project("status")["skills"], [])
+        self.run_project("rollback", True)
+        self.assertEqual(target.read_bytes(), original)
+
+    def test_empty_selection_does_not_install_new_skills_after_retirement(self):
+        self.run_project("install", True, skills=[], tools="shared")
+        args = argparse.Namespace(operation="update", target=str(self.root), source=None, host=None, skill=None, tools=None, apply=True)
+        manage.project(args)
+        self.assertEqual(self.run_project("status")["skills"], [])
+        self.assertFalse((self.root / ".agents").exists())
+
+    def test_drift_blocks_retirement(self):
+        self.run_project("install", True)
+        target = self.root / ".agents/skills/trace/SKILL.md"
+        target.write_text("local edit", encoding="utf-8")
+        (self.source / "skills/trace/SKILL.md").unlink()
+        with self.assertRaises(AgfError):
+            manage.project(argparse.Namespace(operation="update", target=str(self.root), source=None, host=None, skill=None, tools=None, apply=True))
+        self.assertEqual(target.read_text(encoding="utf-8"), "local edit")
 
 
 if __name__ == "__main__":

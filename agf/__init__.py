@@ -1,3 +1,3 @@
-"""Portable helpers for evidence-based AI engineering workflows."""
+"""Small portable helpers for AI-assisted work, learning and creation."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

@@ -1,4 +1,6 @@
 import argparse
+import contextlib
+import io
 import json
 import os
 from pathlib import Path
@@ -34,13 +36,17 @@ class IntegrationTests(unittest.TestCase):
         shutil.copytree(integrations.SOURCE / "scripts", source / "scripts")
         (source / "templates").mkdir()
         shutil.copyfile(integrations.SOURCE / "templates/project-rules.md", source / "templates/project-rules.md")
+        shutil.copyfile(integrations.SOURCE / "templates/git-hook.py", source / "templates/git-hook.py")
+        (source / "docs").mkdir()
+        for name in manage.GUIDES:
+            (source / "docs" / name).write_text(f"Fixture guide {name}\n", encoding="utf-8")
         skill = source / "skills" / "fixture"
         skill.mkdir(parents=True)
         (skill / "SKILL.md").write_text("---\nname: fixture\ndescription: Isolated test fixture\n---\nUse only fixture files.\n", encoding="utf-8")
         return source
 
-    def install_runtime(self, source, root):
-        manage.project(argparse.Namespace(operation="install", target=str(root), source=str(source), host=["opencode"], skill=["fixture"], apply=True))
+    def install_runtime(self, source, root, tools="copy"):
+        manage.project(argparse.Namespace(operation="install", target=str(root), source=str(source), host=["opencode"], skill=["fixture"], tools=tools, apply=True))
 
     def git_environment(self, root):
         return {"GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
@@ -114,7 +120,7 @@ class IntegrationTests(unittest.TestCase):
         harness.write_text(r'''
 import assert from "node:assert/strict";
 import { readFile, rename, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, parse } from "node:path";
 import { pathToFileURL } from "node:url";
 const plugin = (await import(pathToFileURL(process.argv[2]).href)).default;
 const root = process.argv[3];
@@ -139,6 +145,36 @@ try {
   assert.equal(reports.length, 2);
   await callbacks["execute.after"]({ tool: "edit", status: "completed" });
   assert.equal(await readFile(join(root, "runs.txt"), "utf8"), "3");
+  const manifestPath = join(root, ".agf", "manifest.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  manifest.tools_mode = "shared";
+  await writeFile(manifestPath, JSON.stringify(manifest));
+  await callbacks["execute.after"]({ tool: "write", status: "completed" });
+  assert.equal(reports.at(-1).tools_mode, "shared");
+  assert.equal(await readFile(join(root, "runs.txt"), "utf8"), "4");
+  const originalSource = manifest.source;
+  if (process.platform === "win32") {
+    // This still resolves to the real fixture from the current drive/share
+    // under Windows Node. Reject it before starting Python or the check.
+    manifest.source = "/" + originalSource.slice(parse(originalSource).root.length).replaceAll("\\", "/");
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    await v1["tool.execute.after"]({ tool: "edit" });
+    assert.equal(reports.at(-1).status, "FAIL");
+    assert.match(reports.at(-1).reason, /not a native absolute path/);
+    assert.equal(await readFile(join(root, "runs.txt"), "utf8"), "4");
+  }
+  manifest.source = join(root, "missing-source");
+  await writeFile(manifestPath, JSON.stringify(manifest));
+  await v1["tool.execute.after"]({ tool: "edit" });
+  assert.equal(reports.at(-1).status, "FAIL");
+  assert.match(reports.at(-1).reason, /Shared tools source is unavailable/);
+  assert.equal(await readFile(join(root, "runs.txt"), "utf8"), "4");
+  manifest.source = originalSource;
+  delete manifest.tools_mode;
+  await writeFile(manifestPath, JSON.stringify(manifest));
+  await v1["tool.execute.after"]({ tool: "edit" });
+  assert.equal(reports.at(-1).tools_mode, "copy");
+  assert.equal(await readFile(join(root, "runs.txt"), "utf8"), "5");
   const config = join(root, ".agf", "quality.json");
   await writeFile(config, JSON.stringify({version: 1, checks: [{name: "intentional-failure", argv: [process.env.AGF_PYTHON, "-c", "raise SystemExit(3)"]}]}));
   await callbacks["execute.after"]({ tool: "write", status: "completed" });
@@ -150,7 +186,7 @@ try {
   const script = join(root, ".agf", "managed", "runtime", "scripts", "agf.py");
   await rename(script, script + ".saved");
   await v1["tool.execute.after"]({ tool: "write" });
-  assert.equal(reports.at(-1).status, "SKIP");
+  assert.equal(reports.at(-1).status, "FAIL");
   assert.match(reports.at(-1).reason, /runtime/);
 } finally { console.error = previousError; }
 console.log(JSON.stringify({status: "contract_pass", successful_real_checks: reports.filter(x => x.status === "PASS").length, native_host: "NOT_TESTED"}));
@@ -160,7 +196,7 @@ console.log(JSON.stringify({status: "contract_pass", successful_real_checks: rep
                                 cwd=root, env=environment, capture_output=True, encoding="utf-8", timeout=45, check=False)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         report = json.loads(result.stdout)
-        self.assertEqual(report["successful_real_checks"], 3)
+        self.assertEqual(report["successful_real_checks"], 5)
         self.assertEqual(report["native_host"], "NOT_TESTED")
 
     def test_git_hook_plan_does_not_write_and_uses_shared_checker(self):
@@ -181,7 +217,7 @@ console.log(JSON.stringify({status: "contract_pass", successful_real_checks: rep
         self.assertFalse((self.root / ".git").exists())
 
     def test_git_hook_install_and_existing_hook_preservation(self):
-        (self.root / ".agf").mkdir()
+        self.install_runtime(self.framework_fixture(), self.root, tools="shared")
         (self.root / ".agf/quality.json").write_text(json.dumps({"version": 1, "checks": [{"name": "probe", "argv": ["{python}", "-c", "print('ok')"]}]}), encoding="utf-8")
         args = self.hook_args()
         args.apply = True
@@ -205,15 +241,11 @@ console.log(JSON.stringify({status: "contract_pass", successful_real_checks: rep
                 integrations.hook(args)
         self.assertFalse(outside.exists())
 
-    def test_mcp_candidates_are_need_based_and_never_installed(self):
-        value = integrations.mcp(argparse.Namespace(need="browser", host="opencode"))
-        self.assertEqual([item["id"] for item in value["candidates"]], ["playwright"])
-        self.assertFalse(value["applied"])
-        self.assertIsNone(value["configuration_plan"])
-        self.assertEqual(list(self.root.iterdir()), [])
-        for host in integrations.HOSTS:
-            example = integrations.mcp(argparse.Namespace(need="docs", host=host))
-            self.assertIsNotNone(example["configuration_plan"])
+    def test_removed_mcp_wrapper_is_not_a_cli_command(self):
+        parser = argparse.ArgumentParser()
+        integrations.register(parser.add_subparsers(required=True))
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            parser.parse_args(["integration", "mcp"])
 
     def test_parser_and_adapter_inventory(self):
         parser = argparse.ArgumentParser()
@@ -231,7 +263,7 @@ console.log(JSON.stringify({status: "contract_pass", successful_real_checks: rep
         environment = self.git_environment(root)
         with patch.dict(os.environ, environment):
             subprocess.run([shutil.which("git"), "-C", str(root), "init", "--quiet"], check=True, capture_output=True, timeout=15)
-            (root / ".agf").mkdir()
+            self.install_runtime(self.framework_fixture(), root, tools="shared")
             quality = {"version": 1, "checks": [{"name": "actual-python-process", "argv": ["{python}", "-c", "import sys; print('checked'); sys.exit(0)"], "cwd": ".", "timeout": 10}]}
             (root / ".agf/quality.json").write_text(json.dumps(quality), encoding="utf-8")
             args = self.hook_args()
@@ -270,6 +302,38 @@ console.log(JSON.stringify({status: "contract_pass", successful_real_checks: rep
         self.assertFalse(source.exists())
         self.assertEqual((root / "checked.txt").read_text(encoding="utf-8"), "ran")
         self.assertIn("source-independent-check", result.stdout + result.stderr)
+
+    @unittest.skipUnless(shutil.which("git"), "Git is required for shared-tools hook evidence")
+    def test_shared_git_hook_reads_manifest_each_run_and_never_falls_back(self):
+        source = self.framework_fixture()
+        root = self.root / "shared target"
+        root.mkdir()
+        self.install_runtime(source, root, tools="shared")
+        quality = {"version": 1, "checks": [{"name": "shared-check", "argv": ["{python}", "-c", "print('shared check ran')"]}]}
+        (root / ".agf/quality.json").write_text(json.dumps(quality), encoding="utf-8")
+        with patch.dict(os.environ, self.git_environment(root)):
+            subprocess.run([shutil.which("git"), "-C", str(root), "init", "--quiet"], check=True, capture_output=True, timeout=15)
+            args = self.hook_args()
+            args.target, args.apply = str(root), True
+            result = integrations.hook(args)
+            self.assertEqual(result["checker_location"], "framework_source_checkout")
+            command = [shutil.which("git"), "-C", str(root), "hook", "run", "pre-commit"]
+            first = subprocess.run(command, capture_output=True, encoding="utf-8", timeout=30)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            manage.project(argparse.Namespace(operation="update", target=str(root), source=None, host=None, skill=None, tools="copy", apply=True))
+            moved = self.root / "source-moved"
+            self.assertTrue(source.resolve().is_relative_to(self.root.resolve()))
+            self.assertTrue(moved.resolve().is_relative_to(self.root.resolve()))
+            source.rename(moved)
+            copied = subprocess.run(command, capture_output=True, encoding="utf-8", timeout=30)
+            self.assertEqual(copied.returncode, 0, copied.stderr)
+            manifest_path = root / ".agf/manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["tools_mode"] = "shared"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            failed = subprocess.run(command, capture_output=True, encoding="utf-8", timeout=30)
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("No fallback", failed.stdout + failed.stderr)
 
 
 if __name__ == "__main__":

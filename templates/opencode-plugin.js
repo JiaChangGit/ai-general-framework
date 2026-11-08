@@ -5,15 +5,39 @@
 // 完整提交/CI 檢查仍由同一個 Python check 命令負責。這不是權限隔離機制。
 // 只依賴 Node built-ins。需要 Python 3.11+；AGF_PYTHON 可指定真正的 executable。
 import { execFile } from "node:child_process";
-import { stat } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { createHash } from "node:crypto";
+import { readFile, stat } from "node:fs/promises";
+import { isAbsolute, join, parse, resolve } from "node:path";
 import { promisify } from "node:util";
 
 const execute = promisify(execFile);
 const edited = new Set(["edit", "write"]);
 
-function checker(root) {
-  return join(root, ".agf", "managed", "runtime", "scripts", "agf.py");
+function nativeAbsolute(path) {
+  if (typeof path !== "string" || !isAbsolute(path)) return false;
+  if (process.platform !== "win32") return true;
+  // Node also accepts /home and \home on Windows; these depend on the
+  // current drive/share and are not native absolute paths in Python.
+  const root = parse(path).root;
+  return /^[a-z]:[/\\]/i.test(root) || /^[/\\]{2}[^/\\]+[/\\][^/\\]+[/\\]?$/.test(root);
+}
+
+async function checker(root) {
+  const manifest = JSON.parse(await readFile(join(root, ".agf", "manifest.json"), "utf8"));
+  const mode = manifest.tools_mode ?? "copy";
+  if (mode === "shared") {
+    if (!nativeAbsolute(manifest.source)) throw new Error("Shared source is not a native absolute path; no environment conversion was attempted.");
+    const script = join(manifest.source, "scripts", "agf.py");
+    if (!(await isFile(script))) throw new Error(`Shared tools source is unavailable: ${manifest.source}. Restore it or update --source; no fallback was attempted.`);
+    return { script, mode };
+  }
+  if (mode !== "copy") throw new Error("Unknown tools mode in project manifest.");
+  const relative = ".agf/managed/runtime/scripts/agf.py";
+  const script = join(root, ...relative.split("/"));
+  if (!(await isFile(script))) throw new Error("Copy tools runtime is missing; explicitly update --tools copy. No source fallback was attempted.");
+  const expected = manifest.files?.[relative]?.sha256;
+  if (!expected || createHash("sha256").update(await readFile(script)).digest("hex") !== expected) throw new Error("Copy tools runtime entry changed; inspect project status.");
+  return { script, mode };
 }
 
 async function isFile(path) {
@@ -51,9 +75,11 @@ function quickCheck(rootValue, input) {
       return result;
     };
     if (!root) return finish({ status: "SKIP", reason: "Project directory is unavailable; no check ran." });
-    const script = checker(root);
+    let selected;
+    try { selected = await checker(root); }
+    catch (error) { return finish({ status: "FAIL", reason: `Cannot select project tools: ${error.message}` }); }
+    const { script, mode } = selected;
     const config = join(root, ".agf", "quality.json");
-    if (!(await isFile(script))) return finish({ status: "SKIP", reason: "Managed Python runtime is missing; run project install after review.", path: script });
     if (!(await isFile(config))) return finish({ status: "SKIP", reason: "Project quality config is missing; review and configure actual quick checks first.", path: config });
     const python = process.env.AGF_PYTHON || (process.platform === "win32" ? "python" : "python3");
     if (/\.(cmd|bat)$/i.test(python)) return finish({ status: "SKIP", reason: "AGF_PYTHON must name a real executable, not a batch shim." });
@@ -68,7 +94,7 @@ function quickCheck(rootValue, input) {
       if (data?.status !== "PASS" || !Array.isArray(data.checks) || data.checks.length === 0) {
         return finish({ status: "FAIL", reason: "Checker returned no successful nonempty check result.", exit_code: 0 });
       }
-      return finish({ status: "PASS", exit_code: 0, checks: data.checks.map((check) => ({ name: check.name, status: check.status })) });
+      return finish({ status: "PASS", tools_mode: mode, exit_code: 0, checks: data.checks.map((check) => ({ name: check.name, status: check.status })) });
     } catch (error) {
       return finish({ status: error.code === "ENOENT" ? "SKIP" : "FAIL",
         reason: error.code === "ENOENT" ? "Python was not found; set AGF_PYTHON to an installed Python 3.11+ executable." : "Quick checks failed or exceeded their execution/output limit; inspect the same check command manually.",
@@ -82,7 +108,7 @@ export default {
   id: "agf.quick-check",
 
   // Current V2 API. Scope this local plugin to its attached project, not global
-  // sessions. A copied plugin in another checkout uses that checkout's runtime.
+  // sessions. Each event reads that project's manifest to select shared/copy tools.
   async setup(ctx) {
     const run = quickCheck(ctx.location?.directory || ctx.location?.project?.directory, null);
     await ctx.tool.hook("execute.after", async (event) => {

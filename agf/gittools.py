@@ -67,17 +67,8 @@ def summary(repo):
             "staged_stat": git(repo, "diff", "--cached", "--stat", "--no-ext-diff")["stdout"]}
 
 
-def intent(subject, why, validation):
-    if not all(isinstance(value, str) and value.strip() for value in (subject, why, validation)):
-        raise AgfError("Supply a subject, actual reason and actual validation (or explicitly state not tested).")
-    if "\n" in subject or "\r" in subject:
-        raise AgfError("Commit subject must be one line.")
-    return {"status": "DRAFT", "message": f"{subject.strip()}\n\n{why.strip()}\n\n{validation.strip()}\n",
-            "meaning": "A draft from supplied facts. Review its accuracy and follow the destination project's conventions."}
-
-
 def register(subparsers):
-    group = subparsers.add_parser("git", help="Inspect scope and draft a reason-bearing commit message")
+    group = subparsers.add_parser("git", help="Inspect Git state and the scope of changed paths")
     children = group.add_subparsers(dest="git_action", required=True)
     item = children.add_parser("summary")
     item.add_argument("--repo", default=".")
@@ -86,8 +77,3 @@ def register(subparsers):
     item.add_argument("--repo", default=".")
     item.add_argument("--allow", action="append", required=True)
     item.set_defaults(func=lambda a: scope(a.repo, a.allow))
-    item = children.add_parser("intent")
-    item.add_argument("--subject", required=True)
-    item.add_argument("--why", required=True)
-    item.add_argument("--validation", required=True)
-    item.set_defaults(func=lambda a: intent(a.subject, a.why, a.validation))

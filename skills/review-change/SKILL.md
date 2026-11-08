@@ -1,11 +1,11 @@
 ---
 name: review-change
-description: Review a proposed diff or patch for actionable defects, regressions, and missing validation. Use for code review; do not rewrite the project or perform an unsolicited general audit.
+description: Review a specified code diff or patch for actionable defects, regressions, and missing validation. Use for engineering change review, not reported-failure diagnosis, general code explanation, prose editing, or creative critique.
 ---
 
 # 依證據審查變更
 
-先確認要看的 diff、基準、使用情境與專案規則。讀取變更及必要的呼叫者、資料結構、測試和歷史理由；不要只憑 diff 中的片段推斷整體行為。
+先確認要看的 diff（相對某個版本的修改內容）、基準與使用情境。讀取變更及必要的呼叫者、資料結構、測試和歷史理由；不要只憑片段推斷整體行為。沒有指定修改對象時先釐清，不把一般「看看這段程式」當成全庫審查。
 
 提出發現前，確認：
 

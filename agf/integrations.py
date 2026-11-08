@@ -1,4 +1,4 @@
-"""Reviewable integration templates, native hook plans and MCP candidates."""
+"""Reviewable integration templates and explicit hook installation."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import shutil
 import subprocess
 import sys
 
-from .common import AgfError, digest, json_text, read_json, within, write_text
+from .common import AgfError, digest, json_text, read_json, write_text
 from .manage import HOSTS, SOURCE, _manifest, _path
 
 
@@ -29,35 +29,8 @@ TEMPLATES = {
     "qemu-gdb": "qemu-gdb.md",
     "project-rules": "project-rules.md",
     "opencode-plugin": "opencode-plugin.js",
+    "git-hook-runner": "git-hook.py",
 }
-
-MCP = (
-    {"id": "openai-docs", "need": "docs", "publisher": "OpenAI",
-     "source": "https://developers.openai.com/resources/docs-mcp/", "endpoint": "https://developers.openai.com/mcp",
-     "capability": "Search official OpenAI product documentation; not a general library documentation service.",
-     "data_flow": "Documentation query is sent to the remote OpenAI documentation endpoint; no project source is required.",
-     "permissions": "Read-only documentation requests; exclude secrets and unrelated project contents.",
-     "selection": "Use when current official OpenAI documentation is needed and the host has no equivalent connected source."},
-    {"id": "github", "need": "github", "publisher": "GitHub",
-     "source": "https://github.com/github/github-mcp-server", "endpoint": "https://api.githubcopilot.com/mcp/",
-     "capability": "Repository, issue and pull-request operations, subject to account and repository permissions.",
-     "data_flow": "Queries and authorized repository data pass between the host and GitHub; writes affect external repositories.",
-     "permissions": "Start with required repositories and read-only capabilities. Push, PR creation and other external writes need task-specific authorization.",
-     "selection": "Prefer an existing GitHub connector or native Git/gh capability if sufficient; do not add a duplicate connection."},
-    {"id": "playwright", "need": "browser", "publisher": "Microsoft",
-     "source": "https://github.com/microsoft/playwright-mcp", "endpoint": None,
-     "capability": "Browser interaction and page inspection; local executable and browser setup may be required.",
-     "data_flow": "Visited sites receive browser requests; page content, cookies and signed-in state may be visible to the automation session.",
-     "permissions": "Choose the required browser context and sites. A visible page is untrusted data; submissions and external changes follow task authorization.",
-     "selection": "Use for browser behavior or interaction when native browser tools are unavailable; installation is a separate action."},
-    {"id": "filesystem-reference", "need": "filesystem", "publisher": "Model Context Protocol reference servers",
-     "source": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem", "endpoint": None,
-     "capability": "Reference filesystem server; evaluate its scope and maintenance before adoption.",
-     "data_flow": "Allowed local paths become accessible to the host and selected model provider through tool results.",
-     "permissions": "Allow only the necessary directories. Prefer the host's native scoped file tools and avoid duplicate broad filesystem access.",
-     "selection": "Usually unnecessary for coding hosts that already expose file tools; this is a candidate, not a security certification."},
-)
-
 
 def _adapters() -> list[dict]:
     return [read_json(SOURCE / "adapters" / f"{host}.json") for host in HOSTS]
@@ -65,7 +38,7 @@ def _adapters() -> list[dict]:
 
 def list_integrations(args: argparse.Namespace) -> dict:
     return {"command": "integration list", "templates": TEMPLATES,
-            "adapters": _adapters(), "mcp": [item["id"] for item in MCP],
+            "adapters": _adapters(),
             "scope": "Template availability is not native host execution or authentication evidence."}
 
 
@@ -91,22 +64,17 @@ def _argv(root: Path, config: Path, profile: str = "quick") -> list[str]:
     relative = ".agf/managed/runtime/scripts/agf.py"
     manifest = _manifest(root)
     entry = (manifest or {}).get("files", {}).get(relative)
-    if entry:
+    if manifest and manifest.get("tools_mode", "copy") == "copy":
         runtime = _path(root, relative)
-        if not runtime.is_file() or digest(runtime) != entry["sha256"]:
-            raise AgfError("Managed runtime entry is missing or locally changed; reconcile project status before generating a hook.")
+        if not entry or not runtime.is_file() or digest(runtime) != entry["sha256"]:
+            raise AgfError("Copy-mode tools snapshot is missing or locally changed; reconcile project status or update --tools copy before generating a hook.")
         script = runtime
     else:
-        script = SOURCE / "scripts" / "agf.py"
+        source = Path(manifest["source"]) if manifest else SOURCE
+        script = source / "scripts" / "agf.py"
+        if not source.is_absolute() or not script.is_file():
+            raise AgfError(f"Shared tools source is unavailable in this environment: {source}. Restore it or run project update --source with an accessible checkout; no other environment was tried.")
     return [sys.executable, str(script), "check", "--root", str(root), "--config", str(config), "--profile", profile]
-
-
-def _shell_command(argv: list[str]) -> str:
-    if os.name == "nt":
-        # AI-host command runners use their native command shell; shell quoting is
-        # intentionally platform-specific instead of JSON-string interpolation.
-        return subprocess.list2cmdline(argv)
-    return shlex.join(argv)
 
 
 def hook(args: argparse.Namespace) -> dict:
@@ -121,12 +89,8 @@ def hook(args: argparse.Namespace) -> dict:
         adapter = read_json(SOURCE / "adapters" / f"{args.host}.json")
         if args.apply:
             raise AgfError("AI-host hooks are review-only plans. Native configuration and version-specific execution have not been validated; no settings were changed.")
-        event = adapter["hooks"].get("example_event")
-        example = None
-        if event:
-            example = {"hooks": {event: [{"hooks": [{"type": "command", "command": _shell_command(argv)}]}]}}
         result = {"command": "integration hook", "kind": "ai", "host": args.host,
-                "applied": False, "checker_argv": argv, "native_config_example": example,
+                "applied": False, "checker_argv": argv,
                 "adapter": adapter["hooks"], "configuration_exists": config.is_file(),
                 "validation": "plan_only; native schema and execution not tested against the installed host",
                 "notice": "Review the host version, event semantics and existing hooks. This does not overwrite native settings or treat hook execution as an authorization boundary."}
@@ -136,7 +100,7 @@ def hook(args: argparse.Namespace) -> dict:
                 "source": str(SOURCE / "templates" / "opencode-plugin.js"),
                 "suggested_destination": str(root / ".opencode" / "plugins" / "agf-quick-check.js"),
                 "content": (SOURCE / "templates" / "opencode-plugin.js").read_text(encoding="utf-8"),
-                "required_runtime": str(root / ".agf/managed/runtime/scripts/agf.py"),
+                "tools_manifest": str(root / ".agf/manifest.json"),
                 "required_configuration": str(root / ".agf/quality.json"),
                 "python_executable_suggestion": sys.executable,
                 "native_host_status": "NOT_TESTED",
@@ -144,6 +108,8 @@ def hook(args: argparse.Namespace) -> dict:
                 "coverage": "Only successful edit/write tools; shell, patch, other tools and external edits require separate checks.",
                 "notice": "Review the local plugin before copying it; .opencode/plugins is automatically discovered by the host. No host settings or plugin directories were changed.",
             }
+        else:
+            result["notice"] += " No untested native configuration is generated; use the host's own documented configuration after review."
         return result
 
     executable = shutil.which("git")
@@ -167,8 +133,11 @@ def hook(args: argparse.Namespace) -> dict:
         _path(root, destination.relative_to(root).as_posix())
     # Git's launcher is deliberately tiny; the checks themselves use the same
     # Python CLI as CI and manual execution. Git for Windows supplies its shell.
-    shell_argv = [value.replace("\\", "/") if index in (0, 1, 4, 6) else value for index, value in enumerate(argv)]
-    content = "#!/bin/sh\n# Managed AGF launcher; all checks live in the Python core.\nexec " + shlex.join(shell_argv) + "\n"
+    runner = (SOURCE / "templates/git-hook.py").read_text(encoding="utf-8")
+    shell_argv = [sys.executable, "-X", "utf8", "-c", runner, str(root), str(config)]
+    if os.name == "nt":
+        shell_argv = [value.replace("\\", "/") if index in (0, 5, 6) else value for index, value in enumerate(shell_argv)]
+    content = "#!/bin/sh\n# AGF: select tools from the project manifest on each invocation.\nexec " + shlex.join(shell_argv) + "\n"
     existing = destination.exists() or destination.is_symlink()
     result = {"command": "integration hook", "kind": "git", "path": str(destination),
               "content": content, "checker_argv": argv, "applied": False,
@@ -177,8 +146,10 @@ def hook(args: argparse.Namespace) -> dict:
               "checker_location": "target_managed_runtime" if Path(argv[1]) == root / ".agf/managed/runtime/scripts/agf.py" else "framework_source_checkout",
               "notice": "Existing hooks are not replaced. Shared or external hook directories require manual integration. No global Git configuration is changed."}
     if result["checker_location"] == "framework_source_checkout":
-        result["source_dependency"] = "No managed target runtime was found; this launcher requires the framework source checkout to remain available. Install the project runtime before creating a self-contained hook."
+        result["source_dependency"] = "This launcher uses the shared source recorded in .agf/manifest.json; that checkout must remain available. Choose --tools copy explicitly for offline delivery."
     if args.apply:
+        if _manifest(root) is None:
+            raise AgfError("Install project rules and record its shared/copy tools mode before installing this manifest-based Git hook.")
         if existing:
             raise AgfError(f"Existing Git hook preserved: {destination}")
         if not supported:
@@ -206,34 +177,8 @@ def hook(args: argparse.Namespace) -> dict:
     return result
 
 
-def mcp(args: argparse.Namespace) -> dict:
-    selected = [dict(item) for item in MCP if args.need == "all" or item["need"] == args.need]
-    for item in selected:
-        item["verification"] = "official candidate source recorded; no installed-server execution, authentication or security audit performed"
-    example = None
-    remote = [item for item in selected if item["endpoint"]]
-    if remote:
-        item = remote[0]
-        if args.host == "opencode":
-            example = {"mcp": {"servers": {item["id"]: {"type": "remote", "url": item["endpoint"], "disabled": True}}}}
-        elif args.host == "claude":
-            example = {"mcpServers": {item["id"]: {"type": "http", "url": item["endpoint"]}}}
-        elif args.host == "gemini":
-            example = {"mcpServers": {item["id"]: {"httpUrl": item["endpoint"]}}}
-        else:
-            example = {"mcp_servers": {item["id"]: {"url": item["endpoint"]}}}
-    return {"command": "integration mcp", "need": args.need, "host": args.host,
-            "candidates": selected, "configuration_plan": example, "applied": False,
-            "validation": "review-only example; host version, authentication and scopes must be checked before use",
-            "decision": ["Identify the missing capability and prefer an existing sufficient native tool.",
-                         "Review publisher, maintenance, data sent, credentials and least permissions.",
-                         "Installation, account connection and settings changes require separate authorization.",
-                         "Start with read-only access; validate one representative task before broadening scope."],
-            "notice": "No tools are installed and no native configuration files are read or modified. OpenCode examples follow V2 documentation; other host schemas require version-specific review."}
-
-
 def register(subparsers) -> None:
-    command = subparsers.add_parser("integration", help="Review CI, hook, tooling and MCP integration plans")
+    command = subparsers.add_parser("integration", help="Review templates and hook plans")
     actions = command.add_subparsers(dest="integration_action", required=True)
     inventory = actions.add_parser("list")
     inventory.set_defaults(func=list_integrations)
@@ -249,7 +194,3 @@ def register(subparsers) -> None:
     hooks.add_argument("--config")
     hooks.add_argument("--apply", action="store_true")
     hooks.set_defaults(func=hook)
-    candidates = actions.add_parser("mcp")
-    candidates.add_argument("--need", choices=("docs", "github", "browser", "filesystem", "all"), default="all")
-    candidates.add_argument("--host", choices=HOSTS, default="opencode")
-    candidates.set_defaults(func=mcp)

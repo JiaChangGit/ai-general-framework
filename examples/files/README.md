@@ -10,6 +10,8 @@ python scripts/agf.py files diff examples/files/before.json examples/files/after
 
 需要隔一段時間再執行時，使用 `--plan-output .agf/artifacts/rename-plan.json` 保存計畫，之後以 `files apply .agf/artifacts/rename-plan.json` 重驗和預覽，最後明確加 `--apply`。計畫只處理列出的來源；之後新增的檔案不會自動被納入，但若與目的檔名碰撞仍會阻止套用。
 
+批次列檔及目錄比較會略過名稱為 `.git`、`.svn`、`.hg` 的版本控制管理資料，採不分大小寫比對，包含同名管理目錄及 marker 檔案。不能直接以這些目錄或其內部目錄作為 root；保存的計畫在預覽與套用時，也會拒絕落入管理資料的來源和目的路徑。其他隱藏檔仍按原有 pattern／glob 選取；工具不解讀 `.gitignore` 或 `svn:ignore`，因此應自行核對完整計畫。
+
 套用前會核對來源 SHA-256、檔名與大小寫碰撞，拒絕 symlink/reparse-point 路徑及覆寫。批次會暫存原件，過程拋出錯誤時嘗試回復；若程序被強制終止，`.agf-files-*` 目錄保留原件與 `plan.json` 供人工復原。請先停止其他會修改同一批檔案的程序；這不是跨程序鎖定機制。改名透過複製內容與基本 metadata 完成，不保證保留 hardlink 身分、所有 ACL 或延伸屬性。
 
 編碼轉換採嚴格解碼，單檔上限 20 MB、單批新內容上限 100 MB。目錄比較使用內容 hash；文字比較會正規化讀入的換行；JSON 比較保留型別、空容器和 JSON pointer 路徑。

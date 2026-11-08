@@ -17,6 +17,14 @@ import tempfile
 from .common import AgfError, json_text, read_json, write_text
 
 
+VCS_METADATA = frozenset({".git", ".svn", ".hg"})
+
+
+def _reject_metadata(path: Path) -> None:
+    if any(part.casefold() in VCS_METADATA for part in path.parts):
+        raise AgfError(f"VCS metadata paths are excluded from file operations: {path}")
+
+
 def _hash(path: Path) -> str:
     value = hashlib.sha256()
     with path.open("rb") as stream:
@@ -32,6 +40,7 @@ def _link(path: Path) -> bool:
 
 def _root(path: str | Path) -> Path:
     path = Path(path).absolute()
+    _reject_metadata(path)
     for item in (path, *path.parents):
         if item.exists() and _link(item):
             raise AgfError(f"Symlink or reparse-point path is not supported: {item}")
@@ -47,8 +56,9 @@ def _files(root: Path, recursive: bool = False) -> list[Path]:
             item = Path(base) / name
             if _link(item):
                 raise AgfError(f"Symlink or reparse point refused: {item}")
-        directories[:] = sorted(name for name in directories if name != ".git")
-        result.extend(Path(base) / name for name in sorted(names) if (Path(base) / name).is_file())
+        directories[:] = sorted(name for name in directories if name.casefold() not in VCS_METADATA)
+        result.extend(Path(base) / name for name in sorted(names)
+                      if name.casefold() not in VCS_METADATA and (Path(base) / name).is_file())
         if not recursive:
             break
     return result
@@ -67,6 +77,7 @@ def _relative(root: Path, name: str) -> Path:
     if not isinstance(name, str) or "\\" in name:
         raise AgfError("Plan paths must be relative POSIX paths")
     part = Path(name)
+    _reject_metadata(part)
     if part.is_absolute() or not part.parts or any(p in {".", ".."} for p in part.parts):
         raise AgfError(f"Unsafe plan path: {name}")
     for component in part.parts:
