@@ -3,6 +3,13 @@ __pycache__/
 .venv/
 node_modules/
 .agf/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
 artifacts/
 dist/
 *.egg-info/

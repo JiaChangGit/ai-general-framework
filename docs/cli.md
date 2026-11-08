@@ -2,7 +2,7 @@
 
 在 framework checkout 用 `python scripts/agf.py`。已配置專案的有效入口寫在 `.agf/managed/project-rules.md`；共享模式使用來源 checkout，副本模式使用專案內 `.agf/managed/runtime/scripts/agf.py`。核心不需 pip 安裝。
 
-CLI 輸出 JSON；檢查失敗或有差異回傳非零。錯誤通常為 2，選用能力缺失可為 3。`PLAN`、`RECORDED`、`HEADER_RECOGNIZED` 與 `PASS` 意義不同，依輸出的說明判讀。
+CLI 輸出 JSON；`check`、`run` 等檢查失敗會回傳非零，操作錯誤通常為 2，選用能力缺失可為 3。不同命令的退出碼語意不同：`files diff` 成功完成比較時，即使發現差異也回傳 0，要檢查 JSON 中的差異內容，不能只靠退出碼。`PLAN`、`RECORDED`、`HEADER_RECOGNIZED` 與 `PASS` 意義不同，依輸出的說明判讀。
 
 ## 配置、更新與偏好
 

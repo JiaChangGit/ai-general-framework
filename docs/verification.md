@@ -2,6 +2,20 @@
 
 日期：2026-11-08（Asia/Taipei）。這份紀錄分開列出腳本、宿主整合、來源閱讀與真人學習的證據。
 
+## 公開前檢查與 micro-os 教學
+
+本次以目前原始碼重新執行完整 unittest：WSL Python 3.14.4 共 137 案，135 通過，兩項 OpenCode 插件案例因 Node 未在 PATH 而 skip；再用既有隔離 Node 24.22.1 重跑 integration 16 案，包含這兩項，全部通過。Windows 原生 Python 3.13.15 共 137 案，135 通過；POSIX 權限測試不適用，另一項 symlink 測試因 WinError 1314 skip。Windows 是在 WSL UNC 共享資料夾執行 Python，這不是原生 NTFS 全面驗證。五個 skills 通過官方 skill-creator 格式 validator；結構檢查和單元測試不能證明沒有其他錯誤。
+
+micro-os 教學使用公開來源的特定 commit 核對 README 與 AGENTS，沒有改動真實 micro-os。Windows／WSL 各自以空目標及含既有規則、技能、腳本和模擬 MCP 設定的隔離目標，實際執行配置預覽、套用、status、update 與 rollback；保留的既有檔案逐 bytes 相同。測試結果在本機 `.agf/qa/micro-os-guide/`。沒有驗證 AI 宿主實際載入、micro-os 建置、真正 MCP 連線或模型訓練。
+
+實測發現 `files diff` 即使找到差異，成功比較仍回傳 0；已修正 CLI 說明，應檢視 JSON 中的差異，而不是只靠退出碼。
+
+發布前掃描當時全部 5 個可到達 commit 的 177 個相異 blobs，以及目前追蹤與非忽略的新檔，檢查私鑰標頭、數種常見服務 token 與部分本機家目錄路徑模式；沒有命中。這是有限規則檢查，不涵蓋所有憑證格式、個資、歷史來源或被忽略的私人檔案，也未驗證憑證是否有效。歷史 commit 使用 GitHub noreply 信箱，但作者名稱仍會公開。`.agf/` 由本專案忽略，忽略不會清除已追蹤或歷史檔案。
+
+本專案另補上 `.env`、`.env.*` 和常見金鑰副檔名的忽略規則，保留 `.env.example` 可供審查；它們不能阻止強制加入、清除歷史或代替檢查內容。核對範例 micro-os 的公開 `.gitignore` 發現未排除 `.agf/`，教學因此在配置前加入目標專案的檢查與處理步驟，未修改真實 micro-os。
+
+實際 workflow 與 GitHub Actions 範本的 checkout、setup-python 原本使用可移動的 `v7` 標籤；2026-11-08 透過官方 GitHub 倉庫 ref 核對後改為對應完整 commit SHA，減少標籤移動造成的變更。兩份 YAML 已解析並核對設定一致；固定版本不代表已驗證全部上游程式安全，遠端 CI 尚未執行。來源：[GitHub Actions 安全指引](https://docs.github.com/en/actions/reference/security/secure-use)。
+
 ## 入門、工具方向與原始診斷保存
 
 本輪維持五個 skills、四份部署指引及零個新增依賴／常駐服務。入門補上零技能預設、依任務選技能，以及配置、宿主發現、實際載入的區別。新研究融合進既有 tools、workflow、delivery 與帶讀參考；原生工具列為候選，未安裝或宣稱個人環境已驗收。唯一新增的 CLI 能力是 `run --output-dir` 選擇保存原始 stdout／stderr 及執行資訊；缺少 rg 時補上原生搜尋替代提示，不重寫搜尋器。

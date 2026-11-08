@@ -4,6 +4,8 @@
 
 核心只需 Python 3.11+ 標準庫，支援 Windows 原生與 Linux／WSL。[驗證紀錄](docs/verification.md)分開列出實際執行、fixture 測試與尚未驗證的部分。
 
+第一次使用可看 [micro-os 逐步教學](docs/micro-os-guide.md)：從準備框架、既有與全新專案配置，到更新、回復和其他使用案例。
+
 ## 先試一個任務
 
 在本框架目錄執行；Linux 的 Python 命令可能是 `python3`。
@@ -92,3 +94,16 @@ python scripts/agf.py audit
 ```
 
 `audit` 只查結構、連結與語法。[行為案例](evals/README.md)另看選用是否合適及是否增加負擔。修本框架時再讀[維護指引](docs/maintenance.md)，保留真正有用的保護與測試；不以檔數、skill 數或未量測的 token 比例當品質證明。本專案採 MIT 授權。
+
+## 公開前檢查
+
+在本專案目錄檢查準備發布的檔案、暫存區與提交紀錄：
+
+```console
+git status --short --untracked-files=all
+git ls-files
+git diff --cached --name-only
+git log --format="%h %an <%ae>"
+```
+
+`.agf/` 已由本專案的 `.gitignore` 排除，裡面的本機路徑、診斷與測試輸出仍可能包含私人資料；常見 `.env` 與金鑰副檔名也已排除。`.env.example` 可以追蹤，但仍須確認只含佔位值。忽略規則不會移除已被追蹤或舊 commit 中的資料；若發現憑證或不應公開的歷史，先處理並確認外洩憑證是否需要撤銷，不直接推送。檢查 commit 顯示的作者名稱和電子郵件是否願意公開。必要時依 [工具指引](docs/tools.md)選擇可信的秘密掃描器並核對掃描範圍；任何掃描都不能保證找出所有私人資料。

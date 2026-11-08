@@ -11,3 +11,5 @@
 需要判斷 skill 增益時，固定 host、model、材料和工具，先看沒有該 skill 的基準表現，再比較缺陷、返工、必要互動與可取得的實際用量。不用總字數、skill 數量或 AI 自評宣稱省 token。新依賴與共用 script 也要指出它比原生方法增加的實際價值。
 
 保留有用的原始失敗與修正後結果，少量可續接的紀錄即可。評估案例見 [evals](../evals/README.md)；來源採納與未照搬處見 [research.md](research.md)。
+
+更新 GitHub Actions 時，到官方倉庫核對版本標籤對應的完整 commit SHA，審查更新內容後，同步修改實際 workflow 與 `templates/github-actions.yml` 的固定值及版本註解；固定值不會自動取得安全修補。記錄本機能驗證的部分，遠端 runner 未執行就保留未知。
