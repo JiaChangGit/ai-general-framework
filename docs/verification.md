@@ -2,6 +2,15 @@
 
 最近更新：2026-11-09（Asia/Taipei）。這份紀錄分開列出腳本、宿主整合、來源閱讀與真人學習的證據；下方較早章節保留各輪當時的範圍。
 
+## 中文表達、交接與學習法（2026-11-09）
+
+閱讀兩篇英文預印本後，將中文表達的採用範圍與限制記在 [research.md](research.md)。本輪只修改既有指引與教學參考，沒有新增 skill、腳本或依賴。
+
+- Windows 原生 Python 3.13.15（工作目錄位於 WSL UNC）及 WSL Python 3.14.4：以隔離測試來源和目標，分別執行 shared／copy 的 install、改變三份來源後 update，以及 status；部署後的寫作、交接指引和 `guide-learning` 本文及兩份參考均與目前來源逐 bytes 相符，status ready。結果不代表宿主一定會選用或載入這些內容。
+- Windows／WSL 靜態 audit 通過，沒有錯誤或警告；`guide-learning` 通過官方 skill-creator 格式檢查。獨立代理用容量不足與重複識別碼的合成例子檢查中文改寫，保留了檢查先後、兩種失敗條件及否定；這是一個例子，不是讀者理解度研究。
+
+未重跑完整單元測試，也未測量真實學習成效、不同模型的交接成功率或 token 用量。論文對英文的結果不能直接視為中文規則的驗證。
+
 ## 使用者連結去重與融合（2026-11-09）
 
 來源閱讀、固定版本、授權觀察與取捨見 [link-study.md](link-study.md)，未安裝或執行任何上游工具。五個 skills 與四份部署指引的數量不變；`read-research` 增加聚焦文獻比較，跨格式成果放一份按需參考。核心程式只擴充既有 audit 的 templates Markdown 掃描，沒有新依賴、索引器、記憶引擎、renderer 或 provider。

@@ -13,4 +13,14 @@
 
 判斷理解時，可在使用者願意互動的前提下看他是否能解釋理由、預測改變一個條件的結果，或獨立完成相近任務。立即做得到和數週後仍會使用是不同證據；沒有觀察就保留未知。
 
+## 常見方法如何套用
+
+- **費曼式解釋**：請學習者用自己的話解釋一個概念，找出說不清的地方，回到來源核對，再重述。例如討論共用佇列何時需要同步，用兩個執行緒同時修改同一狀態的例子驗證。白話不等於正確，還要核對條件與反例；不必強迫每個人把所有內容講給小孩聽。
+- **SQ3R 閱讀**：略覽（Survey）、提問（Question）、閱讀（Read）、憑記憶重述（Recite）、複習（Review）。適合需要深入理解的一段教材：先看標題與圖、提出一個問題，讀完試著回答並回原文核對；複習時間依目標安排。不是每次查一個欄位都要跑完整流程。
+- **超速學習（Ultralearning）**：Scott Young 提倡以自主專案直接練目標技能，並尋求回饋。例如想貢獻 kernel，可先挑可重現的小問題，練習讀相關程式和測試，再根據實際測試或維護者回饋修正。AI 回饋仍須用原始資料、執行結果或具備相關經驗的人核對。方法不保證學得更快；時間、難度與支援依個人情況調整。
+
+這些名稱有助於理解與溝通，不是必須全套照做的驗收流程。費曼式解釋與自我解釋有相近之處，但自我解釋研究不等於已驗證整套費曼法；SQ3R 是閱讀策略，超速學習是作者提出的自主學習架構，不能將個別技巧的研究結果直接當成整套方法的效果保證。
+
 方法依據：[Chi 等，自我解釋](https://doi.org/10.1207/s15516709cog1302_1)、[Roediger 與 Karpicke，提取練習](https://doi.org/10.1111/j.1467-9280.2006.01693.x)、[Cepeda 等，間隔練習](https://doi.org/10.1111/j.1467-9280.2008.02209.x)、[Brunmair 與 Richter，交錯練習的限制](https://pubmed.ncbi.nlm.nih.gov/31556629/)、[AERO，認知負荷與支援](https://www.edresearch.edu.au/summaries-explainers/explainers/managing-cognitive-load-optimises-learning)。
+
+方法介紹：[Caltech，透過教別人找出理解缺口](https://ctlo.caltech.edu/aboutctlo/whoweserve/undergraduates/learning-resources/learning/power-of-teaching)、[Stanford，SQ3R 閱讀法](https://ctl.stanford.edu/students/reading-efficacy-sq3r-method)、[Scott Young，超速學習與 AI 的反思](https://www.scotthyoung.com/blog/2026/04/29/ultralearning-ai/)。
