@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import html
+import csv
+import io
 import json
 from pathlib import Path
 import re
@@ -11,8 +13,20 @@ import shutil
 import tempfile
 import xml.etree.ElementTree as ET
 
-from .common import AgfError, read_json, write_text
+from .common import AgfError, json_text, read_json, write_text
 from .execution import run_command
+
+
+MERMAID_HEADER = '''---
+config:
+  look: neo
+  theme: neutral
+  fontFamily: 'Noto Sans CJK TC, Microsoft JhengHei, PingFang TC, sans-serif'
+---'''
+
+
+def _display_label(value: str) -> str:
+    return re.sub(r"<br\s*/?>", "\n", value, flags=re.I).replace("\r\n", "\n").replace("\r", "\n")
 
 
 def _model(data: dict) -> tuple[list, list, list]:
@@ -21,6 +35,8 @@ def _model(data: dict) -> tuple[list, list, list]:
     nodes, edges, sources = data.get("nodes", []), data.get("edges", []), data.get("sources", [])
     if not isinstance(nodes, list) or not isinstance(edges, list) or not isinstance(sources, list):
         raise AgfError("nodes, edges and sources must be arrays")
+    if not 1 <= len(nodes) <= 15:
+        raise AgfError("A diagram needs 1 to 15 nodes; split larger diagrams")
     ids = set()
     for node in nodes:
         if not isinstance(node, dict) or not isinstance(node.get("id"), str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", node["id"]):
@@ -29,6 +45,11 @@ def _model(data: dict) -> tuple[list, list, list]:
             raise AgfError("Duplicate or reserved node identifier")
         if not isinstance(node.get("label"), str):
             raise AgfError("Each node needs a string label")
+        label = _display_label(node["label"])
+        if not label.strip() or len(label.replace("\n", "")) > 12:
+            raise AgfError("Node labels need 1 to 12 visible characters; use a short alias and explain it outside the diagram")
+        if node.get("shape", "process") not in ("process", "decision"):
+            raise AgfError("Node shape must be process or decision")
         ids.add(node["id"])
     for edge in edges:
         if (not isinstance(edge, dict) or not isinstance(edge.get("from"), str) or not isinstance(edge.get("to"), str)
@@ -36,27 +57,32 @@ def _model(data: dict) -> tuple[list, list, list]:
             raise AgfError("Edge references an unknown node")
         if not isinstance(edge.get("label", ""), str):
             raise AgfError("Edge label must be a string")
+    decisions = {n["id"] for n in nodes if n.get("shape") == "decision"}
+    if any(e["from"] in decisions and not _display_label(e.get("label", "")).strip() for e in edges):
+        raise AgfError("Every outgoing decision branch needs an explicit condition label")
     return nodes, edges, sources
 
 
 def _label(value: str) -> str:
     entities = {"&": "&amp;", '"': "&quot;", "<": "&lt;", ">": "&gt;", ";": "&#59;"}
-    return "".join(entities.get(char, char) for char in value.replace("\r", " ").replace("\n", " "))
+    return "<br/>".join("".join(entities.get(char, char) for char in line) for line in _display_label(value).split("\n"))
 
 
 def _sequence_label(value: str) -> str:
     # Sequence syntax uses Mermaid entity codes, not HTML ampersand entities:
     # semicolons otherwise become statement separators before label rendering.
     entities = {"#": "#35;", "&": "#38;", '"': "#quot;", "<": "#lt;", ">": "#gt;", ";": "#59;", "|": "#124;"}
-    return "".join(entities.get(char, char) for char in value.replace("\r", " ").replace("\n", " "))
+    return "<br/>".join("".join(entities.get(char, char) for char in line) for line in _display_label(value).split("\n"))
 
 
 def mermaid(data: dict) -> str:
     nodes, edges, sources = _model(data)
     kind = data.get("kind", "flowchart")
-    if kind not in {"flowchart", "sequence", "state"}:
+    if kind not in ("flowchart", "sequence", "state"):
         raise AgfError("Supported diagram kinds: flowchart, sequence, state")
-    lines = ["%% Sources: " + json.dumps(sources, ensure_ascii=True)]
+    if kind != "flowchart" and any(n.get("shape") == "decision" for n in nodes):
+        raise AgfError("Decision shapes require flowchart; use a native Mermaid template for other diagram syntax")
+    lines = [MERMAID_HEADER, "%% Sources: " + json.dumps(sources, ensure_ascii=True)]
     if kind == "sequence":
         lines.append("sequenceDiagram")
         lines.extend(f'    participant {n["id"]} as {_sequence_label(n["label"])}' for n in nodes)
@@ -67,7 +93,9 @@ def mermaid(data: dict) -> str:
         lines.extend(f'    {e["from"]} --> {e["to"]}' + (": " + _label(e["label"]) if e.get("label") else "") for e in edges)
     else:
         lines.append("flowchart LR")
-        lines.extend(f'    {n["id"]}["{_label(n["label"])}"]' for n in nodes)
+        for node in nodes:
+            left, right = ('{"', '"}') if node.get("shape") == "decision" else ('["', '"]')
+            lines.append(f'    {node["id"]}{left}{_label(node["label"])}{right}')
         for edge in edges:
             suffix = '|"' + _label(edge["label"]).replace("|", "&#124;") + '"|' if edge.get("label") else ""
             lines.append(f'    {edge["from"]} -->{suffix} {edge["to"]}')
@@ -83,8 +111,8 @@ def drawio(data: dict) -> str:
     ET.SubElement(root, "mxCell", {"id": "0"})
     ET.SubElement(root, "mxCell", {"id": "1", "parent": "0"})
     for index, node in enumerate(nodes):
-        attributes = {"id": node["id"], "value": node["label"], "vertex": "1", "parent": "1",
-                      "style": "rounded=1;whiteSpace=wrap;html=0;"}
+        attributes = {"id": node["id"], "value": _display_label(node["label"]), "vertex": "1", "parent": "1",
+                      "style": ("rhombus;" if node.get("shape") == "decision" else "rounded=1;") + "whiteSpace=wrap;html=0;"}
         if "source" in node:
             attributes["agf_source"] = json.dumps(node["source"], ensure_ascii=False)
         cell = ET.SubElement(root, "mxCell", attributes)
@@ -146,10 +174,23 @@ def _validate(args):
     if args.format == "drawio":
         return validate_drawio(text)
     content = re.sub(r"^```mermaid\s*\n|\n```\s*$", "", text.strip())
-    meaningful = [line.strip() for line in content.splitlines() if line.strip() and not line.lstrip().startswith("%%")]
-    if not meaningful or not re.match(r"^(flowchart\s|graph\s|sequenceDiagram$|stateDiagram(?:-v2)?$)", meaningful[0]):
+    lines = content.splitlines()
+    style_warnings = []
+    if lines and lines[0].strip() == "---":
+        end = next((i for i in range(1, len(lines)) if lines[i].strip() == "---"), None)
+        if end is None:
+            raise AgfError("Unclosed Mermaid frontmatter")
+        header = lines[1:end]
+        if not any(line == "config:" and i + 1 < len(header) and header[i + 1] == "  look: neo" for i, line in enumerate(header)):
+            style_warnings.append("Put look: neo first under frontmatter config")
+        lines = lines[end + 1:]
+    else:
+        style_warnings.append("Add frontmatter config with look: neo first")
+    meaningful = [line.strip() for line in lines if line.strip() and not line.lstrip().startswith("%%")]
+    if not meaningful or not re.match(r"^(flowchart\s|graph\s|sequenceDiagram$|stateDiagram(?:-v2)?$|block(?:-beta)?$|timeline$|gantt$)", meaningful[0]):
         raise AgfError("Unsupported or missing Mermaid diagram declaration")
-    return {"status": "HEADER_RECOGNIZED", "limitation": "Not a Mermaid parser. Use explicit native render for syntax/layout verification."}
+    return {"status": "HEADER_RECOGNIZED", "style_warnings": style_warnings,
+            "limitation": "Header check only, not a Mermaid parser or a node/label/style linter. Use native render and source review."}
 
 
 def _render(args):
@@ -189,6 +230,71 @@ def _render(args):
             raise AgfError(f"Cannot create render output: {exc}") from exc
     return {"status": "RENDERED", "tool": executable, "output": str(output), "execution": result,
             "input_sha256": hashlib.sha256(source.read_bytes()).hexdigest()}
+
+
+def _transitions(args):
+    """Count observed adjacent states, never infer a complete state machine."""
+    source = Path(args.input)
+    with source.open("rb") as stream:
+        raw = stream.read(20_000_001)
+    if len(raw) > 20_000_000:
+        raise AgfError("Events exceed 20 MB; select a relevant slice first")
+    try:
+        reader = csv.reader(io.StringIO(raw.decode("utf-8-sig"), newline=""),
+                            delimiter={"comma": ",", "tab": "\t", "pipe": "|"}[args.delimiter], strict=True)
+        header = next(reader, [])
+        if not header or len(set(header)) != len(header) or any(not h.strip() for h in header):
+            raise AgfError("Events need a header with unique nonempty column names")
+        columns = [args.state_column] + ([args.group_column] if args.group_column else [])
+        if any(name not in header for name in columns):
+            raise AgfError("Requested state/group column is missing; inspect the header and choose explicitly")
+        state_index = header.index(args.state_column)
+        group_index = header.index(args.group_column) if args.group_column else None
+        states, previous, counts = {}, {}, {}
+        events = 0
+        for row in reader:
+            if not row:
+                continue
+            events += 1
+            if events > 100_000:
+                raise AgfError("Events exceed 100000 rows; select a relevant slice first")
+            if len(row) != len(header):
+                raise AgfError(f"Malformed event ending at line {reader.line_num}: column count differs from header")
+            state = row[state_index]
+            if (not state or state != state.strip() or len(state) > 12 or
+                    any(ord(char) < 32 for char in state) or re.search(r"<br\s*/?>", state, re.I)):
+                raise AgfError(f"Invalid state at line {reader.line_num}: use 1 to 12 characters, no outer whitespace, control characters or break markup; map names explicitly")
+            group = row[group_index] if group_index is not None else ""
+            if group_index is not None and not group.strip():
+                raise AgfError(f"Empty group at line {reader.line_num}; cannot establish event continuity")
+            if state not in states:
+                if len(states) == 15:
+                    raise AgfError("More than 15 observed states; split by device/session/time range first")
+                states[state] = f"S{len(states)}"
+            if group in previous:
+                pair = (previous[group], state)
+                counts[pair] = counts.get(pair, 0) + 1
+            previous[group] = state
+    except (csv.Error, UnicodeError) as exc:
+        raise AgfError(f"Cannot parse UTF-8 delimited events: {exc}; normalize free-form logs explicitly first") from exc
+    if not events:
+        raise AgfError("No event rows; refusing an empty state diagram")
+    result = {
+        "kind": "state",
+        "sources": [{"path": str(source), "sha256": hashlib.sha256(raw).hexdigest()}],
+        "statistics": {"events": events, "groups": len(previous), "state_column": args.state_column,
+                       "group_column": args.group_column, "ordering": "file order within each group; no timestamp sorting",
+                       "transitions": sum(counts.values()),
+                       "self_transitions": sum(count for (a, b), count in counts.items() if a == b)},
+        "nodes": [{"id": ident, "label": label} for label, ident in states.items()],
+        "edges": [{"from": states[a], "to": states[b], "label": str(count)} for (a, b), count in counts.items()],
+        "limitation": "Observed adjacent records only, including repeated states. No proof of legal transitions, causality, timing, or absent paths. Split independent sessions explicitly."
+    }
+    if args.output:
+        write_text(args.output, json_text(result))
+        return {"status": "CREATED", "output": args.output, "statistics": result["statistics"],
+                "sources": result["sources"], "limitation": result["limitation"]}
+    return result
 
 
 def parse_trace(text: str, format: str) -> tuple[list, int]:
@@ -261,6 +367,13 @@ def register(subparsers):
     render.add_argument("--timeout", type=int, default=60)
     render.add_argument("--execute", action="store_true")
     render.set_defaults(func=_render)
+    transitions = commands.add_parser("transitions", help="Count observed state transitions in a UTF-8 table before drawing")
+    transitions.add_argument("input")
+    transitions.add_argument("--state-column", required=True)
+    transitions.add_argument("--group-column", help="Independent stream/session column; prevents stitching across groups")
+    transitions.add_argument("--delimiter", choices=["comma", "tab", "pipe"], default="comma")
+    transitions.add_argument("--output", help="Write statistics and graph model as JSON; refuse existing output")
+    transitions.set_defaults(func=_transitions)
     trace = commands.add_parser("trace")
     trace.add_argument("input")
     trace.add_argument("--format", choices=["gdb", "ftrace"], required=True)

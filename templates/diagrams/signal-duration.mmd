@@ -1,0 +1,17 @@
+---
+config:
+  look: neo
+  theme: neutral
+  fontFamily: 'Noto Sans CJK TC, Microsoft JhengHei, PingFang TC, sans-serif'
+---
+%% 虛構區間：低 0–10 ms，高 10–25 ms，低 25–40 ms；終點已明定。
+%% 日期只作固定時間原點；橫軸為秒，不是電氣波形或取樣精度證明。
+gantt
+    title 訊號持續示意（秒）
+    dateFormat YYYY-MM-DDTHH:mm:ss.SSS
+    axisFormat %S.%L
+    todayMarker off
+    section SIGNAL_A
+    低 :low1, 2026-11-09T00:00:00.000, 2026-11-09T00:00:00.010
+    高 :high1, 2026-11-09T00:00:00.010, 2026-11-09T00:00:00.025
+    低 :low2, 2026-11-09T00:00:00.025, 2026-11-09T00:00:00.040

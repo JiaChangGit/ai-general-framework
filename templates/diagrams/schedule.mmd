@@ -1,0 +1,22 @@
+---
+config:
+  look: neo
+  theme: neutral
+  fontFamily: 'Noto Sans CJK TC, Microsoft JhengHei, PingFang TC, sans-serif'
+---
+%% 虛構排程；計畫與實際分列。實際驗證晚兩天，並非工具推算。
+gantt
+    title 計畫與實際
+    dateFormat YYYY-MM-DD
+    axisFormat %m-%d
+    todayMarker off
+    section 原定計畫
+    需求 :plan_req, 2026-11-09, 2026-11-11
+    開發 :plan_dev, 2026-11-11, 2026-11-15
+    驗證 :plan_test, 2026-11-15, 2026-11-17
+    里程碑 :milestone, plan_done, 2026-11-17, 0d
+    section 實際進度
+    需求 :done, actual_req, 2026-11-09, 2026-11-11
+    開發 :done, actual_dev, 2026-11-11, 2026-11-17
+    驗證 :done, actual_test, 2026-11-17, 2026-11-19
+    里程碑 :milestone, actual_done, 2026-11-19, 0d

@@ -43,7 +43,11 @@ python scripts/agf.py diagram create examples/diagrams/files-transaction.json --
 
 `files rename/normalize` 預設預覽，可保存計畫後以 `files apply PLAN --apply` 套用。管理資料 `.git`、`.svn`、`.hg` 在列檔與套用時都受保護；一般隱藏檔仍照常處理。它不解讀 `.gitignore` 或 `svn:ignore`。碰撞、來源重驗與失敗回復見[批次範例](../examples/files/README.md)。
 
-`diagram create` 保留來源模型；Mermaid 宣告檢查不是完整語法或語意驗證。`render ... --execute` 才啟動原生工具，可用 `--tool` 與重複 `--tool-arg` 指定真正的 executable／JS 入口，保留既有輸出。[圖解範例](../examples/diagrams/README.md)與[trace 範例](../examples/trace/README.md)各列觀察範圍。
+`diagram create` 將 flowchart／sequence／state 的 JSON 模型轉成圖源；`--format mermaid` 預設採 `look: neo`。模型需有 1–15 個節點、每個標籤 1–12 個顯示字元（不計 `<br/>` 換行），超過就拆圖或明確映射短別名，不自動截斷。流程圖節點可加 `"shape": "decision"` 畫菱形，所有出線都需非空條件標籤；draw.io 也保留菱形。其他圖型直接改[圖解樣板](../templates/diagrams/README.md)，不另外包 JSON 語法。
+
+`diagram transitions INPUT --state-column NAME [--group-column NAME] [--delimiter comma|tab|pipe] [--output FILE]` 先計算狀態轉移，再由 `diagram create FILE --format mermaid` 畫圖。輸入必須是 UTF-8、有唯一表頭的分隔表格，與副檔名無關；自由文字 log 需先明確正規化。上限 20 MB、100,000 筆及 15 個不同狀態，超限報錯；state 需為 1–12 字，不自動去除空白或合併狀態。依各群組的檔案列序，計入相鄰重複狀態；不按時間排序、不推定合法性、因果或末筆狀態的持續時間。輸出含來源 SHA-256、分組、筆數、轉移次數與相容模型；未指定輸出只回傳 JSON，指定輸出不覆寫已有檔案。
+
+`diagram validate` 能辨識上述三類、block／block-beta、timeline、gantt 與前置設定，只檢查宣告及回報 neo 檔頭提示，不解析完整語法、不計算自寫圖的節點或字數。`render ... --execute` 才啟動原生工具，可用 `--tool` 與重複 `--tool-arg` 指定真正的 executable／JS 入口，保留既有輸出。缺 `mmdc` 回報 UNAVAILABLE，不安裝或改用 AI 生成圖片；成功輸出仍須檢查圖意與版面。[圖解範例](../examples/diagrams/README.md)與[trace 範例](../examples/trace/README.md)各列觀察範圍。
 
 ## 執行、檢查與交接
 

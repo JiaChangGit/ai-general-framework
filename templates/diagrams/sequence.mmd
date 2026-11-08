@@ -1,0 +1,15 @@
+---
+config:
+  look: neo
+  theme: neutral
+  fontFamily: 'Noto Sans CJK TC, Microsoft JhengHei, PingFang TC, sans-serif'
+---
+%% 只示範使用者給定的 FE → COP → FIP → Flash 路徑；沒有假設回應。
+sequenceDiagram
+    participant FE as FE
+    participant COP as COP
+    participant FIP as FIP
+    participant Flash as Flash
+    FE->>COP: 寫入請求
+    COP->>FIP: 轉送資料
+    FIP->>Flash: 寫入資料

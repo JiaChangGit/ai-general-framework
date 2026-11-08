@@ -9,7 +9,7 @@
   "teaching": {
     "default": "先理解學習目標與先備知識；現有資訊不足且會影響教法時才問",
     "trace": "入口、狀態變化、資料與資源生命週期、錯誤路徑",
-    "visualization": "選能解釋因果的圖；Mermaid 與 draw.io 渲染是可選能力"
+    "visualization": "先選樣板，AI 寫 Mermaid 文字，mermaid-cli 渲染 SVG；需要可編輯 draw.io 才改用 XML 圖源"
   },
   "collaboration": {
     "models": "保留使用者手動選擇；同一 OpenCode session 切模型不必搬運整段對話",

@@ -4,7 +4,7 @@
     {"path": "agf/files.py", "symbol": "apply_plan", "basis": "source inspection; simplified control flow, not a captured trace"}
   ],
   "nodes": [
-    {"id": "Validate", "label": "重驗來源 hash 與目標碰撞"},
+    {"id": "Validate", "label": "重驗來源與碰撞"},
     {"id": "Stage", "label": "暫存全部原件"},
     {"id": "Copy", "label": "獨占建立新檔案"},
     {"id": "Restore", "label": "失敗時回復原件"},

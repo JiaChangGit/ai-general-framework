@@ -1,0 +1,15 @@
+---
+config:
+  look: neo
+  theme: neutral
+  fontFamily: 'Noto Sans CJK TC, Microsoft JhengHei, PingFang TC, sans-serif'
+---
+%% 虛構狀態樣板；只畫已列出的轉移，不替失敗狀態補回復線。
+stateDiagram-v2
+    state "待命" as Idle
+    state "執行中" as Running
+    state "完成" as Done
+    state "失敗" as Failed
+    Idle --> Running: 收到工作
+    Running --> Done: 執行成功
+    Running --> Failed: 執行失敗

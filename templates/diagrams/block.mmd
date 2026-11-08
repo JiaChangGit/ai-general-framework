@@ -1,0 +1,15 @@
+---
+config:
+  look: neo
+  theme: neutral
+  fontFamily: 'Noto Sans CJK TC, Microsoft JhengHei, PingFang TC, sans-serif'
+---
+%% 虛構格線樣板；位置代表排列，箭頭另行表達資料方向。
+block-beta
+    columns 3
+    Host["Host"] Controller["控制器"] Flash["Flash"]
+    Buffer["緩衝區"] Queue["佇列"] Dma["DMA"]
+    Host --> Controller
+    Controller --> Flash
+    Buffer --> Queue
+    Queue --> Dma

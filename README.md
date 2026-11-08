@@ -86,6 +86,8 @@ MCP 選用由宿主代理讀取規則後，透過其工具探索能力執行。R
 
 `files` 提供批次預覽、碰撞／來源重驗、轉換與差異；`context`／`source` 提供有限摘錄及來源位置；`diagram` 產生 Mermaid、draw.io 與 trace 檢視；`run`／`check` 記錄有界的執行結果，`run --output-dir DIR` 可另存完整原始輸出，避免為取回診斷重跑命令。`task` 交接是選項，`git` 只處理 Git；GitHub、GitLab、SVN 等工作優先用現成 `gh`、`glab`、`svn` 及專案流程。
 
+要求畫流程、架構、狀態等技術圖時，AI 先選[圖解樣板](templates/diagrams/README.md)，只寫 Mermaid 文字，交 mermaid-cli 渲染 SVG／PNG。單張最多 15 節點，超過就拆圖；資料轉狀態圖先用 `diagram transitions` 統計，再畫實際觀察到的轉移。保留五個 skills，不另加畫圖技能或渲染依賴。
+
 完整命令、權限範圍、共用工具與 hooks 見 [CLI 操作](docs/cli.md)。[設計說明](docs/design.md)與[研究紀錄](docs/research.md)交代採納和刪減理由。共用創作指引可協助小說、音樂與投影片式影片；真正使用時再選可用工具，分清企劃、草稿與可播放成品。
 
 ## 維護與驗證

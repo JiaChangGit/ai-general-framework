@@ -1,6 +1,18 @@
 # 驗證紀錄
 
-日期：2026-11-08（Asia/Taipei）。這份紀錄分開列出腳本、宿主整合、來源閱讀與真人學習的證據。
+最近更新：2026-11-09（Asia/Taipei）。這份紀錄分開列出腳本、宿主整合、來源閱讀與真人學習的證據；下方較早章節保留各輪當時的範圍。
+
+## 圖源、樣板與轉移統計（2026-11-09）
+
+本輪沿用五個 skills、四份部署指引和既有 `diagram` 命令，增加八份文字樣板及一個有界的 `diagram transitions` 統計子命令，沒有新增依賴、技能或服務。一般圖解直接寫 `.mmd`，渲染交 mermaid-cli；這是代理工作指引，不是強制宿主攔截器，也未重新驗證四種真實 AI session 的選用行為。
+
+- **完整測試：** WSL Python 3.14.4，既有隔離 Node 24.22.1，173 項全部通過；Windows Python 3.13.15，173 項中 160 通過、13 項平台相關測試跳過。Windows 仍從 WSL UNC 路徑執行，不代表所有 NTFS／ACL 情境通過。受影響的圖解測試共 22 項，兩端皆通過。
+- **計數與失敗行為：** 驗證不同裝置的交錯紀錄不相接、不依 timestamp 偷排序、重複狀態保留自轉移、BOM／引號／三種分隔符號，以及錯誤資料、超限與既有輸出被拒絕。統計 JSON 可直接產生狀態 `.mmd`；圖中只含觀察到的相鄰轉移，不補起點、終點或重試路徑。
+- **輸入邊界：** 審查發現換行標記可能使原始狀態改名或分支顯示空白，已拒絕表格狀態中的換行標記，並按顯示文字檢查分支；無效 JSON `shape`／`kind` 也改為受控錯誤。模型產圖會檢查 15 節點、12 字標籤及判斷出線標籤；手寫 `.mmd` 不由簡單宣告檢查器全面驗證。
+- **既有引擎驗證：** 八份樣板、同步後的交易範例，以及含換行與特殊字元的三類模型，共 12 份圖源由既有官方 Mermaid 12.3.0 bundle 經 Playwright／Chrome 成功渲染。`block-beta` 在該引擎可用；所有圖源保留 `look: neo` 首項。分層架構已檢視淡色節點、虛線底層與子圖透明背景，輸出 XML 也確認五個子圖框為 `fill:none;stroke:none`；未逐張進行完整視覺驗收。
+- **配置：** Windows 隔離目標的 shared／copy 實際配置皆保留新規則及 tools 指引；copy 的八份樣板與說明逐 bytes 相符。核心配置邏輯未變，WSL 的配置／更新／回復仍由完整單元測試涵蓋；未改動其他真實專案。
+
+本機沒有 `mmdc`，未安裝任何工具；上述是既有引擎的語法與局部外觀驗證，不能稱為 mermaid-cli 或所有版本的相容性驗收。兩端原生 renderer adapter 的執行／失敗／逾時仍由 fixture 測試驗證。原始結果放在本機忽略的 `.agf/qa/diagram-render/` 及 `diagram-*-tests.log`。本輪移除已過時的公開 SVG，保留可重生的 `.mmd`／`.drawio` 與渲染步驟，避免新圖源搭配舊圖片；不把 API 測試產物冒充 CLI 交付。沒有量測整項 AI 任務的 token 或帳單節省。
 
 本次安全稽核另重現並修正檔案權限、Git 狀態判讀、來源資源耗盡與受管理檔案並行修改等問題；詳細條件與尚未解決的 Git clean filter、非原子檔案競態等限制見[安全稽核紀錄](security-review.md)。本輪工作目錄與可到達歷史的有限秘密格式掃描未命中；這不能保證沒有其他秘密或私人資料。
 
@@ -111,7 +123,7 @@ Windows 原生測試使用該平台的檔案 API，WSL 測試則使用 Linux API
 
 ## 可選工具
 
-以下是 v0.1 的實際渲染／選用依賴證據；v0.2 未重新執行 Mermaid、draw.io 或 pypdf 驗收，相關核心腳本未變。
+以下是 v0.1 的實際渲染／選用依賴證據；v0.2 初輪未重新執行 Mermaid、draw.io 或 pypdf 驗收。2026-11-09 的 Mermaid 與腳本變更及重驗另見上方新紀錄。
 
 | 能力 | 既有證據 | 範圍 |
 |---|---|---|
@@ -120,7 +132,7 @@ Windows 原生測試使用該平台的檔案 API，WSL 測試則使用 Linux API
 | PDF | pypdf 7.0.0 置於專案內隔離測試目錄；Windows／WSL 實際抽取自製單頁 PDF，確認文字與 page:1 錨點 | 核心環境缺少 pypdf 時仍正確回報 UNAVAILABLE；表格、公式、OCR 與大型真實 spec 未驗證 |
 | 靜態網頁 | 10 個 localhost HTTPServer 案例，兩端通過 | 預覽、byte 上限、robots、redirect、覆寫與回傳 metadata；外部 example.com HTTPS 試抓遇到環境憑證鏈驗證失敗，工具回報錯誤且沒有發布頁面。外部成功擷取、登入及動態 JS 未驗證 |
 
-實際 Mermaid 渲染找出了 sequence 標籤中 HTML entity 與分號的相容性問題；已改用官方語法的 Mermaid entity codes，再以同一引擎重驗。SVG 範例放在 `examples/diagrams/`。QA 依賴與臨時輸出放 `.agf/qa/`，未加入核心依賴或公開來源檔。
+當時實際 Mermaid 渲染找出了 sequence 標籤中 HTML entity 與分號的相容性問題；已改用官方語法的 Mermaid entity codes，再以同一引擎重驗。當時提交的 SVG 已於 2026-11-09 換成只保留圖源與工具重生方式；QA 依賴與臨時輸出放 `.agf/qa/`，未加入核心依賴或公開來源檔。
 
 ## Host、hooks 與 CI
 
