@@ -68,9 +68,9 @@ python scripts/agf.py project rollback --target ../my-project
 
 | 需求 | 目前做法 |
 |---|---|
-| 多模型、跨部門合作 | [分工指引](docs/workflow.md)先對齊成果、介面及失敗行為；模型與角色可互換，主責者整合驗證 |
+| 多模型、跨部門合作 | [分工指引](docs/workflow.md)先對齊成果、介面及失敗行為；模型與角色可互換，交接保留驗證、下一步與操作邊界，主責者整合驗證 |
 | 個人化、自然中文與教學 | `profile show --root DIR` 合併偏好；[表達指引](docs/writing.md)保留因果與真實修改理由；trace 與教學 skills 依讀者選圖和示範 |
-| 降低 token 消耗 | [按問題取資料](docs/tools.md)，機械操作重用現有 scripts；實際節省量尚未量測 |
+| 降低 token 消耗 | [按問題取資料](docs/tools.md)，搜尋同時限制筆數與文字量，機械操作重用現有 scripts；實際節省量尚未量測 |
 | 降低 bug | 最小修改、風險相稱的檢查與 `review-change`；用原始失敗與相關回歸驗證成果 |
 | 有效率找根因 | `debug-root-cause` 用能區分假設的觀察縮小範圍，將緩解與原因確認分開 |
 | Grill me、對齊想法 | [需求對齊](docs/workflow.md)只問會改變決策的未知，理解後執行 |

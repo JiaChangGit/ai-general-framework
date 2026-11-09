@@ -28,14 +28,16 @@ Manifest 是記錄受管理檔案、來源和模式的清單。`status` 分別�
 ## 來源、檔案與圖解
 
 ```console
-python scripts/agf.py context search timeout --root . --glob '*.py' --max-results 12
+python scripts/agf.py context search timeout --root . --glob '*.py' --max-results 12 --max-chars 6000
 python scripts/agf.py context extract agf/execution.py --start 1 --end 60 --max-chars 6000
 python scripts/agf.py source excerpt examples/research/mini-spec.md --query capacity
 python scripts/agf.py files diff examples/files/before.json examples/files/after.json --format json
 python scripts/agf.py diagram create examples/diagrams/files-transaction.json --format mermaid
 ```
 
-`context search` 使用既有 ripgrep。PDF 抽字需選用 pypdf，`inspect` 只查 metadata，`excerpt --pages 2,4-6` 才抽指定實體頁。靜態頁用 `source fetch URL --output FILE` 預覽，加 `--execute` 才連網保存；[範例](../examples/research/web-fetch.md)列出 robots、上限及 TLS 行為。
+`context search` 使用既有 ripgrep，預設匹配文字合計上限為 16,000 字元，可用 `--max-chars` 調整；路徑與 JSON 包裝不計入。`text_truncated` 表示單筆文字不完整，`capture_truncated` 表示底層輸出被截斷；遇到超長行而無法解析任何完整匹配時回傳錯誤，不回報查無結果。`context extract` 只讀已儲存的一般檔案，拒絕裝置、pipe 和目錄，並對同一個已開啟的檔案計算 SHA-256。摘錄上限不限制讀取長行時的記憶體或整檔雜湊的 I/O，這不是資源隔離。
+
+PDF 抽字需選用 pypdf，`inspect` 只查 metadata，`excerpt --pages 2,4-6` 才抽指定實體頁。靜態頁用 `source fetch URL --output FILE` 預覽，加 `--execute` 才連網保存；[範例](../examples/research/web-fetch.md)列出 robots、上限及 TLS 行為。
 
 `source fetch` 的回傳紀錄包含要求的網址及重新導向資訊；網址查詢參數可能含權杖或私人識別資訊，分享輸出前先檢查。它也能連線本機及內網網址，不是網路隔離工具；目的地必須在當次授權內。`run` 的結果與可選紀錄包含完整命令參數，避免把密碼或權杖直接放進參數；工具不會自動辨識或遮罩秘密。
 
@@ -107,7 +109,9 @@ python scripts/agf.py git scope --repo . --allow agf --allow tests
 
 POSIX 環境以 `0700` 建立最終保存目錄，不調整既有父目錄；其他平台依本機存取控制處理，這不是隔離或自動隱私保證。若命令完成後 metadata 保存失敗，回傳的 `evidence.metadata_saved` 為 false，並保留實際執行結果；命令的 PASS／FAIL 與紀錄是否存妥須分開看。先查原始輸出及當前狀態，不為補紀錄重跑已完成的寫入。啟動前的準備失敗可能留下新建目錄與空檔，錯誤會明示命令未啟動。
 
-Task 記錄可明列任何本地檔案，不依賴 Git。只有選用 `--repo` 才保存 Git 身分；SVN revision 或其他版本條件可用原生命令取得並列為證據。hash 相同只是檔案身分檢查，接手仍需讀來源及目前變更。`git summary/scope` 維持 Git 專用，不包裝成通用版本控制 API。
+Task 記錄可明列任何本地檔案，不依賴 Git。`verification`、`next_steps`、`boundaries` 是可選的字串陣列，分別保留已做／未做的驗證、下一步及操作範圍；驗證項目應寫實際時間與結果位置。工具自動加入的 UTC `recorded_at` 只代表建立紀錄的時間，不代表剛重跑過測試。`task handoff .agf/task.json --output .agf/handoff.md` 會核對證據並產生交接；舊版 v1 紀錄仍可讀取，未記載的續接資訊不會自行補造。
+
+只有選用 `--repo` 才保存 Git 身分；SVN revision 或其他版本條件可用原生命令取得並列為證據。hash 相同只是檔案身分檢查，接手仍需讀來源及目前變更。`git summary/scope` 維持 Git 專用，不包裝成通用版本控制 API。
 
 Git 狀態無法可靠解碼為 UTF-8 時，交接紀錄會報錯，不將替代字元當成原始路徑。`git summary/scope` 和 `task record --repo` 會執行本機 Git：雖然 diff 已停用 textconv／external diff，Git 仍可能依本機設定啟動 clean filter（將工作檔轉換後再交給 Git 的外部程式）。對不可信的工作目錄或 Git 設定應先審查、使用適當隔離；這些命令不是 sandbox。停用文字轉換後，較早記錄的 Git 狀態雜湊可能改變；先檢查實際差異，再決定是否重新記錄交接。
 

@@ -27,6 +27,16 @@ def _validate_options(timeout, max_chars, encoding):
         codecs.lookup(encoding)
     except (LookupError, TypeError) as exc:
         raise AgfError(f"Unknown output encoding: {encoding!r}") from exc
+    try:
+        # lookup() also accepts byte transforms (hex/base64) and str transforms
+        # (rot_13). Reject them before a command can produce side effects.
+        b"".decode(encoding)
+        for errors in ("strict", "replace"):
+            decoder = codecs.getincrementaldecoder(encoding)(errors=errors)
+            if not isinstance(decoder.decode(b"", final=False), str):
+                raise TypeError("Decoder must return text")
+    except (LookupError, TypeError, ValueError) as exc:
+        raise AgfError(f"Output encoding must support bytes-to-text decoding with strict and replacement handling: {encoding!r}") from exc
 
 
 def run_command(argv, *, cwd=None, timeout=60, max_chars=16000, encoding="utf-8", output_dir=None):

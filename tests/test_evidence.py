@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta
 from pathlib import Path
 import tempfile
 import unittest
@@ -10,6 +11,56 @@ from agf.evidence import check_task, handoff, record_task
 
 
 class EvidenceTests(unittest.TestCase):
+    def test_handoff_preserves_resume_context_and_observation_time(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            contract = root / "input.json"
+            details = {
+                "goal": "Fix retry handling", "scope": ["queue.py"], "acceptance": ["Failed batches leave state unchanged"],
+                "verification": ["2026-11-09: queue regression passes; integration suite not run"],
+                "next_steps": ["Read the current diff, then run the integration scenario"],
+                "boundaries": ["Local edits only; deployment requires separate authorization"],
+            }
+            contract.write_text(json.dumps(details))
+            output = root / "record.json"
+            result = record_task(contract, output, root)
+            self.assertEqual(datetime.fromisoformat(result["recorded_at"]).utcoffset(), timedelta(0))
+            report = handoff(output)["markdown"]
+            for field in ("verification", "next_steps", "boundaries"):
+                self.assertEqual(result[field], details[field])
+                self.assertIn(details[field][0], report)
+            self.assertIn(result["recorded_at"], report)
+
+    def test_invalid_resume_fields_are_rejected_before_writing(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            contract = root / "input.json"
+            output = root / "record.json"
+            for field in ("verification", "next_steps", "boundaries"):
+                for value in ("looks valid", [42], [" "]):
+                    with self.subTest(field=field, value=value):
+                        contract.write_text(json.dumps({"goal": "test", "scope": ["x"], "acceptance": ["done"], field: value}))
+                        with self.assertRaisesRegex(AgfError, field):
+                            record_task(contract, output, root)
+                        self.assertFalse(output.exists())
+
+    def test_legacy_record_without_resume_fields_still_generates_handoff(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "record.json"
+            path.write_text(json.dumps({"version": 1, "goal": "test", "scope": ["x"], "acceptance": ["done"], "evidence": []}))
+            self.assertEqual(check_task(path)["status"], "UNCHANGED")
+            self.assertIn("## Next steps\n\n- None recorded.", handoff(path)["markdown"])
+
+    def test_handoff_rejects_malformed_contract_instead_of_splitting_characters(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "record.json"
+            for field in ("scope", "verification", "next_steps", "boundaries"):
+                with self.subTest(field=field):
+                    data = {"version": 1, "goal": "test", "scope": ["queue.py"], "acceptance": ["done"], "evidence": [], field: "incorrect type"}
+                    path.write_text(json.dumps(data))
+                    with self.assertRaisesRegex(AgfError, field):
+                        handoff(path)
+
     def test_changed_evidence_blocks_handoff(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -38,9 +89,12 @@ class EvidenceTests(unittest.TestCase):
     def test_malformed_repository_identity_is_actionable(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "input.json"
-            path.write_text(json.dumps({"version": 1, "evidence": [], "repository": {}}))
-            with self.assertRaisesRegex(AgfError, "repository identity"):
-                check_task(path)
+            for repository in ({}, {"repo": temp, "tracked_diff_sha256": "x", "status_sha256": "y"},
+                               {"repo": temp, "head": 42, "tracked_diff_sha256": "x", "status_sha256": "y"}):
+                with self.subTest(repository=repository):
+                    path.write_text(json.dumps({"version": 1, "evidence": [], "repository": repository}))
+                    with self.assertRaisesRegex(AgfError, "repository identity"):
+                        check_task(path)
 
     def test_report_does_not_overwrite(self):
         with tempfile.TemporaryDirectory() as temp:

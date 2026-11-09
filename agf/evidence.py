@@ -2,35 +2,44 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .common import AgfError, digest, json_text, read_json, write_text
 
 
-def record_task(input_path, output=None, root=".", repo=None):
-    data = read_json(input_path)
+_OPTIONAL_LISTS = ("decisions", "unknowns", "verification", "next_steps", "boundaries")
+
+
+def _validate_contract(data):
     if not isinstance(data, dict) or not isinstance(data.get("goal"), str) or not data["goal"].strip():
         raise AgfError("Task requires a nonempty goal.")
     for key in ("scope", "acceptance"):
         if not isinstance(data.get(key), list) or not data[key] or not all(isinstance(x, str) and x.strip() for x in data[key]):
             raise AgfError(f"Task requires a nonempty {key} array of strings.")
-    for key in ("decisions", "unknowns"):
-        if key in data and (not isinstance(data[key], list) or not all(isinstance(x, str) for x in data[key])):
-            raise AgfError(f"{key} must be an array of strings.")
+    for key in _OPTIONAL_LISTS:
+        if key in data and (not isinstance(data[key], list) or not all(isinstance(x, str) and x.strip() for x in data[key])):
+            raise AgfError(f"{key} must be an array of nonempty strings.")
+
+
+def record_task(input_path, output=None, root=".", repo=None):
+    data = read_json(input_path)
+    _validate_contract(data)
     base = Path(root).resolve()
     evidence = []
     if not isinstance(data.get("evidence", []), list):
         raise AgfError("evidence must be an array.")
     for entry in data.get("evidence", []):
-        if not isinstance(entry, dict) or not isinstance(entry.get("path"), str):
+        if not isinstance(entry, dict) or not isinstance(entry.get("path"), str) or not entry["path"].strip() or not isinstance(entry.get("note", ""), str):
             raise AgfError("Each evidence entry requires a file path and optional note.")
         path = (base / entry["path"]).resolve()
         if not path.is_file():
             raise AgfError(f"Evidence file is missing: {path}")
         evidence.append({"path": str(path), "sha256": digest(path), "note": entry.get("note", "")})
-    result = {"version": 1, "status": "RECORDED", "goal": data["goal"], "scope": data["scope"],
-              "acceptance": data["acceptance"], "decisions": data.get("decisions", []),
-              "unknowns": data.get("unknowns", []), "evidence": evidence,
+    result = {"version": 1, "status": "RECORDED", "recorded_at": datetime.now(timezone.utc).isoformat(),
+              "goal": data["goal"], "scope": data["scope"],
+              "acceptance": data["acceptance"], **{key: data.get(key, []) for key in _OPTIONAL_LISTS},
+              "evidence": evidence,
               "usage": data.get("usage", {"source": "unavailable", "tokens": None, "cost": None}),
               "meaning": "Hashes identify files; neither hashes nor model summaries prove their conclusions."}
     if repo:
@@ -63,7 +72,9 @@ def check_task(path):
     if "repository" in data:
         from .gittools import snapshot
         previous = data["repository"]
-        if not isinstance(previous, dict) or not isinstance(previous.get("repo"), str) or not all(
+        if not isinstance(previous, dict) or not isinstance(previous.get("repo"), str) or "head" not in previous or (
+            previous["head"] is not None and not isinstance(previous["head"], str)
+        ) or not all(
             isinstance(previous.get(key), str) for key in ("tracked_diff_sha256", "status_sha256")
         ) or not isinstance(previous.get("excluded_paths", []), list):
             raise AgfError("Invalid repository identity in task record.")
@@ -82,13 +93,16 @@ def handoff(path, output=None):
     checked = check_task(path)
     if checked["status"] != "UNCHANGED":
         raise AgfError("Evidence changed or disappeared; refresh the task record before handing off.")
-    if not isinstance(data.get("goal"), str):
-        raise AgfError("Task record has no goal.")
+    _validate_contract(data)
     parts = ["# Task handoff", "", data["goal"], ""]
+    if data.get("recorded_at"):
+        parts += [f"Recorded at: {data['recorded_at']}", ""]
     if data.get("repository"):
         state = data["repository"]
         parts += [f"Repository: `{state['repo']}`", f"Base commit: `{state['head']}`", ""]
-    for key, title in (("scope", "Scope"), ("acceptance", "Acceptance"), ("decisions", "Decisions"), ("unknowns", "Unknowns")):
+    for key, title in (("scope", "Scope"), ("acceptance", "Acceptance"), ("decisions", "Decisions"),
+                       ("verification", "Verification"), ("unknowns", "Unknowns"),
+                       ("next_steps", "Next steps"), ("boundaries", "Boundaries")):
         parts += [f"## {title}", ""]
         parts += [f"- {value}" for value in data.get(key, [])] or ["- None recorded."]
         parts.append("")

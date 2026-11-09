@@ -36,6 +36,29 @@ class ExecutionTests(unittest.TestCase):
                 run_command([sys.executable, "-c", "from pathlib import Path; Path('marker').touch()"], cwd=temp, encoding="utf8-typo")
             self.assertFalse(marker.exists())
 
+    def test_nontext_codecs_are_rejected_before_command_side_effect(self):
+        with tempfile.TemporaryDirectory() as temp:
+            marker = Path(temp) / "marker"
+            argv = [sys.executable, "-c", "from pathlib import Path; Path('marker').touch(); print('ok')"]
+            for encoding in ("rot_13", "base64_codec", "hex_codec", "idna"):
+                with self.subTest(encoding=encoding):
+                    with self.assertRaisesRegex(AgfError, "bytes-to-text"):
+                        run_command(argv, cwd=temp, encoding=encoding, output_dir=Path(temp) / encoding)
+                    self.assertFalse(marker.exists())
+                    self.assertFalse((Path(temp) / encoding).exists())
+
+    def test_check_rejects_nontext_codec_before_any_check_runs(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            config = root / "quality.json"
+            config.write_text(json.dumps({"version": 1, "checks": [
+                {"name": "first", "argv": ["{python}", "-c", "from pathlib import Path; Path('marker').touch()"]},
+                {"name": "bad-codec", "argv": ["{python}", "--version"], "encoding": "rot_13"}
+            ]}))
+            with self.assertRaisesRegex(AgfError, "bytes-to-text"):
+                check_project(root, config)
+            self.assertFalse((root / "marker").exists())
+
     def test_truncation_inside_utf8_character_is_not_a_decoding_error(self):
         result = run_command([sys.executable, "-c", "import sys; sys.stdout.buffer.write('中中中'.encode())"], max_chars=1)
         self.assertEqual(result["stdout"], "中")

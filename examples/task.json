@@ -3,6 +3,9 @@
   "scope": ["examples/learning/queue_walkthrough.py"],
   "acceptance": ["區分錯誤回傳與狀態副作用", "以可重現輸入驗證最小修法"],
   "decisions": ["先比較狀態變化，再判斷需要修改哪個步驟"],
+  "verification": ["尚未執行；來源檔案不是測試結果"],
+  "next_steps": ["以容量不足的輸入重現，記錄回傳值與佇列狀態"],
+  "boundaries": ["本地分析與測試；未授權推送或部署"],
   "unknowns": ["真人能否獨立解釋另一個相近情境尚未驗證"],
   "evidence": [
     {"path": "examples/learning/queue_walkthrough.py", "note": "來源檔案；執行結果需另外取得"}
