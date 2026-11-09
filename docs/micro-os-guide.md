@@ -238,7 +238,7 @@ Rollback 處理框架記錄的配置，不是回退整個 micro-os、Git commit 
 
 ## 6. 按需使用其他技能與腳本
 
-框架還有三個可明確選用的技能：`debug-root-cause` 用於已發生的故障、`review-change` 用於審查指定變更、`read-research` 用於判讀論文或規格。若需要在現有目標增加技能，先用下列命令看預覽；確認計畫後再於同一命令最後加 `--apply`：
+其他可明確選用的技能包括 `debug-root-cause`（已發生的故障）、`review-change`（指定變更）、`read-research`（論文或規格），以及 `review-sql`（慢 SQL 或資料庫變更審查）。若需要在現有目標增加技能，先用下列命令看預覽；確認計畫後再於同一命令最後加 `--apply`：
 
 ```console
 agf project update --target "$TARGET" --skill debug-root-cause

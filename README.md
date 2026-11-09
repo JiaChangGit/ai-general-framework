@@ -97,7 +97,7 @@ MCP 選用由宿主代理讀取規則後，透過其工具探索能力執行。R
 
 本輪候選工具的盤點、合併及延後理由見[能力取捨](docs/capability-decisions.md)。[按需選型參考](templates/tool-selection/README.md)供跨來源／高成本任務使用，不必每次載入整張清單。資料庫工作可選配 `--skill review-sql`；不用設定外部服務或環境變數也能審查已提供的 SQL／計畫。採用 PawSQL、Bytebase 等服務時，才依所用介面核對設定與授權，憑證留在宿主登入、環境變數或 Secret Manager，不打包進框架。
 
-新增技能仍使用前述 `project plan`／`project install --apply`，將 `--skill` 換成 `review-sql`。剛配置後要移除，可先預覽 `project rollback --target DIR`，核對後加 `--apply`；它會回復上次整筆配置，不只單一 skill。目前沒有任意移除單一受管理技能的 CLI；手動刪檔會形成 drift，先用 `project status` 核對，不宣稱 rollback 等同通用卸載器。
+新專案可用前述 `project plan`／`project install --apply`，將 `--skill` 換成 `review-sql`。已配置的專案要新增此技能，先執行 `project update --target DIR --skill review-sql` 預覽，再加 `--apply`；既有技能會保留，更新後用 `project status` 核對。剛配置後要移除，可先預覽 `project rollback --target DIR`，核對後加 `--apply`；它會回復上次整筆配置，不只單一 skill。目前沒有任意移除單一受管理技能的 CLI；手動刪檔會形成 drift，先用 `project status` 核對，不宣稱 rollback 等同通用卸載器。
 
 ## 維護與驗證
 
