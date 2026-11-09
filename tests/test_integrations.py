@@ -277,6 +277,8 @@ console.log(JSON.stringify({status: "contract_pass", successful_real_checks: rep
             dict(valid, timeout=True),
             dict(valid, timeout="10"),
             dict(valid, timeout=float("nan")),
+            dict(valid, max_output_bytes=0),
+            dict(valid, max_output_bytes=True),
             dict(valid, encoding="not-a-codec"),
             dict(valid, encoding="rot_13"),
             dict(valid, encoding="idna"),

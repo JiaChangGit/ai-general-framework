@@ -12,6 +12,72 @@ from agf.execution import check_project, run_command
 
 
 class ExecutionTests(unittest.TestCase):
+    def test_raw_output_limit_bounds_combined_evidence_and_fails(self):
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "run"
+            result = run_command([sys.executable, "-c", "import os; os.write(1,b'x'*4096); os.write(2,b'y'*4096)"],
+                                 max_output_bytes=128, output_dir=output)
+            self.assertEqual(sum((output / name).stat().st_size for name in ("stdout.bin", "stderr.bin")), 128)
+            self.assertEqual(result["stdout_bytes"] + result["stderr_bytes"], 128)
+            self.assertTrue(result["output_limit_exceeded"])
+            self.assertFalse(result["capture_complete"])
+            self.assertFalse(result["timed_out"])
+            self.assertEqual(result["exit_code"], 125)
+            self.assertEqual(result["status"], "FAIL")
+            self.assertEqual(json.loads((output / "result.json").read_text(encoding="utf-8")), result)
+
+    def test_raw_output_at_exact_limit_remains_complete(self):
+        result = run_command([sys.executable, "-c", "import os; os.write(1,b'x'*64); os.write(2,b'y'*64)"], max_output_bytes=128)
+        self.assertEqual(result["stdout"], "x" * 64)
+        self.assertEqual(result["stderr"], "y" * 64)
+        self.assertTrue(result["capture_complete"])
+        self.assertFalse(result["output_limit_exceeded"])
+        self.assertEqual(result["status"], "PASS")
+
+    def test_raw_output_limit_stops_verbose_process(self):
+        result = run_command([sys.executable, "-c", "import os\nwhile True: os.write(1,b'x'*65536)"], timeout=10, max_output_bytes=1024)
+        self.assertEqual(result["stdout_bytes"], 1024)
+        self.assertEqual(result["exit_code"], 125)
+        self.assertFalse(result["timed_out"])
+
+    def test_concurrent_pipes_share_one_capture_budget(self):
+        program = "import os,threading\na=threading.Thread(target=lambda: os.write(1,b'x'*1000000))\na.start()\nos.write(2,b'y'*1000000)\na.join()"
+        result = run_command([sys.executable, "-c", program], max_output_bytes=100001)
+        self.assertEqual(result["stdout_bytes"] + result["stderr_bytes"], 100001)
+        self.assertTrue(result["output_limit_exceeded"])
+        self.assertEqual(result["exit_code"], 125)
+
+    def test_byte_budget_cut_inside_utf8_is_not_invalid_child_encoding(self):
+        result = run_command([sys.executable, "-c", "import os; os.write(1,'中'.encode())"], max_output_bytes=2)
+        self.assertEqual(result["exit_code"], 125)
+        self.assertFalse(result["stdout_decode_errors"])
+        self.assertFalse(result["capture_complete"])
+
+    def test_quality_check_applies_raw_budget(self):
+        with tempfile.TemporaryDirectory() as temp:
+            config = Path(temp) / "quality.json"
+            config.write_text(json.dumps({"version": 1, "checks": [{"name": "verbose", "argv": ["{python}", "-c", "print('x'*1000)"], "max_output_bytes": 20}]}))
+            result = check_project(temp, config)
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["checks"][0]["exit_code"], 125)
+
+    def test_invalid_raw_limit_has_no_command_or_evidence_side_effect(self):
+        with tempfile.TemporaryDirectory() as temp:
+            for limit in (0, -1, True, 1.5, "128"):
+                with self.subTest(limit=limit), self.assertRaises(AgfError):
+                    run_command([sys.executable, "-c", "from pathlib import Path; Path('marker').touch()"],
+                                cwd=temp, max_output_bytes=limit, output_dir=Path(temp) / "evidence")
+                self.assertFalse((Path(temp) / "marker").exists())
+                self.assertFalse((Path(temp) / "evidence").exists())
+
+    def test_bounded_capture_timeout_preserves_prefix(self):
+        result = run_command([sys.executable, "-c", "import os,time; os.write(1,b'before'); time.sleep(10)"],
+                             timeout=1, max_output_bytes=1024)
+        self.assertTrue(result["timed_out"])
+        self.assertEqual(result["exit_code"], 124)
+        self.assertEqual(result["stdout"], "before")
+        self.assertEqual(result["status"], "FAIL")
+
     def test_argument_boundaries_and_bounded_output(self):
         value = "中文 space & $() ' ;"
         with tempfile.TemporaryDirectory() as temp:
@@ -212,7 +278,8 @@ class ExecutionTests(unittest.TestCase):
             config = root / "quality.json"
             first = {"name": "first", "argv": ["{python}", "-c", "from pathlib import Path; Path('marker').touch()"]}
             for second in ({"name": "empty-argument", "argv": ["{python}", ""]},
-                           {"name": "missing-cwd", "argv": ["{python}", "--version"], "cwd": "missing"}):
+                           {"name": "missing-cwd", "argv": ["{python}", "--version"], "cwd": "missing"},
+                           {"name": "bad-budget", "argv": ["{python}", "--version"], "max_output_bytes": 0}):
                 with self.subTest(second=second):
                     config.write_text(json.dumps({"version": 1, "checks": [first, second]}))
                     with self.assertRaises(AgfError):
