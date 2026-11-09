@@ -1,0 +1,4 @@
+interface:
+  display_name: "SQL 效能與變更審查"
+  short_description: "依實際計畫與測試審查慢查詢、索引與資料庫變更，保留審批邊界"
+  default_prompt: "使用 $review-sql 檢查這段 SQL 或 Migration，說明證據、風險與下一個驗證步驟。"

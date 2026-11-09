@@ -1,6 +1,6 @@
 # 維護本框架
 
-本文件只給 ai-general-framework 維護者，不部署到下游專案。消費者使用五個專用 skills，以及按任務需要讀取的 workflow、writing、tools、delivery 四份指引。
+本文件只給 ai-general-framework 維護者，不部署到下游專案。消費者選用專用 skills，以及按任務需要讀取的 workflow、writing、tools、delivery 四份指引。
 
 先找一個真實問題：誤觸 skill、重複提問、漏掉必要條件、腳本故障，或偏好沒有表達清楚。把修正放在最窄的位置，不將單次失敗或個人例子升格為所有工作的永久規則。
 

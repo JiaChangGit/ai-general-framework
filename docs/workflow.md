@@ -16,7 +16,7 @@ Grill 的用途是找出假設與缺漏：哪個前提尚未確認、在哪個�
 
 ## 使用宿主能力完成一般工作
 
-一般開發、簡單修改、寫作與創作使用宿主原有能力，不額外啟動開發總管。只有目的相符時才選五個專用 skill：理解一次執行用 `trace-code`；實際故障用 `debug-root-cause`；指定程式差異審查用 `review-change`；論文／spec 判讀、帶讀或聚焦文獻比較用 `read-research`；學 repo、工程概念或工具用 `guide-learning`。純擷取或轉檔直接用工具。
+一般開發、簡單修改、寫作與創作使用宿主原有能力，不額外啟動開發總管。只有目的相符時才選專用 skill：理解一次執行用 `trace-code`；實際故障用 `debug-root-cause`；指定程式差異審查用 `review-change`；論文／spec 判讀、帶讀或聚焦文獻比較用 `read-research`；學 repo、工程概念或工具用 `guide-learning`；慢 SQL、計畫、索引或資料庫變更審查用 `review-sql`。普通唯讀資料查詢、純擷取或轉檔直接用工具。
 
 ## 角色與模型
 

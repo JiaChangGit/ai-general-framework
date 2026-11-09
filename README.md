@@ -50,7 +50,7 @@ python scripts/agf.py project rollback --target ../my-project
 
 個人偏好優先放使用者設定；專案內的 `.agf/` 還含本機路徑、備份與紀錄，分享前須依實際版本控制工具排除。Git 使用 `.gitignore`，SVN 使用自己的忽略屬性；框架不自動改寫它們。[工具與版本控制指引](docs/tools.md)說明差異。
 
-## 五個技能入口
+## 技能入口
 
 | Skill | 使用目的 |
 |---|---|
@@ -59,6 +59,7 @@ python scripts/agf.py project rollback --target ../my-project
 | `review-change` | 審查指定程式變更的可行動問題 |
 | `read-research` | 判讀論文或規格、聚焦文獻比較；依要求短答或完整帶讀 |
 | `guide-learning` | 學習專案、工具或概念，調整示範與練習深度 |
+| `review-sql` | 分析慢 SQL／計畫、索引或資料庫變更，保留測試、審查與部署界線；普通資料查詢不需要 |
 
 一般開發、需求對齊、寫作、多模型合作與工具選擇使用精簡的[工作指引](docs/workflow.md)、[表達與創作指引](docs/writing.md)、[工具指引](docs/tools.md)及[交付指引](docs/delivery.md)。不為 APP、股市程式、kernel、Boost、STM32、小說、作曲或影片各建一套重複技能；領域條件等具體任務出現再查。
 
@@ -76,7 +77,7 @@ python scripts/agf.py project rollback --target ../my-project
 | Grill me、對齊想法 | [需求對齊](docs/workflow.md)只問會改變決策的未知，理解後執行 |
 | 提醒漏項與誤解 | 指出影響結果的矛盾和缺失條件，有材料先核對，需要取捨才提問 |
 | 不過度思考 | 相關驗證足夠即交付；沒有新增觀察價值時說明缺什麼，不無限重試 |
-| 不膨脹、易更新 | 五個明確 skills、按需 references、共用工具；[維護指引](docs/maintenance.md)要求改在最窄位置 |
+| 不膨脹、易更新 | 專用 skills、按需 references、共用工具；[維護指引](docs/maintenance.md)要求改在最窄位置 |
 | 資安、隱私、CI/CD、hooks 邊界 | [依操作效果判斷授權](docs/delivery.md)，只使用所需資料；文字規則與 hook 不冒充強制隔離 |
 | 自動判斷 MCP 與工具品質 | [工具指引](docs/tools.md)依任務探索已連接能力，先查來源、安全與使用者回饋；省 token 工具另比較完整任務的實際用量與品質 |
 
@@ -86,13 +87,17 @@ MCP 選用由宿主代理讀取規則後，透過其工具探索能力執行。R
 
 `files` 提供批次預覽、碰撞／來源重驗、轉換與差異；`context`／`source` 提供有限摘錄及來源位置；`binary` 有界讀取已儲存二進位檔的 byte 數值、bit 欄位及 hex dump；`diagram` 產生 Mermaid、draw.io 與 trace 檢視。`run`／`check` 記錄有界的執行結果，`run --output-dir DIR` 可另存完整原始輸出，避免為取回診斷重跑命令。`task` 交接是選項，`git` 只處理 Git；GitHub、GitLab、SVN 等工作優先用現成 `gh`、`glab`、`svn` 及專案流程。
 
-要求畫流程、架構、狀態等技術圖時，AI 先選[圖解樣板](templates/diagrams/README.md)，只寫 Mermaid 文字，交 mermaid-cli 渲染 SVG／PNG。單張最多 15 節點，超過就拆圖；資料轉狀態圖先用 `diagram transitions` 統計，再畫實際觀察到的轉移。保留五個 skills，不另加畫圖技能或渲染依賴。
+要求畫流程、架構、狀態等技術圖時，AI 先選[圖解樣板](templates/diagrams/README.md)，只寫 Mermaid 文字，交 mermaid-cli 渲染 SVG／PNG。單張最多 15 節點，超過就拆圖；資料轉狀態圖先用 `diagram transitions` 統計，再畫實際觀察到的轉移。不另加畫圖技能或渲染依賴。
 
 簡報沿用[按需簡報指引](templates/presentations/README.md)：主題、Excel／CSV 或作品連結交給 AI，依已連接能力編輯帳號作品，或把內容交給既有版型工具；核對數字、缺值、版面與實際可編輯範圍。配音、影片和分享需有相應工具與授權，框架沒有內建簡報引擎或新增 skill。
 
 資料製成 PDF、HTML、文字、聲音、歌曲與影片時，按需讀[跨格式成果指引](templates/outputs/README.md)：共用確認內容與素材，先驗代表小樣，再依交付格式檢查實際結果。既有工具用時選，不預裝創作平台；這批使用者參考來源的重複、採納與未採納理由見[取捨紀錄](docs/link-study.md)。
 
 完整命令、權限範圍、共用工具與 hooks 見 [CLI 操作](docs/cli.md)。[設計說明](docs/design.md)與[研究紀錄](docs/research.md)交代採納和刪減理由。共用創作指引可協助小說、音樂與投影片式影片；真正使用時再選可用工具，分清企劃、草稿與可播放成品。
+
+本輪候選工具的盤點、合併及延後理由見[能力取捨](docs/capability-decisions.md)。[按需選型參考](templates/tool-selection/README.md)供跨來源／高成本任務使用，不必每次載入整張清單。資料庫工作可選配 `--skill review-sql`；不用設定外部服務或環境變數也能審查已提供的 SQL／計畫。採用 PawSQL、Bytebase 等服務時，才依所用介面核對設定與授權，憑證留在宿主登入、環境變數或 Secret Manager，不打包進框架。
+
+新增技能仍使用前述 `project plan`／`project install --apply`，將 `--skill` 換成 `review-sql`。剛配置後要移除，可先預覽 `project rollback --target DIR`，核對後加 `--apply`；它會回復上次整筆配置，不只單一 skill。目前沒有任意移除單一受管理技能的 CLI；手動刪檔會形成 drift，先用 `project status` 核對，不宣稱 rollback 等同通用卸載器。
 
 ## 維護與驗證
 

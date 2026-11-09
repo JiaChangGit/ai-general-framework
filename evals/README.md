@@ -6,7 +6,9 @@
 
 要驗收中文改寫，可另取 [writing-cases.json](writing-cases.json) 的 `request`、`facts`、`draft` 交給新對話，將 `preserve`、`observe`、`avoid` 留給審查者。先核對數字、否定、條件、責任人與未知是否保留，再評估是否好讀；清楚的原文可以保留。來源與限制見[寫作研究紀錄](../docs/writing-research.md)。
 
-在指定 host／model／版本的新對話使用案例，提供它實際需要的原始檔案，並記錄這次安裝、可用的 skills。五個候選是 `trace-code`、`debug-root-cause`、`review-change`、`read-research`、`guide-learning`；新專案預設不安裝任何 skill。`expected_skill_if_available` 只表示該項確實可用時預期選用；`null` 表示這項任務不需要這五項。未安裝時，模型應依一般工作規則完成任務，不假稱載入不存在的 skill，也不因缺少它而自行安裝。選用正確名稱仍不代表成果合格。
+在指定 host／model／版本的新對話使用案例，提供它實際需要的原始檔案，並記錄這次安裝、可用的 skills。候選是 `trace-code`、`debug-root-cause`、`review-change`、`read-research`、`guide-learning`、`review-sql`；新專案預設不安裝任何 skill。`expected_skill_if_available` 只表示該項確實可用時預期選用；`null` 表示不需要這些專用技能。未安裝時，模型應依一般工作規則完成任務，不假稱載入不存在的 skill，也不因缺少它而自行安裝。選用正確名稱仍不代表成果合格。
+
+資料庫審查另有[原始案例與替身工具](database-review/README.md)，涵蓋效能、工具受限、錯誤材料、非資料庫負例及審查不能繞過的請求。替身工具完全離線，呼叫紀錄用來觀察嘗試，不能冒充生產權限已受控。
 
 案例中的程式、論文、規格、patch、log 或既有創作設定，須由測試者提供；缺少會影響結論的材料時應提出具體問題，不能補造。另用相同輸入、移除對應 skill 做一次對照，觀察是否仍能理解任務與遵守權限。普通產品討論、實作、創作及純文件擷取應保留一般工作流程。
 

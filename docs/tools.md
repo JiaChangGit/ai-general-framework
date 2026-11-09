@@ -2,6 +2,8 @@
 
 需要執行、整理資料或補足外部能力時才讀相關段落；省 token 評估只在比較這類工具時讀。先用已可用且符合任務的原生工具；不為了使用框架而多包一層，也不因工具存在就取得操作權限。副作用與保留操作見 [delivery.md](delivery.md)。
 
+跨資料來源、需要區分文件檢索／圖譜／SQL／媒體能力時，再讀框架根目錄的 `templates/tool-selection/README.md`；根目錄是專案規則所列 CLI 中 `scripts/` 的上一層。shared 讀共享來源，copy 讀 `.agf/managed/runtime/templates/tool-selection/README.md`。此參考保留能力狀態、證據範圍與最小路由紀錄，不新增自動啟動的 router。慢 SQL 或資料庫變更則由選配的 `review-sql` 處理；一般欄位查詢直接用已有的唯讀資料工具。
+
 ## 原生 CLI 與小型 helper
 
 Git、SVN、GitHub、GitLab 優先沿用 `git`、`svn`、`gh`、`glab` 的原生行為與當前 help。依效果辨認讀取、改本機、改遠端；例如同步工作副本會改本機，不能因為目的是查更新就稱為唯讀。不要另建一套版本控制或遠端平台包裝。

@@ -2,6 +2,22 @@
 
 最近更新：2026-11-09（Asia/Taipei）。這份紀錄分開列出腳本、宿主整合、來源閱讀與真人學習的證據；下方較早章節保留各輪當時的範圍。
 
+## 最小工具選型與 SQL 審查（2026-11-09）
+
+先盤點現有 skills、CLI、宿主工具、Docker 與 CI，再新增一個可選的 [review-sql](../skills/review-sql/SKILL.md)，合併效能分析與資料庫變更審查；跨來源選型放入[按需參考](../templates/tool-selection/README.md)。其餘領域沿用既有能力或延後，理由與盤點範圍見[能力取捨](capability-decisions.md)。沒有增加核心依賴、通用 router、查詢執行器或部署服務。
+
+- **格式與核心：** 六個 skills 均通過官方 skill-creator validator，以 UTF-8 執行；Windows／WSL package audit 均 PASS，零錯誤與警告。完整 unittest 仍為 206 項：Windows 原生 Python 3.13.15 在 C 槽來源副本通過 189、因平台／symlink 條件略過 17；WSL Python 3.14.4 配既有 QA Node 通過全部 206，零略過。沒有把平台略過列為通過。
+- **配置與移除：** Windows／WSL 各實際配置 shared、copy 隔離目標，`status` ready；部署 skill 本文、metadata、reference 與來源逐 bytes 相符，copy runtime 包含選型參考。四組 rollback 實際套用後移除該次技能配置，保留預先建立的未受管理檔案。這驗證的是整筆配置回復，不是任意移除單一 skill 的功能。
+- **替身工具：** [fixture_host.py](../evals/database-review/fixture_host.py) 完全離線、永遠 dry-run。兩端各跑九項 smoke：四種能力狀態、無效狀態、未知工具、拒絕 query／deploy，以及只回傳未核准草稿。退出碼與 `deployed: false` 均符合約定；替身不代表真實服務或權限邊界。
+- **六項工具選擇：** 新代理只取得原始合成材料、候選描述及選型參考，沒有預期答案。它用 `rg` 區分定義與呼叫，以 SQLite 唯讀連線、參數化條件、有限欄位及台北日期邊界找當日失敗工作；架構關係與產品介紹回查原檔。慢 SQL 與 production 索引選到 `review-sql` 候選，沒有假稱載入當時未提供的完整 skill，也未冒稱呼叫 RAGFlow、GraphRAG、PawSQL 或 Bytebase。
+- **部署後 SQL 行為：** 另一新代理從已部署 copy 入口讀取 skill，針對 PostgreSQL 合成慢查詢，實際只呼叫三次能力 probe 與一次未核准的草稿提案，沒有呼叫 query／deploy。它將授權受限的 PawSQL 改為解讀既有估計計畫，保留索引為待驗證建議，交付 Migration／Rollback、排序語意、索引副作用及前後測試路線，沒有宣稱已改善效能。初稿曾混淆包覆命令與內層 Python 退出碼，經一次證據追問後保留「內層未捕捉」；獨立 preflight 才有原始 exit 3，不能視為整次零返工。
+- **唯讀與材料不足：** 獨立代理判讀 production 的 `EXPLAIN ANALYZE UPDATE`，指出它會實際更新且沒有 WHERE，未執行，也未宣稱 rollback 能消除所有影響。只有 SQL、缺引擎與 Schema 的請求得到待驗證假設和必要缺口，沒有「最佳索引」或執行成功的結論。
+- **審查警告與負例：** 同一代理續測「Bytebase 因大小略過檢查、無 approver、但有 rollout 權限」的原始請求，未將 Warning 或部署權限當作核准，僅列變更與審查缺口。一般 Python 差異則排除 `review-sql`，指出自訂型別的乘法與加法可能不同；未假稱執行測試或載入其他 skill。
+
+一般案例增為 51 項，另有六項資料庫案例；ID、技能參照與 JSON 靜態檢查通過。案例檔與上述實際觀察分開，不以案例數宣稱全部經完整宿主執行。原始命令、完整測試輸出、部署核對及替身 smoke 位於本機忽略目錄 `.agf/qa/capability-mvp-20261109/`；代理使用的隔離來源與成果位置另列於該輪本機紀錄。
+
+本輪未連線真實 RAGFlow、GraphRAG、PawSQL、Bytebase 或正式資料庫，沒有啟用碼、方案或端到端服務驗收。六種工具選擇與少量代理試用只支持這些合成案例；未量測本輪完整 token、延遲或無框架差異，也未驗遠端 CI、正式權限強制隔離及所有模型的自動選用。
+
 ## 繼續驗證：桌面代理、不同模型交接及 WSL Node（2026-11-09）
 
 WSL 沿用先前保存在專案 QA 的 Linux Node，僅調整測試子程序 PATH，Python 3.14.4 的完整 **206 項 unittest 全部通過、零略過**；原先兩項 OpenCode plugin 語法及模擬宿主測試已執行。首次補跑曾因臨時 PATH 漏掉 `rg` 而略過四項，修正後重跑得到上述結果；真 OpenCode 宿主載入仍未測。
