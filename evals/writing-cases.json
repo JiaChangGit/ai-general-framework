@@ -4,6 +4,15 @@
   "runner_notes": "新對話只提供 request、facts、draft；preserve、observe、avoid 留給審查者。清楚的原文可以原樣保留，不要求照抄參考句。",
   "cases": [
     {
+      "id": "project-terms-preserve-meaning",
+      "request": "依專案術語表校閱。只修用字，不改事實、識別字、原文引述或真實揭露。",
+      "facts": ["專案術語表將 application message 寫作應用訊息，不用應用消息。", "量測的是物理量 mass：樣品質量 2 kg。", "message_queue 是程式識別字。", "引述『月球登陸』須原樣保留；本文確實使用 AI 協助校稿。"],
+      "draft": "樣品質量為 2 kg，應用消息寫入 `message_queue`。原文引述：『月球登陸』。本文使用 AI 協助校稿。",
+      "preserve": ["質量及 2 kg", "message_queue", "月球登陸的引述", "AI 使用揭露"],
+      "observe": ["只將應用消息改為應用訊息", "依語境核對術語而非盲目替換"],
+      "avoid": ["把質量換成品質", "把登陸換成登入", "刪除真實 AI 揭露", "翻譯識別字"]
+    },
+    {
       "id": "fluent-empty",
       "request": "依事實修改這段 PR 說明，讓沒參與討論的人知道改了什麼。",
       "facts": ["舊版逐筆入列，加入第二筆時若容量不足，第一筆仍留在佇列。", "新版先檢查整批容量，容量不足時一筆也不加入。", "只執行了容量不足的回歸測試，沒有可靠性或效能量測。"],

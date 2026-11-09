@@ -16,4 +16,6 @@ description: Investigate a reported software or system failure, crash, regressio
 
 回報應讓人能分辨「已觀察」「由程式推得」「仍待驗證」。小 bug 不必產出大型 RCA 文件；事故或跨角色交接才保存足夠的可重現紀錄。
 
+偶發失敗需要重跑時，先確認命令可安全重複，限制次數、單次時間與輸出量。分開記錄各次結果及條件，保留首次失敗與必要的成功對照；重試成功或一批未失敗，都不能單獨證明故障已修復。沿用專案 runner 或現有 `run`，不為統計重複有副作用的操作。
+
 依情境讀 [kernel-and-gdb.md](references/kernel-and-gdb.md) 或 [infra.md](references/infra.md)，不要預先載入全部工具手冊。
