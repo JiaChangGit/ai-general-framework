@@ -132,4 +132,6 @@ python scripts/agf.py integration hook --target ../my-project --kind git
 
 Git hook 與 OpenCode plugin 依同一 manifest 選共享來源或工具副本。先確認目標的 `.agf/quality.json` 是真正需要的檢查；Git hook 保留既有檔案，AI hook 先看版本相關接線計畫。OpenCode 範本只對成功的 edit/write 執行 quick checks，沒有涵蓋所有 shell、patch 或外部修改。
 
+Git hook 的 `--apply` 與 `check --profile quick` 共用設定驗證：檢查名稱、參數陣列、profiles、工作目錄、timeout 及 encoding，並要求至少一項 quick 檢查。無效設定會在寫入 hook／安裝紀錄前拒絕；安裝時不執行設定中的命令。實際執行檔是否可用、命令是否成功，仍要在授權範圍內執行檢查確認；安裝成功不代表檢查已通過。
+
 MCP 選用改查[工具指引](tools.md)，不維護另一套 Python 名單與未實測的跨 host 設定產生器。Commit 理由直接依[寫作指引](writing.md)和目標專案慣例撰寫，純文字拼接不再需要 `git intent`。v0.2 因此移除 `integration mcp` 與 `git intent`；其他 helper 依實際增益選用。

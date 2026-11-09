@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "date": "2026-11-09",
+  "execution_mode": "instruction-only; raw materials inline; model tools prohibited in both arms",
+  "framework_commit": "ffa02b1",
+  "host": "Codex CLI0.167.0-alpha.3.2",
+  "model_requested": "gpt-6.1-sol",
+  "resolved_model_weight_version": null,
+  "reasoning_effort": "medium",
+  "completed_calls": 10,
+  "pairs_per_stage": 1,
+  "quality": {
+    "trace": {
+      "control": {
+        "correctness": 4,
+        "evidence_calibration": 2,
+        "observable_boundary": 2
+      },
+      "framework": {
+        "correctness": 4,
+        "evidence_calibration": 2,
+        "observable_boundary": 2
+      },
+      "external_corrective_rework_per_arm": 0,
+      "critical_observable_boundary_failures_per_arm": 0,
+      "comparison": "tie in this sample"
+    },
+    "debug": {
+      "control": {
+        "correctness": 4,
+        "evidence_calibration": 2,
+        "observable_boundary": 2
+      },
+      "framework": {
+        "correctness": 4,
+        "evidence_calibration": 2,
+        "observable_boundary": 2
+      },
+      "external_corrective_rework_per_arm": 0,
+      "critical_observable_boundary_failures_per_arm": 0,
+      "comparison": "tie in this sample"
+    },
+    "writing": {
+      "control": {
+        "correctness": 4,
+        "evidence_calibration": 2,
+        "observable_boundary": 2
+      },
+      "framework": {
+        "correctness": 4,
+        "evidence_calibration": 2,
+        "observable_boundary": 2
+      },
+      "external_corrective_rework_per_arm": 0,
+      "critical_observable_boundary_failures_per_arm": 0,
+      "comparison": "tie in this sample"
+    },
+    "handoff_producer": {
+      "control": {
+        "correctness": 4,
+        "evidence_calibration": 2,
+        "observable_boundary": 2
+      },
+      "framework": {
+        "correctness": 4,
+        "evidence_calibration": 2,
+        "observable_boundary": 2
+      },
+      "external_corrective_rework_per_arm": 0,
+      "critical_observable_boundary_failures_per_arm": 0,
+      "comparison": "tie in this sample"
+    },
+    "handoff_consumer": {
+      "control": {
+        "correctness": 4,
+        "evidence_calibration": 2,
+        "observable_boundary": 2
+      },
+      "framework": {
+        "correctness": 4,
+        "evidence_calibration": 2,
+        "observable_boundary": 2
+      },
+      "external_corrective_rework_per_arm": 0,
+      "critical_observable_boundary_failures_per_arm": 0,
+      "comparison": "tie in this sample"
+    }
+  },
+  "usage": {
+    "trace": {
+      "control": {
+        "input_tokens": 47755,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 580,
+        "reasoning_output_tokens": 0
+      },
+      "framework": {
+        "input_tokens": 51253,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 773,
+        "reasoning_output_tokens": 32
+      }
+    },
+    "debug": {
+      "control": {
+        "input_tokens": 16125,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1308,
+        "reasoning_output_tokens": 75
+      },
+      "framework": {
+        "input_tokens": 19687,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1358,
+        "reasoning_output_tokens": 90
+      }
+    },
+    "writing": {
+      "control": {
+        "input_tokens": 17564,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 254,
+        "reasoning_output_tokens": 118
+      },
+      "framework": {
+        "input_tokens": 21052,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 196,
+        "reasoning_output_tokens": 55
+      }
+    },
+    "handoff": {
+      "control": {
+        "input_tokens": 36751,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 3108,
+        "reasoning_output_tokens": 112
+      },
+      "framework": {
+        "input_tokens": 43985,
+        "cached_input_tokens": 0,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2922,
+        "reasoning_output_tokens": 104
+      }
+    }
+  },
+  "usage_totals": {
+    "control": {
+      "input_tokens": 118195,
+      "cached_input_tokens": 0,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 5250,
+      "reasoning_output_tokens": 305
+    },
+    "framework": {
+      "input_tokens": 135977,
+      "cached_input_tokens": 0,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 5249,
+      "reasoning_output_tokens": 281
+    }
+  },
+  "input_plus_output": {
+    "control": 123445,
+    "framework": 141226,
+    "additional_framework_tokens": 17781,
+    "additional_fraction_in_this_sample": 0.1440398558062295
+  },
+  "setup_usage_excluded_from_pairs": {
+    "known_input_tokens": 548250,
+    "known_cached_input_tokens": 443392,
+    "known_output_tokens": 2209,
+    "completed_blocked_task_calls": 5,
+    "interrupted_call_usage": null,
+    "main_chat_and_grader_usage": null,
+    "whole_development_usage": null
+  },
+  "evidence": {
+    "raw_jsonl_usage_recomputed": true,
+    "shared_material_hashes_match": true,
+    "fresh_thread_count": 10,
+    "consumer_received_own_producer_files": true,
+    "grader_debug_reproduction_regressions_and_heldout": "pass in isolated local execution",
+    "grader_old_and_changed_handoff_policy_checks": "130/True exit 0; 120/False exit 1",
+    "native_model_tool_actions": 0
+  },
+  "limits": [
+    "One pair per stage; shared native user/system/plugin instructions; not fully blinded.",
+    "No native skill discovery, selective context retrieval or autonomous tool debugging comparison.",
+    "No cross-provider model handoff or human comprehension/retention measurement.",
+    "Cache/reasoning are subsets; raw usage is not a monetary bill.",
+    "No stable improvement, savings ratio or total development cost established."
+  ]
+}

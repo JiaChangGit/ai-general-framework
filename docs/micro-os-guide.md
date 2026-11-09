@@ -9,7 +9,12 @@
 ## 1. 準備位置與環境
 
 1. 準備 Python 3.11 以上及 Git。準備好你要用的 AI 工具，例如 OpenCode 或 Codex；是否安裝、登入及可用的模型由各工具決定。
-2. 使用這份已取得的 `ai-general-framework` 目錄。如果將來從 GitHub 取得，請到**實際發布後的儲存庫頁面**複製 clone 網址，再依 Git 的方式取得；目前不要把佔位網址當成已存在的專案。
+2. 框架已公開於 [JiaChangGit/ai-general-framework](https://github.com/JiaChangGit/ai-general-framework)。已有 checkout 就沿用；尚未取得時，在準備存放專案的父目錄執行下列命令。這條命令在 WSL／Linux 終端機與 Windows PowerShell 都適用，會建立 `ai-general-framework` 子目錄，不會替你配置 micro-os：
+
+   ```console
+   git clone https://github.com/JiaChangGit/ai-general-framework.git
+   ```
+
 3. 如尚未取得 micro-os，可以在預定的父目錄由你自己執行以下命令；已有 checkout 的話使用原來位置，不要覆蓋它：
 
    ```console
@@ -124,6 +129,22 @@ AI 應先依專案的當前規則查必要內容，例如 `python3 tools/context
 
 若要真正建置 micro-os，在 **WSL 的 micro-os 根目錄**依它目前 README 核對環境；先用 `python3 tools/bootstrap.py` 查看需求，無 `--install`。確認工具已具備、且這次任務允許執行後，再按專案要求使用 `make all`、`make test` 或 `make phase-status`。執行 `--install`、系統安裝、遠端發布等要另依當次授權處理。框架狀態正常不代表 QEMU 或 micro-os gate 已通過。
 
+### 3.1 換對話、換模型與保留記憶
+
+同一個 session 切模型時先沿用宿主上下文；換對話或工具才整理足以接手的交接。你可以先用框架內建的佇列案例試一次，以下命令在兩種 shell 都適用，輸出檔若已存在會拒絕覆寫：
+
+```console
+agf task record --input "$AGF/examples/task.json" --root "$AGF" --output "$TARGET/.agf/task-queue.json"
+agf task check "$TARGET/.agf/task-queue.json"
+agf task handoff "$TARGET/.agf/task-queue.json" --output "$TARGET/.agf/handoff-queue.md"
+```
+
+這只是佇列範例，不是 micro-os 測試結果。真正交接 timeout 任務時，把範例複製到自己的任務輸入檔，依目前工作改寫目標、範圍、驗收、決定及理由；以 `--root "$TARGET"` 解析實際證據檔。`verification` 寫已做／未做的驗證、實際時間及結果位置，`next_steps` 寫下一個可執行步驟，`boundaries` 保留目前授權。需要 Git 版本及差異身分時再加 `--repo "$TARGET"`；未追蹤檔的內容仍須列為 evidence。紀錄建立時間不代表測試剛重跑過。
+
+在接手的新對話提供交接檔位置，請 AI「先讀交接，再核對目前版本、差異及相關來源；過期的測試重驗，尚未確認的事保留未知」。來源改變後，`task check` 會指出證據過期，`handoff` 會拒絕產生新的交接；不要只更新雜湊便沿用舊結論。舊交接本身不會新增授權；要核對目前指示與可查證的原始授權，不能只靠摘要執行部署或外傳。
+
+長期記憶則只留後續工作會重用、已確認的內容。先用 `agf profile show --root "$TARGET"` 查現有偏好；個人偏好在原使用者設定更正，專案偏好在既有 `.agf/profile.json` 更正，團隊決策及原因放專案既有規則或決策文件。記下來源、適用範圍及確認日期；找不到原紀錄才考慮新增，不另存互相矛盾的副本。例如「這次追程式只用文字」先留在任務交接，只有使用者確認日後都要沿用，才成為對應範圍的偏好。舊決定失效時更正或標明被哪項決定取代；接手先搜尋相關項目，再回查來源。詳細取捨見[分工與續接指引](workflow.md)。
+
 ## 4. 更新框架，然後更新目標配置
 
 框架來源更新和目標配置更新是兩步。預設 `shared` 讓各專案共用同一份框架工具；目標內受管理規則和已選技能仍需透過 update 同步。`copy` 是將工具存成目標內快照，適合離線或交付；框架來源更新不會自動更新該快照。先確認 `$AGF`、`$TARGET` 仍是你要操作的兩個路徑。
@@ -137,7 +158,7 @@ git -C "$AGF" status --short --branch
 git -C "$AGF" remote -v
 ```
 
-有本地修改時先自行檢視、保存或提交，不要直接覆蓋。尚未連接遠端或框架尚未發布時，先略過取得新版；`remote -v` 可能顯示帶憑證的 URL，勿直接公開貼出。連接到你確認可信的遠端且同意連網後，可由你自己取得並審查新版：
+有本地修改時先自行檢視、保存或提交，不要直接覆蓋。若使用的是沒有遠端設定的資料夾副本，先確認來源，不直接套用下面的更新命令；`remote -v` 可能顯示帶憑證的 URL，勿直接公開貼出。由上方公開網址 clone 的副本通常已有 `origin`；確認它仍指向預期儲存庫並允許連網後，可取得及審查新版：
 
 ```console
 git -C "$AGF" fetch

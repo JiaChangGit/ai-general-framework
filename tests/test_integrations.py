@@ -259,6 +259,62 @@ console.log(JSON.stringify({status: "contract_pass", successful_real_checks: rep
                 integrations.hook(args)
         self.assertFalse(outside.exists())
 
+    def test_git_hook_rejects_invalid_quick_checks_before_writing(self):
+        valid = {"name": "quick", "argv": ["{python}", "-c", "print('ok')"]}
+        invalid = [
+            {"argv": valid["argv"]},
+            dict(valid, name=" "),
+            dict(valid, argv=[]),
+            dict(valid, argv=[""]),
+            dict(valid, argv=["{python}", 42]),
+            dict(valid, argv=["{python}", "bad\x00argument"]),
+            dict(valid, profiles="quick"),
+            dict(valid, profiles=["quick", 42]),
+            dict(valid, cwd=[]),
+            dict(valid, cwd=".."),
+            dict(valid, cwd="missing-directory"),
+            dict(valid, timeout=0),
+            dict(valid, timeout=True),
+            dict(valid, timeout="10"),
+            dict(valid, timeout=float("nan")),
+            dict(valid, encoding="not-a-codec"),
+            dict(valid, encoding="rot_13"),
+            dict(valid, encoding="idna"),
+        ]
+        manifest = {"tools_mode": "shared", "source": str(integrations.SOURCE)}
+        for index, check in enumerate(invalid):
+            with self.subTest(check=check):
+                root = self.root / str(index)
+                (root / ".agf").mkdir(parents=True)
+                (root / ".agf/quality.json").write_text(json.dumps({"version": 1, "checks": [check]}), encoding="utf-8")
+                args = self.hook_args()
+                args.target, args.apply = str(root), True
+                with patch.object(integrations, "_manifest", return_value=manifest), \
+                     patch.object(integrations.shutil, "which", return_value="git"), \
+                     patch.object(integrations.subprocess, "run", return_value=self.git_result()), \
+                     patch("agf.execution.run_command") as run:
+                    with self.assertRaises(AgfError):
+                        integrations.hook(args)
+                    run.assert_not_called()
+                self.assertFalse((root / ".git/hooks/pre-commit").exists())
+                self.assertFalse((root / ".agf/git-hook.json").exists())
+
+    def test_installing_a_valid_git_hook_does_not_run_its_checks(self):
+        (self.root / ".agf").mkdir()
+        quality = {"version": 1, "checks": [{"name": "side-effect", "argv": ["{python}", "-c", "from pathlib import Path; Path('marker').touch(); raise SystemExit(7)"]}]}
+        (self.root / ".agf/quality.json").write_text(json.dumps(quality), encoding="utf-8")
+        args = self.hook_args()
+        args.apply = True
+        manifest = {"tools_mode": "shared", "source": str(integrations.SOURCE)}
+        with patch.object(integrations, "_manifest", return_value=manifest), \
+             patch.object(integrations.shutil, "which", return_value="git"), \
+             patch.object(integrations.subprocess, "run", return_value=self.git_result()), \
+             patch("agf.execution.run_command") as run:
+            result = integrations.hook(args)
+            run.assert_not_called()
+        self.assertTrue(result["applied"])
+        self.assertFalse((self.root / "marker").exists())
+
     def test_removed_mcp_wrapper_is_not_a_cli_command(self):
         parser = argparse.ArgumentParser()
         integrations.register(parser.add_subparsers(required=True))

@@ -205,3 +205,16 @@ class ExecutionTests(unittest.TestCase):
                 {"name": "regression", "argv": ["{python}", "-c", "raise SystemExit(3)"], "profiles": ["full"]}]}))
             self.assertEqual(check_project(temp, path, "quick")["status"], "PASS")
             self.assertEqual(check_project(temp, path, "full")["status"], "FAIL")
+
+    def test_all_selected_checks_are_validated_before_any_check_runs(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            config = root / "quality.json"
+            first = {"name": "first", "argv": ["{python}", "-c", "from pathlib import Path; Path('marker').touch()"]}
+            for second in ({"name": "empty-argument", "argv": ["{python}", ""]},
+                           {"name": "missing-cwd", "argv": ["{python}", "--version"], "cwd": "missing"}):
+                with self.subTest(second=second):
+                    config.write_text(json.dumps({"version": 1, "checks": [first, second]}))
+                    with self.assertRaises(AgfError):
+                        check_project(root, config)
+                    self.assertFalse((root / "marker").exists())

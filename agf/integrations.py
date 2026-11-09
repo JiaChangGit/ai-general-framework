@@ -11,6 +11,7 @@ import subprocess
 import sys
 
 from .common import AgfError, digest, json_text, read_json, write_text
+from .execution import validate_checks
 from .manage import HOSTS, SOURCE, _manifest, _path
 
 
@@ -157,12 +158,7 @@ def hook(args: argparse.Namespace) -> dict:
             raise AgfError("Hook directory is outside the target project. Review the generated launcher and integrate it manually.")
         if not config.is_file():
             raise AgfError(f"Quality configuration is missing: {config}. Review integration template quality and configure real checks before installing the hook.")
-        quality = read_json(config)
-        if not isinstance(quality, dict) or quality.get("version") != 1 or not isinstance(quality.get("checks"), list) or not any(
-            isinstance(check, dict) and isinstance(check.get("argv"), list) and check["argv"] and "quick" in check.get("profiles", ["quick", "full"])
-            for check in quality["checks"]
-        ):
-            raise AgfError("Quality configuration must define at least one real quick-profile check before a Git hook can be installed.")
+        validate_checks(root, config, "quick")
         record = _path(root, ".agf/git-hook.json")
         if record.exists():
             raise AgfError("A Git hook record already exists; inspect it before installing another hook.")

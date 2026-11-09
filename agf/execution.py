@@ -39,9 +39,13 @@ def _validate_options(timeout, max_chars, encoding):
         raise AgfError(f"Output encoding must support bytes-to-text decoding with strict and replacement handling: {encoding!r}") from exc
 
 
-def run_command(argv, *, cwd=None, timeout=60, max_chars=16000, encoding="utf-8", output_dir=None):
-    if not argv or not all(isinstance(item, str) and item and "\x00" not in item for item in argv):
+def _validate_argv(argv):
+    if not isinstance(argv, (list, tuple)) or not argv or not all(isinstance(item, str) and item and "\x00" not in item for item in argv):
         raise AgfError("Command must be a nonempty argument list, without NUL characters.")
+
+
+def run_command(argv, *, cwd=None, timeout=60, max_chars=16000, encoding="utf-8", output_dir=None):
+    _validate_argv(argv)
     _validate_options(timeout, max_chars, encoding)
     directory = Path(cwd or Path.cwd()).resolve()
     if not directory.is_dir():
@@ -142,31 +146,43 @@ def run_command(argv, *, cwd=None, timeout=60, max_chars=16000, encoding="utf-8"
     return result
 
 
-def check_project(root, config, profile="quick"):
+def validate_checks(root, config, profile="quick"):
+    """Select and validate checks without starting commands or creating files."""
     directory = Path(root).resolve()
+    if not directory.is_dir():
+        raise AgfError(f"Working directory does not exist: {directory}")
     data = read_json(config)
-    if not isinstance(data, dict) or data.get("version") != 1 or not isinstance(data.get("checks"), list):
+    if not isinstance(data, dict) or type(data.get("version")) is not int or data["version"] != 1 or not isinstance(data.get("checks"), list):
         raise AgfError("Quality config requires version: 1 and a checks array.")
     selected = []
     for check in data["checks"]:
-        if not isinstance(check, dict) or not isinstance(check.get("name"), str):
-            raise AgfError("Each check requires a name and an argv array.")
+        if not isinstance(check, dict) or not isinstance(check.get("name"), str) or not check["name"].strip():
+            raise AgfError("Each check requires a nonempty name and an argv array.")
         profiles = check.get("profiles", ["quick", "full"])
-        if not isinstance(profiles, list) or not all(isinstance(item, str) for item in profiles):
+        if not isinstance(profiles, list) or not all(isinstance(item, str) and item.strip() for item in profiles):
             raise AgfError("Check profiles must be an array of strings.")
         if profile not in profiles:
             continue
         argv = check.get("argv")
-        if not isinstance(argv, list) or not argv or not all(isinstance(item, str) for item in argv):
+        if not isinstance(argv, list):
             raise AgfError(f"Invalid argv for {check['name']}")
+        _validate_argv(argv)
         argv = [sys.executable if item == "{python}" else item for item in argv]
-        if not isinstance(check.get("cwd", "."), str):
+        cwd = check.get("cwd", ".")
+        if not isinstance(cwd, str) or not cwd or "\x00" in cwd:
             raise AgfError(f"Invalid cwd for {check['name']}")
         _validate_options(check.get("timeout", 60), 16000, check.get("encoding", "utf-8"))
-        location = within(directory, directory / check.get("cwd", "."))
+        location = within(directory, directory / cwd)
+        if not location.is_dir():
+            raise AgfError(f"Working directory does not exist for {check['name']}: {location}")
         selected.append((check, argv, location))
     if not selected:
         raise AgfError(f"No checks selected for {profile}; an empty gate cannot pass.")
+    return selected
+
+
+def check_project(root, config, profile="quick"):
+    selected = validate_checks(root, config, profile)
     results = []
     for check, argv, location in selected:
         value = run_command(argv, cwd=location, timeout=check.get("timeout", 60), encoding=check.get("encoding", "utf-8"))

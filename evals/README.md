@@ -2,6 +2,8 @@
 
 `scenarios.json` 是可重跑的任務與觀察條件。它不會用關鍵字替模型選 skill，也不會把輸出有某個標題當成功。
 
+實際有／無框架的小型對照見 [paired](paired/README.md)：同材料涵蓋 trace、debug、中文改寫與全新對話交接，分開記錄品質、越界、返工、實際 token 及宿主阻擋的範圍。
+
 要驗收中文改寫，可另取 [writing-cases.json](writing-cases.json) 的 `request`、`facts`、`draft` 交給新對話，將 `preserve`、`observe`、`avoid` 留給審查者。先核對數字、否定、條件、責任人與未知是否保留，再評估是否好讀；清楚的原文可以保留。來源與限制見[寫作研究紀錄](../docs/writing-research.md)。
 
 在指定 host／model／版本的新對話使用案例，提供它實際需要的原始檔案，並記錄這次安裝、可用的 skills。五個候選是 `trace-code`、`debug-root-cause`、`review-change`、`read-research`、`guide-learning`；新專案預設不安裝任何 skill。`expected_skill_if_available` 只表示該項確實可用時預期選用；`null` 表示這項任務不需要這五項。未安裝時，模型應依一般工作規則完成任務，不假稱載入不存在的 skill，也不因缺少它而自行安裝。選用正確名稱仍不代表成果合格。
