@@ -4,6 +4,8 @@
 
 第一次實跑的條件、失敗嘗試及用量見[2026-11-09 結果](results-2026-11-09.md)。工具式對照開跑前，先確認一條必要命令真的能完成；能回文字不代表能執行工具。
 
+之後使用桌面代理完成的工具行為與單次跨模型接手見[後續驗證](results-native-2026-11-09.md)；這個宿主沒有提供可比較的個別 usage，也未提供完整代理工具事件。
+
 將各組 `fixtures/` 複製到不同的隔離目錄。對照組不配置框架；框架組用當次固定版本的 CLI 配置規則與所需 skill，trace 選 `trace-code`、debug 選 `debug-root-cause`，其餘不選額外 skill。兩組接收相同的 `tasks.json` startup 與任務文字，不提供前次答案。評分條件另留在測試者手中，不放進受測目錄。
 
 trace 的日誌由 `python generate_trace.py requests.log` 確定性產生，兩組使用逐 bytes 相同的檔案，共 1,205 行；SHA-256 為 `c8f9eb8bddc643ece41ea01f1bba339a4519170d3f79ee4fb2fa45b84461981d`。交接須各執行一次產生與一次全新對話接手；兩次之間將 `policy.json` 的 `ttl_seconds` 從 30 改成 20，其餘材料相同。接手者只能取得工作檔案、交接與記憶，沒有上一個對話的歷史。
