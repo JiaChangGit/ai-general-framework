@@ -84,6 +84,17 @@ class SourceTests(unittest.TestCase):
         with self.assertRaises(AgfError):
             invoke("source", "excerpt", str(path), "--pages", "1")
 
+    def test_casefold_expanding_query_returns_the_complete_original_match(self):
+        path = self.make("fold.txt", "prefix STRASSE suffix\n")
+        result = invoke("source", "excerpt", str(path), "--query", "straße", "--context", "0")
+        self.assertEqual(result["matches"], 1)
+        self.assertEqual(result["excerpts"][0]["text"], "STRASSE")
+
+        # An expanding source unit cannot use the folded offset as a source offset.
+        path.write_text("prefix Straße suffix\n", encoding="utf-8")
+        result = invoke("source", "excerpt", str(path), "--query", "STRASSE", "--context", "0")
+        self.assertEqual(result["excerpts"][0]["text"], "prefix Straße suffix")
+
     def test_static_html_preserves_original_lines_without_executing_scripts(self):
         path = self.make("page.html", '<h1>Title &amp; text</h1>\n<script>steal()</script>\n<style>bad</style>\n<p>第三行內容</p>')
         result = sources.load_source(path)
@@ -92,6 +103,21 @@ class SourceTests(unittest.TestCase):
         self.assertNotIn("steal", text)
         self.assertNotIn("bad", text)
         self.assertEqual(result["entries"][-1]["line"], 4)
+
+    def test_html_entities_preserve_text_and_physical_source_line_anchors(self):
+        path = self.make("entities.html", "<p>first&#10;second &amp; third\nnext&#xA;last</p>\n<p>end</p>")
+        result = sources.load_source(path)
+        self.assertEqual([(entry["line"], entry["text"]) for entry in result["entries"]], [
+            (1, "first\nsecond & third"), (2, "next\nlast"), (3, "end")])
+        match = invoke("source", "excerpt", str(path), "--query", "second & third")
+        self.assertEqual(match["excerpts"][0]["anchor"], "line:1")
+        match = invoke("source", "excerpt", str(path), "--query", "last")
+        self.assertEqual(match["excerpts"][0]["anchor"], "line:2")
+
+    def test_html_entity_semicolon_behavior_matches_html_unescape(self):
+        path = self.make("entities.html", "<p>&NewLine;ok &NewLine text &notit;</p>")
+        result = sources.load_source(path)
+        self.assertEqual(result["entries"][0]["text"], "ok &NewLine text ¬it;")
 
     def test_missing_optional_pdf_dependency_is_unavailable(self):
         path = self.make("paper.pdf", "%PDF fake fixture")

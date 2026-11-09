@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import difflib
 import hashlib
+from html import unescape
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -36,29 +37,70 @@ def _hash(path: Path) -> str:
 
 
 class _HTMLText(HTMLParser):
-    def __init__(self):
-        super().__init__(convert_charrefs=True)
+    def __init__(self, source: str):
+        # Keep entity callbacks separate so an encoded newline does not advance
+        # the physical source line. Adjacent fragments are joined before emit.
+        super().__init__(convert_charrefs=False)
         self.entries = []
         self.ignored = []
+        self.source_lines = source.split("\n")
+        self.pending = []
+        self.pending_line = None
+
+    def _flush(self):
+        value = "".join(self.pending)
+        self.pending = []
+        _check_line_count(value)
+        if value.strip():
+            if len(self.entries) >= MAX_SOURCE_UNITS:
+                raise AgfError(f"HTML source exceeds {MAX_SOURCE_UNITS} text units; select a smaller local source")
+            self.entries.append({"anchor": f"line:{self.pending_line}", "line": self.pending_line, "text": value.strip()})
+        self.pending_line = None
+
+    def _append(self, value, line):
+        if self.pending_line is not None and self.pending_line != line:
+            self._flush()
+        if self.pending_line is None:
+            self.pending_line = line
+        self.pending.append(value)
+
+    def _reference(self, name, prefix):
+        if self.ignored:
+            return
+        line, column = self.getpos()
+        end = column + len(prefix) + len(name)
+        semicolon = self.source_lines[line - 1][end:end + 1] == ";"
+        raw = prefix + name + (";" if semicolon else "")
+        self._append(unescape(raw), line)
 
     def handle_starttag(self, tag, attrs):
+        self._flush()
         if tag in {"script", "style", "noscript"}:
             self.ignored.append(tag)
 
     def handle_endtag(self, tag):
+        self._flush()
         if tag in self.ignored:
             self.ignored.remove(tag)
 
     def handle_data(self, data):
         if self.ignored:
             return
-        _check_line_count(data)
         start = self.getpos()[0]
-        for offset, line in enumerate(data.splitlines()):
-            if line.strip():
-                if len(self.entries) >= MAX_SOURCE_UNITS:
-                    raise AgfError(f"HTML source exceeds {MAX_SOURCE_UNITS} text units; select a smaller local source")
-                self.entries.append({"anchor": f"line:{start + offset}", "line": start + offset, "text": line.strip()})
+        for offset, part in enumerate(data.split("\n")):
+            if offset:
+                self._flush()
+            self._append(part, start + offset)
+
+    def handle_entityref(self, name):
+        self._reference(name, "&")
+
+    def handle_charref(self, name):
+        self._reference(name, "&#")
+
+    def close(self):
+        super().close()
+        self._flush()
 
 
 def load_source(path: str | Path, pages: str | None = None, metadata_only: bool = False) -> dict:
@@ -108,8 +150,9 @@ def load_source(path: str | Path, pages: str | None = None, metadata_only: bool 
             raise AgfError("Source must be UTF-8; use an explicit encoding conversion first") from exc
         _check_line_count(text)
         if suffix in {".html", ".htm"}:
-            parser = _HTMLText()
+            parser = _HTMLText(text)
             parser.feed(text)
+            parser.close()
             entries, format = parser.entries, "html"
             limitations = ["Static HTML text only; scripts, styles, layout and browser-rendered content are not evaluated.",
                            "Line anchors refer to the original HTML source, not browser display lines."]
@@ -191,7 +234,7 @@ def _excerpt(args):
             # Casefold may change character counts; keep the whole unit when
             # this happens rather than inventing a precise character offset.
             if len(text.casefold()) == len(text):
-                start, end = max(0, index - args.context), min(len(text), index + len(args.query) + args.context)
+                start, end = max(0, index - args.context), min(len(text), index + len(query) + args.context)
                 text = text[start:end]
         matches.append({k: v for k, v in entry.items() if k != "text"} | {"text": text})
     excerpts, used = [], 0

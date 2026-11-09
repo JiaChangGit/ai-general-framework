@@ -265,6 +265,6 @@ agf diagram create "$AGF/examples/diagrams/files-transaction.json" --format merm
 | `status` 顯示工具來源不可用 | 確認 shared 來源還在、目前 shell 使用正確的本機路徑；需要時用可讀來源的 `--source` 預覽更新。 |
 | AI 沒遵循規則或找不到 skill | 確認目標、宿主及技能是否配置；保留既有 AGENTS 時明確要求讀取框架規則。查看宿主實際載入紀錄，沒有紀錄就記為未知。 |
 | `rg` 不可用 | 先用系統原生搜尋定位，再用 `context extract` 讀確定的範圍；需要時由你評估是否安裝 ripgrep。 |
-| 執行輸出被截斷 | 縮小查詢；需要完整診斷時，事先用 `run --output-dir` 保存，原始輸出未自動去識別。已完成的寫入不要只為取回輸出重跑。 |
+| 執行輸出被截斷 | 縮小查詢；需要診斷時，可事先用 `run --output-dir` 保存擷取到的原始輸出。若設有 byte 上限，超限時輸出可能不完整，應核對結果狀態；原始輸出未自動去識別。已完成的寫入不要只為取回輸出重跑。 |
 
 本文件的框架配置流程曾在隔離的空目標與含既有規則、skill、script 和模擬 MCP 設定的目標測試 `plan/install/status/update/rollback`；未對真實 micro-os 工作目錄套用，也未驗證各 AI 宿主實際載入或模型訓練。其他 CLI 操作見 [CLI 操作](cli.md)，最新驗證範圍見 [驗證紀錄](verification.md)。
