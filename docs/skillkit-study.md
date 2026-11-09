@@ -1,4 +1,4 @@
-# Claude Code 參考套件的採納紀錄
+# Claude Code 參考材料的採納紀錄
 
 2026-11-09 檢查使用者提供的 `agent-skillkit.zip`：58 個 ZIP 項目、12 個 SKILL 入口、11 支 Python／Shell 腳本，解壓內容約 129 KB。附件 SHA-256：`0dea96e2feb66c784e240dc1fb997a251c97436cd3b201bba86cdee1cc4b665c`。本輪只讀附件，沒有執行其中的腳本或安裝指令，也沒有套用它的 global 規則；下列風險來自程式與文字判讀，不是附件的完整動態驗證。
 
@@ -21,3 +21,15 @@
 - **安裝與重跑：** marker 後刪目錄不能保留本地 drift，附件安裝方式不取代 AGF 的 manifest／snapshot／rollback。flaky 的參數驗證、逐次 timeout／輸出上限及成功證據保存不足；零次執行不應被當成驗證成功，也不為統計重複有副作用的操作。
 
 實際修改集中在既有 writing、tools、debug-root-cause 與三個原始驗收案例；本輪沒有增加 Skill、MCP、依賴或全域設定。結果與限制見[驗證紀錄](verification.md)，案例數不代表全部已由宿主執行。
+
+## App 開發筆記補充（2026-11-10）
+
+另讀使用者提供的 `ai-app-dev-notes.html`（標示 2026-10-23，SHA-256：`2f7ec6bbeba641544aaeb288347c9594ec29024294f77851c1d0aaf59782e8f9`）及一份文字原則。HTML 只作文字解析，沒有執行其中的 JavaScript、命令或設定。文字檔初讀到全文後，後續路徑已無法定位，未取得雜湊；其內容與已整合的維護及 AI 表達原則重疊，沒有再新增同一份規則。
+
+- **資料流：** 在既有 trace 核對表補資料表徵，按問題追型別、時區、精度、單位與空值，避免只列函式卻漏掉值在哪個邊界改變。
+- **並行交易：** 筆記中「寫入與查反向資料放同一交易，就至少一邊看得到另一邊」不是通用保證。[PostgreSQL 18 Read Committed](https://www.postgresql.org/docs/18/transaction-iso.html) 的普通 SELECT 看不到其他未提交寫入；review-sql 補隔離層級、限制、鎖與實際交錯的按需核對。沒有把約會 App 的需求變成框架功能。
+- **API 與模型輸出：** workflow 的條件式驗收補物件／動作授權的正反例，依專案分享規則保留合法跨帳號存取；LLM 輸出進入下游前仍依用途驗證，不能作授權依據。來源為 [OWASP API1:2023](https://api-security.owasp.org/editions/2023/en/0xa1-broken-object-level-authorization/)及 [LLM05:2025](https://genai.owasp.org/llmrisk/llm052025-improper-output-handling/)，不是全面禁止共享或 HTML。
+
+不採固定 SPEC／PLAN 檔名、每任務強制新 session、禁止修改既有測試、固定並行數、每次故障追加 prompt 或自動回到乾淨 Git 狀態。工具對照也不照搬：本機 CLI 的 help 顯示 fork 是對話分叉，不能當成 subagent；能力與 hooks 應依所用版本查核。這些只作對照閱讀，未實際執行附件流程。
+
+曾懷疑空測試集會誤報成功；隔離檢查顯示本機 Windows Python 3.13.15 與 WSL Python 3.14.4 的空 unittest discovery 均回 exit 5，full profile 失敗，因此沒有新增防空測試包裝器。這未驗證 CI Python 3.11，也不推成所有 test runner 的行為。

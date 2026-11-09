@@ -4,7 +4,7 @@
 
 記憶分層、Ponytail、白話解釋、few-shot、歌詞標記、運鏡與 Scrapling 等新一輪來源，採納與未採理由見[記憶與提示取捨](memory-prompt-study.md)。
 
-使用者提供的 Claude Code 套件與現有功能比較，見[參考套件取捨](skillkit-study.md)；只補術語、來源副本及偶發失敗的窄缺口，未執行或移植附件腳本。
+使用者提供的 Claude Code 套件、App 教學筆記與現有功能比較，見[參考材料取捨](skillkit-study.md)；記錄採納的窄改進與不照搬的說法，未執行或移植附件腳本。
 
 ## 可讀性與中文表達（2026-11-09）
 

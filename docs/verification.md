@@ -1,6 +1,17 @@
 # 驗證紀錄
 
-最近更新：2026-11-09（Asia/Taipei）。這份紀錄分開列出腳本、宿主整合、來源閱讀與真人學習的證據；下方較早章節保留各輪當時的範圍。
+最近更新：2026-11-10（Asia/Taipei）。這份紀錄分開列出腳本、宿主整合、來源閱讀與真人學習的證據；下方較早章節保留各輪當時的範圍。
+
+## App 教學筆記的選擇性採納（2026-11-10）
+
+先讀 HTML 與文字參考，對照現有架構與規範；來源、雜湊、無法重讀的文字檔及不採納的固定流程，記於[參考材料取捨](skillkit-study.md)。本輪只補資料轉換、並行交易及 API／模型輸出的條件式核對，不新增技能、執行器或依賴，也未執行附件 JavaScript、範例或設定。
+
+- **配置與檢查：** Windows Python 3.13.15、WSL Python 3.14.4 各從 `a7a7e97` 的舊版配置 shared、copy，再實際 update。四組 status ready；workflow、trace reference、review-sql 本文與 reference 逐 bytes 相符，未受管理檔案保留。相關 audit／manage 共 50 項 unittest，WSL 全通過，Windows 通過 42、平台略過 8；兩端 package audit 無錯誤及警告，review-sql 官方格式驗證通過。本輪沒有程式變更，未重跑完整 214 項。
+- **資料流試用：** 新代理從部署入口完成三個原始合成請求，沒有觀察條件。它指出 `int()` 是前導零第一次消失的位置，保存與回應轉型不會恢復原值；沒有自動修程式或冒稱寫 DB。測試者另行實跑同一段合成程式，重現 `00042` → 42 → `42`。代理未回報讀取新增的 trace-contract 表列，因此這只支持任務結果，不能歸因為該新增內容的效果。
+- **權限與交易試用：** 同一代理依分享規則拒絕 private_A、允許 shared_A，不將模型 allow=true 當作授權，也未執行模型 HTML。它依指定 PostgreSQL Read Committed 交錯指出兩邊都可能查無反向 like，提交後兩筆 like 仍可沒有 match，並區分方向性唯一鍵與業務條件。此為來源支持的靜態判讀，沒有真資料庫並行測試、真實 API 或安全成效驗收。
+- **未新增的檢查：** 本機兩個 Python 版本的空 unittest discovery 均回 exit 5，full profile 為 FAIL；曾懷疑的誤報成功未重現，因此沒有增加包裝器。這沒有驗證 CI Python 3.11 或其他 runner，原始紀錄在 `.agf/qa/appnotes-tools-20261110/`。
+
+一般案例增為 57、資料庫案例 7，ID、skill 參照及 JSON 靜態檢查通過；只有上述三項是本輪新代理試用。主驗證者已回讀答案，部署、測試、原始材料及程式重現在本機忽略目錄 `.agf/qa/appnotes-review-20261110/`。未比較無框架基準、所有案例、實際 token 或真人理解，不能宣稱品質或成本改善。
 
 ## Claude Code 參考附件的選擇性採納（2026-11-09）
 
