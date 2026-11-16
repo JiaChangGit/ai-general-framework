@@ -24,3 +24,5 @@
 先驗證主要使用的 host，再依實際需求重跑其他 host；某個模型通過不代表其他模型或版本通過。OpenCode 同 session 換模型可另外觀察上下文是否延續，但不強制產生交接檔。這份步驟是待執行方法，已跑過的環境與限制以驗證紀錄為準。
 
 靜態 `audit`、腳本測試與真人教學成果是不同證據。本輪的獨立 forward-test 見 [驗證紀錄](../docs/verification.md)；只有少量樣本，不能據此宣稱通用觸發率、token 節省或真人已學會。
+
+在 Claude Code 上量「該用卻沒用」與「不該用卻用了」，可用 [host/](host/README.md) 的工具：它開全新的 headless session，開跑前做隔離預檢，再從事件串流計數。
