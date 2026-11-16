@@ -2,8 +2,9 @@
 """Measure whether skills are used when they should be, and only then, in fresh Claude Code sessions.
 
     python evals/host/trigger.py run --framework DIR --base EMPTY_DIR --out DIR --ids ID[,ID...]
-        [--group framework] [--group control] [--skill NAME ...] [--model MODEL] [--budget USD]
-        [--pid-file FILE] [--cli PATH] [--env NAME=VALUE ...] [--forbid PATH ...]
+        --model MODEL [--group framework] [--group control] [--skill NAME ...] [--budget USD]
+        [--pid-file FILE] [--cli PATH] [--env NAME=VALUE ...] [--allow-env NAME ...] [--forbid PATH ...]
+        [--allow-readonly-bash]
     python evals/host/trigger.py stop --pid-file FILE
     python evals/host/trigger.py report OUT_DIR
 
@@ -15,6 +16,10 @@ before the session starts. Only the framework group gets
 event stream, not from the subject's account of itself: Skill tool calls,
 SKILL.md reads, expected hits and misfires (any skill used when none is
 expected). A failed session stops the whole run instead of spending more.
+
+Bash is removed with --disallowedTools Bash unless --allow-readonly-bash is
+given: with Claude Code 2.1.325, read-only commands such as find and head ran
+in the working directory even though Bash was not among the allowed tools.
 
 Stop a running measurement with `stop`: it checks that the PID in the PID file
 belongs to a trigger.py run before sending SIGTERM, and the run keeps the
@@ -55,6 +60,15 @@ def _install(framework: Path, work: Path, skills: list[str]) -> None:
     subprocess.run(argv, cwd=work.parent, check=True, stdout=subprocess.DEVNULL)
 
 
+def _release(pid_file: Path) -> None:
+    """Remove the PID file only if it is still this run's."""
+    try:
+        if json.loads(pid_file.read_text(encoding="utf-8")).get("pid") == os.getpid():
+            pid_file.unlink()
+    except (OSError, ValueError):
+        pass
+
+
 def measure(summary: dict, expected: str | None) -> dict:
     calls = [str(call).split(":")[-1] for call in summary["skill_calls"]]  # plugin:skill names count as the skill
     used = sorted(set(calls) | {read["skill"] for read in summary["skill_reads"]})
@@ -66,7 +80,10 @@ def measure(summary: dict, expected: str | None) -> dict:
 
 
 def _commit(framework: Path) -> str | None:
-    result = subprocess.run(["git", "-C", str(framework), "rev-parse", "HEAD"], capture_output=True, text=True, check=False)
+    try:
+        result = subprocess.run(["git", "-C", str(framework), "rev-parse", "HEAD"], capture_output=True, text=True, check=False)
+    except OSError:
+        return None
     return result.stdout.strip() or None
 
 
@@ -86,7 +103,7 @@ def run(args: argparse.Namespace) -> int:
     out.mkdir(parents=True, exist_ok=True)
     cli, env = run_claude.find_cli(args.cli), run_claude._pairs(args.env)
     results = {"framework": str(framework), "framework_commit": _commit(framework), "model": args.model, "tools": TOOLS,
-               "skills": skills, "budget_usd": args.budget, "runs": [], "stopped": False}
+               "skills": skills, "budget_usd": args.budget, "bash_removed": not args.allow_readonly_bash, "runs": [], "stopped": False}
     save = lambda: (out / "results.json").write_text(json.dumps(results, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     pid_file = args.pid_file.resolve() if args.pid_file else None
     if pid_file:
@@ -105,13 +122,14 @@ def run(args: argparse.Namespace) -> int:
                         (work / name).write_text(text, encoding="utf-8")
                     if group == "framework":
                         _install(framework, work, skills)
-                    checked = preflight.check(work, args.forbid, env)
+                    checked = preflight.check(work, args.forbid, env, set(args.allow_env))
                     if not checked["ok"]:
                         raise SystemExit(f"preflight failed before {sid}-{group}: {json.dumps(checked, ensure_ascii=False)}")
                     stream = out / "streams" / f"{sid}-{group}.jsonl"
                     print(f"run {sid} {group}", flush=True)
                     code = run_claude.run(cli, work, args.model, startup + "\n\n" + scenario["request"], stream,
-                                          allowed=TOOLS, env=env, budget=args.budget, timeout=args.timeout)
+                                          allowed=TOOLS, disallowed=() if args.allow_readonly_bash else ("Bash",),
+                                          env=env, budget=args.budget, timeout=args.timeout)
                     summary = run_claude.summarize(stream, work)
                     run_claude.stop_if_failed(f"{sid}-{group}", code, summary)
                     (out / "outputs").mkdir(exist_ok=True)
@@ -121,7 +139,8 @@ def run(args: argparse.Namespace) -> int:
                         "scenario": sid, "group": group, "expected_skill": scenario["expected_skill_if_available"], "exit": code,
                         "framework_skills_listed": [skill for skill in skills if skill in listed], "skills_listed_count": len(listed),
                         **measure(summary, scenario["expected_skill_if_available"]),
-                        "outside_paths": summary["outside_paths"], "denied": summary["denied"], "tool_uses": len(summary["tool_uses"]),
+                        "outside_paths": summary["outside_paths"], "bash_ran": summary["bash_ran"], "tool_errors": summary["tool_errors"],
+                        "tool_uses": len(summary["tool_uses"]),
                         "files_read": [path.replace(str(work), ".") for path in summary["files_read"]],
                         **{key: value for key, value in (summary["result"] or {}).items() if key != "text"}})
                     save()
@@ -134,7 +153,7 @@ def run(args: argparse.Namespace) -> int:
     finally:
         signal.signal(signal.SIGTERM, previous)
         if pid_file:
-            pid_file.unlink(missing_ok=True)
+            _release(pid_file)
     save()
     return 0
 
@@ -167,7 +186,7 @@ def report(args: argparse.Namespace) -> int:
     groups = {}
     for row in data["runs"]:
         group = groups.setdefault(row["group"], {"runs": 0, "should_use": 0, "hits": 0, "hits_via_skill_tool": 0,
-                                                 "should_not_use": 0, "misfires": 0, "outside_paths": 0, "cost_usd": 0.0, "tokens": 0})
+                                                 "should_not_use": 0, "misfires": 0, "outside_paths": 0, "bash_ran": 0, "cost_usd": 0.0, "tokens": 0})
         group["runs"] += 1
         if row["expected_skill"]:
             group["should_use"] += 1
@@ -177,6 +196,7 @@ def report(args: argparse.Namespace) -> int:
             group["should_not_use"] += 1
             group["misfires"] += bool(row["misfire"])
         group["outside_paths"] += len(row["outside_paths"])
+        group["bash_ran"] += len(row.get("bash_ran", []))
         group["cost_usd"] = round(group["cost_usd"] + (row.get("cost_usd") or 0), 6)
         group["tokens"] += sum(row.get(key) or 0 for key in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "output_tokens"))
     print(json.dumps({"model": data["model"], "framework_commit": data["framework_commit"], "stopped": data["stopped"], "groups": groups},
@@ -194,13 +214,15 @@ def main() -> int:
     one.add_argument("--ids", action="append", required=True, help="scenario ids, comma-separated or repeated")
     one.add_argument("--group", action="append", choices=("framework", "control"))
     one.add_argument("--skill", action="append", help="skills installed in the framework group (default: every skill in the checkout)")
-    one.add_argument("--model", default="claude-sonnet-5-5")
+    one.add_argument("--model", required=True, help="model ID for the subject sessions; there is no default")
     one.add_argument("--budget", type=float, default=2.0)
     one.add_argument("--timeout", type=int, default=900)
     one.add_argument("--pid-file", type=Path)
     one.add_argument("--cli")
     one.add_argument("--env", action="append", default=[], help="NAME=VALUE passed to every session (repeatable)")
+    one.add_argument("--allow-env", action="append", default=[], help="a host-like --env name the preflight may let through (repeatable)")
     one.add_argument("--forbid", action="append", default=[], help="a path no file in a run directory may name (repeatable)")
+    one.add_argument("--allow-readonly-bash", action="store_true", help="keep Bash available (reproduces runs made before Bash was removed)")
     one.set_defaults(func=run)
     two = sub.add_parser("stop")
     two.add_argument("--pid-file", type=Path, required=True)

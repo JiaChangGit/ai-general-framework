@@ -113,6 +113,8 @@ def _imports(file: Path) -> list[Path]:
         if fenced:
             continue
         for token in re.findall(r"(?:^|\s)@(\S+)", re.sub(r"`[^`]*`", " ", line)):
+            if "\x00" in token:
+                continue
             target = Path(token.rstrip(".,;:)")).expanduser()
             found.append(target if target.is_absolute() else file.parent / target)
     return found
@@ -125,7 +127,7 @@ def _rules_state(root: Path, entry: str, follow: bool) -> str:
         return "missing_file"
     if follow:
         rules, seen, frontier = (root / RULES).resolve(), set(), [start]
-        for _ in range(6):  # the entry itself plus Claude Code's documented five import hops
+        for _ in range(5):  # Claude Code follows imports up to five hops from the entry
             following = []
             for file in frontier:
                 key = file.resolve()
@@ -133,7 +135,11 @@ def _rules_state(root: Path, entry: str, follow: bool) -> str:
                     continue
                 seen.add(key)
                 for target in _imports(file):
-                    if target.resolve() == rules:
+                    try:
+                        reached = target.resolve() == rules
+                    except (OSError, ValueError):
+                        continue
+                    if reached:
                         return "imported"
                     following.append(target)
             frontier = following

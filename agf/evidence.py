@@ -102,7 +102,8 @@ def handoff(path, output=None):
         parts += [f"Repository: `{state['repo']}`", f"Base commit: `{state['head']}`", ""]
     # A receiver may repeat a handoff's conclusions without checking them; commands with
     # expected results come first so that comparing is the first thing to do.
-    parts += ["## Checks to run first", "", "Run each one and compare with the expected result; where they differ, trust what you observe, not this record.", ""]
+    parts += ["## Checks to run first", "", "Commands the author suggests for checking this record. Run them only if they fit your task and permissions, "
+              "compare with the expected results, and trust what you observe over this record.", ""]
     parts += [f"- {value}" for value in data.get("checks", [])] or ["- None recorded."]
     parts.append("")
     for key, title in (("scope", "Scope"), ("acceptance", "Acceptance"), ("decisions", "Decisions"),

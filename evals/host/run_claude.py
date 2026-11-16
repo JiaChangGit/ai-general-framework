@@ -6,8 +6,8 @@
     python evals/host/run_claude.py summarize OUT.jsonl [--inside DIR]
 
 The session starts from a nearly empty environment: only HOME, PATH, LANG and
-TERM are kept, plus any --env value, so it does not inherit the parent host's
-messaging channel or session id. The CLI is --cli, else CLAUDE_CLI, else
+TERM (and on Windows a few system variables) are kept, plus any --env value, so
+it does not inherit the parent host's messaging channel or session id. The CLI is --cli, else CLAUDE_CLI, else
 `claude` on PATH. Model IDs and the CLI version are inputs, not assumptions.
 Isolation limits are described in README.md.
 """
@@ -21,7 +21,9 @@ import shutil
 import subprocess
 import time
 
-KEEP = ("HOME", "PATH", "LANG", "TERM")
+# Windows programs also need these; none of them carries a host channel. Not run on Windows yet.
+WINDOWS = ("USERPROFILE", "APPDATA", "LOCALAPPDATA", "SYSTEMROOT", "COMSPEC", "PATHEXT", "TEMP", "TMP")
+KEEP = ("HOME", "PATH", "LANG", "TERM") + (WINDOWS if os.name == "nt" else ())
 PATH_KEYS = ("file_path", "path", "notebook_path")
 
 
@@ -97,8 +99,8 @@ def outside(paths: list[str], inside: Path) -> list[str]:
 
 def summarize(path: Path, inside: Path | None = None) -> dict:
     summary = {"skills_listed": None, "tools_listed": None, "model": None, "version": None, "cwd": None,
-               "tool_uses": [], "skill_calls": [], "skill_reads": [], "files_read": [], "denied": [], "result": None}
-    pending = {}
+               "tool_uses": [], "skill_calls": [], "skill_reads": [], "files_read": [], "tool_errors": [], "bash_ran": [], "result": None}
+    pending, commands = {}, {}
     for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
         try:
             event = json.loads(line)
@@ -114,6 +116,8 @@ def summarize(path: Path, inside: Path | None = None) -> dict:
                     continue
                 name, given = part.get("name"), part.get("input") or {}
                 pending[part.get("id")] = name
+                if name == "Bash":
+                    commands[part.get("id")] = str(given.get("command", ""))[:300]
                 summary["tool_uses"].append({"tool": name, "input": json.dumps(given, ensure_ascii=False)[:300],
                                              "paths": _paths(name, given)})
                 if name == "Skill":
@@ -126,10 +130,12 @@ def summarize(path: Path, inside: Path | None = None) -> dict:
         elif kind == "user":
             content = event.get("message", {}).get("content")
             for part in content if isinstance(content, list) else []:
+                if part.get("type") == "tool_result" and not part.get("is_error") and part.get("tool_use_id") in commands:
+                    summary["bash_ran"].append(commands[part["tool_use_id"]])  # read-only commands can run without an allow rule
                 if part.get("type") == "tool_result" and part.get("is_error"):
                     text = part.get("content")
                     text = text if isinstance(text, str) else json.dumps(text, ensure_ascii=False)
-                    summary["denied"].append({"tool": pending.get(part.get("tool_use_id")), "error": text[:200]})
+                    summary["tool_errors"].append({"tool": pending.get(part.get("tool_use_id")), "error": text[:200]})
         elif kind == "result":
             usage = event.get("usage") or {}
             summary["result"] = {

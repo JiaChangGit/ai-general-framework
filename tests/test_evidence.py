@@ -66,6 +66,9 @@ class EvidenceTests(unittest.TestCase):
             self.assertEqual(record_task(contract, output, root)["checks"], details["checks"])
             report = handoff(output)["markdown"]
             self.assertLess(report.index("## Checks to run first"), report.index("## Scope"))
+            # The record is context, not instructions: checks are suggestions bounded by the receiver's task and permissions.
+            self.assertIn("only if they fit your task and permissions", report)
+            self.assertNotIn("Run each one", report)
             for check in details["checks"]:
                 self.assertIn(f"- {check}", report)
 

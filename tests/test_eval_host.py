@@ -23,6 +23,8 @@ FAKE_CLI = '''#!{python}
 import json, os, sys, time
 from pathlib import Path
 mode = os.environ.get("FAKE_MODE", "read")
+if os.environ.get("FAKE_ARGV"):
+    Path(os.environ["FAKE_ARGV"]).write_text(json.dumps(sys.argv[1:]))
 if mode == "slow":
     time.sleep(60)
 skills = sorted(p.name for p in Path(".claude/skills").glob("*")) if Path(".claude/skills").is_dir() else []
@@ -60,14 +62,17 @@ class RunClaudeTests(unittest.TestCase):
                     {"type": "tool_use", "id": "b", "name": "Read", "input": {"file_path": str(work / ".agents/skills/debug-root-cause/SKILL.md")}},
                     {"type": "tool_use", "id": "c", "name": "Glob", "input": {"pattern": "../**/*.md"}},
                     {"type": "tool_use", "id": "d", "name": "Read", "input": {"file_path": str(work) + "2/notes.md"}}]}},
-                {"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": "d", "is_error": True, "content": "denied"}]}},
+                {"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "e", "name": "Bash", "input": {"command": "find . -type f"}}]}},
+                {"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": "d", "is_error": True, "content": "denied"},
+                                                       {"type": "tool_result", "tool_use_id": "e", "content": "./a"}]}},
                 {"type": "result", "is_error": False, "num_turns": 2, "total_cost_usd": 0.5, "result": "text", "usage": {"input_tokens": 3}}])
             summary = run_claude.summarize(stream, work)
             self.assertEqual(summary["skill_calls"], ["trace-code"])
             self.assertEqual(summary["skill_reads"], [{"skill": "debug-root-cause", "copy": ".agents/skills"}])
             # The relative glob and the prefix sibling ("work2") are both outside; S8's string prefix test missed the second.
             self.assertEqual(summary["outside_paths"], ["Glob ..", f"Read {work}2/notes.md"])
-            self.assertEqual(summary["denied"], [{"tool": "Read", "error": "denied"}])
+            self.assertEqual(summary["tool_errors"], [{"tool": "Read", "error": "denied"}])
+            self.assertEqual(summary["bash_ran"], ["find . -type f"])  # ran although Bash was never allowed
             self.assertEqual((summary["result"]["turns"], summary["result"]["cost_usd"]), (2, 0.5))
 
     def test_clean_environment_drops_host_channels(self):
@@ -76,9 +81,18 @@ class RunClaudeTests(unittest.TestCase):
             self.assertNotIn("CLAUDECODE", env)
             self.assertNotIn("CLAUDE_CODE_SSE_PORT", env)
             self.assertEqual((env["HOME"], env["ANTHROPIC_BASE_URL"]), ("/h", "https://api.anthropic.com"))
-            report = preflight.environment({"ANTHROPIC_BASE_URL": "https://api.anthropic.com"})
+            report = preflight.environment({"ANTHROPIC_BASE_URL": "https://api.anthropic.com"}, {"ANTHROPIC_BASE_URL"})
             self.assertIn("CLAUDE_CODE_SSE_PORT", report["host_like_present"])
             self.assertEqual(report["host_like_passed"], [])
+
+    def test_preflight_fails_when_a_host_channel_would_reach_the_subject(self):
+        with tempfile.TemporaryDirectory() as temp:
+            work = Path(temp) / "base" / "run-1" / "work"
+            work.mkdir(parents=True)
+            self.assertFalse(preflight.check(work, extra={"CLAUDE_CODE_SSE_PORT": "9"})["ok"])
+            self.assertTrue(preflight.check(work, extra={"CLAUDE_CODE_SSE_PORT": "9"}, allow_env={"CLAUDE_CODE_SSE_PORT"})["ok"])
+            with patch.dict(os.environ, {"CLAUDE_CODE_SSE_PORT": "9"}), patch.object(run_claude, "KEEP", (*run_claude.KEEP, "CLAUDE_CODE_SSE_PORT")):
+                self.assertFalse(preflight.check(work)["ok"])  # a variable kept by mistake is caught too
 
 
 class PreflightTests(unittest.TestCase):
@@ -87,6 +101,14 @@ class PreflightTests(unittest.TestCase):
         work = base / "run-1" / "work"
         work.mkdir(parents=True)
         return base, work
+
+    def test_report_says_what_was_not_checked(self):
+        with tempfile.TemporaryDirectory() as temp:
+            _, work = self.layout(temp)
+            (work / "blob.bin").write_bytes(b"\xff\xfe\x00")
+            report = preflight.check(work)
+            self.assertEqual(report["forbidden_paths_checked"], [])
+            self.assertEqual(report["unreadable_files"], ["blob.bin"])
 
     def test_clean_private_parent_passes(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -146,7 +168,8 @@ class TriggerTests(unittest.TestCase):
 
     def run_trigger(self, *extra, mode="read", wait=True):
         argv = [sys.executable, "-B", str(HOST / "trigger.py"), "run", "--framework", str(self.framework), "--base", str(self.temp / "base"),
-                "--out", str(self.temp / "out"), "--cli", str(self.cli), "--env", f"FAKE_MODE={mode}", *extra]
+                "--out", str(self.temp / "out"), "--cli", str(self.cli), "--model", "fake-model", "--env", f"FAKE_MODE={mode}",
+                "--env", f"FAKE_ARGV={self.temp / 'argv.json'}", "--allow-env", "FAKE_ARGV", *extra]
         if not wait:
             return subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return subprocess.run(argv, capture_output=True, text=True, timeout=120)
@@ -161,6 +184,26 @@ class TriggerTests(unittest.TestCase):
         self.assertEqual(runs["framework"]["framework_skills_listed"], ["trace-code"])
         self.assertEqual(runs["control"]["hit"], False)
         self.assertEqual(list((self.temp / "base").iterdir()), [])  # every private parent was removed
+        passed = json.loads((self.temp / "argv.json").read_text())
+        self.assertEqual(passed[passed.index("--disallowedTools") + 1:], ["Bash"])  # Bash is removed by default
+
+    def test_model_is_an_input_not_a_default(self):
+        argv = [sys.executable, "-B", str(HOST / "trigger.py"), "run", "--framework", str(self.framework), "--base", str(self.temp / "base"),
+                "--out", str(self.temp / "out"), "--ids", "trace-it"]
+        self.assertEqual(subprocess.run(argv, capture_output=True, text=True, timeout=60).returncode, 2)
+
+    def test_pid_file_of_another_run_is_left_alone(self):
+        pid_file = self.temp / "shared.pid"
+        pid_file.write_text(json.dumps({"pid": os.getpid() + 1}))
+        trigger._release(pid_file)
+        self.assertTrue(pid_file.exists())
+        pid_file.write_text(json.dumps({"pid": os.getpid()}))
+        trigger._release(pid_file)
+        self.assertFalse(pid_file.exists())
+
+    def test_commit_is_unknown_without_git(self):
+        with patch.object(trigger.subprocess, "run", side_effect=FileNotFoundError):
+            self.assertIsNone(trigger._commit(self.framework))
 
     @unittest.skipIf(sys.platform == "win32", "the fake CLI relies on a POSIX shebang")
     def test_a_skill_call_without_need_is_a_misfire(self):
@@ -201,21 +244,26 @@ class UsageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             project = Path(temp) / "-home-someone-secret-project"
             project.mkdir()
-            calls = [{"type": "tool_use", "name": "Skill", "input": {"skill": "trace-code"}},
-                     {"type": "tool_use", "name": "Skill", "input": {"skill": "private-lesson-writer"}},
-                     {"type": "tool_use", "name": "Read", "input": {"file_path": "/home/someone/secret-project/.claude/skills/trace-code/SKILL.md"}},
-                     {"type": "tool_use", "name": "Read", "input": {"file_path": "/home/someone/secret-project/skills/trace-code/SKILL.md"}},
-                     {"type": "tool_use", "name": "Bash", "input": {"command": "python3 -B ../agf/scripts/agf.py project status --target ."}}]
+            calls = [{"type": "tool_use", "id": "t1", "name": "Skill", "input": {"skill": "trace-code"}},
+                     {"type": "tool_use", "id": "t2", "name": "Skill", "input": {"skill": "private-lesson-writer"}},
+                     {"type": "tool_use", "id": "t3", "name": "Read", "input": {"file_path": "/home/someone/secret-project/.claude/skills/trace-code/SKILL.md"}},
+                     {"type": "tool_use", "id": "t4", "name": "Read", "input": {"file_path": "/home/someone/secret-project/skills/trace-code/SKILL.md"}},
+                     {"type": "tool_use", "id": "t5", "name": "Bash", "input": {"command": "python3 -B ../agf/scripts/agf.py project status --target ."}},
+                     {"type": "tool_use", "id": "t6", "name": "Bash", "input": {"command": "grep -n foo agf.py clientname-secret; python3 agf.py run --help"}},
+                     {"type": "tool_use", "id": "t7", "name": "Bash", "input": {"command": "cat > notes.md <<'EOF'\nUse `python scripts/agf.py run` to cap output.\nEOF\necho `agf.py audit` is static"}}]
             lines = [{"type": "assistant", "timestamp": "2026-11-15T10:00:00Z", "message": {"content": [call]}} for call in calls]
             lines.append({"type": "assistant", "timestamp": "2026-10-01T10:00:00Z", "message": {"content": [calls[0]]}})
             (project / "0f3c9e2a-private-session-id.jsonl").write_text("\n".join(json.dumps(line) for line in lines) + "\n", encoding="utf-8")
+            resumed = project / "resumed"
+            resumed.mkdir()
+            (resumed / "copy.jsonl").write_text(json.dumps(lines[0]) + "\n" + json.dumps({"type": "assistant", "message": {"content": [calls[0]]}}) + "\n", encoding="utf-8")
             result = usage.count(Path(temp), {"trace-code"}, usage.datetime.fromisoformat("2026-11-01T00:00:00+00:00"))
             self.assertEqual(result["skill_tool_calls"], {"other": 1, "trace-code": 1})
             self.assertEqual(result["skill_file_reads"], {"trace-code": 2})
             self.assertEqual(result["skill_file_copies"], {".claude/skills": 1, "other": 1})
             self.assertEqual(result["agf_commands"], {"project": 1})
             text = json.dumps(result)
-            for private in ("secret", "someone", "private-lesson-writer", "0f3c9e2a"):
+            for private in ("secret", "someone", "private-lesson-writer", "0f3c9e2a", "clientname", "notes"):
                 self.assertNotIn(private, text)
 
 

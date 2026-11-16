@@ -4,15 +4,29 @@
   "rules": "AGENTS.md, or CLAUDE.md imports",
   "existing_rules": "preserve; create CLAUDE.md imports only when absent; project status warns while neither CLAUDE.md nor .claude/CLAUDE.md imports .agf/managed/project-rules.md",
   "version_requirement": "Direct AGENTS.md support requires Claude Code v2.1.277+ and appropriate settings; CLAUDE.md import remains a compatibility option",
+  "rules_observed": "2026-11-16, Claude Code 2.1.325 with default settings: a fresh session did not load AGENTS.md by itself; it loaded .agf/managed/project-rules.md only after CLAUDE.md imported it",
   "managed_copy": "Generated skill copies originate from the same framework source; do not edit copies independently",
   "permissions": {
     "mechanism": ".claude/settings.json permissions.deny",
     "template": "templates/claude-permissions.example.json",
-    "installation": "not installed by project install; review the rules, replace the placeholder path and merge them into the project's settings",
+    "installation": "not installed by project install; replace the placeholder path, review the rules and merge them into the project's settings; with the placeholder left in place the Edit and Write rules protect nothing",
     "scope": "loaded only when Claude Code starts in that project directory; a session started in a parent directory does not use a subdirectory's .claude/settings.json",
-    "covers": "Read, Edit and Write by path pattern (a Read rule also limits Grep and Glob); Bash by command prefix, plus cp and shell redirection into a denied path",
-    "does_not_cover": "programs that write files themselves, such as python3 -c; an allow rule can stop matching while a hook rewrites the command",
-    "execution_status": "observed in headless Claude Code 2.1.325 sessions on 2026-11-16: Write, cp and redirection into a denied path were refused and a python3 -c write was not; a git push deny rule refused git push; a subdirectory's rules were unused when the session started in its parent; with a user-level command-rewriting hook loaded, a Bash(git push:*) allow rule did not apply while the deny rule still did; a Read rule limited Read and Glob; --restricted confined Read and Glob to the working directory"
+    "execution_status": "observed; see observed and not_observed",
+    "observed": [
+      "2026-11-16, Claude Code 2.1.325 on Linux, headless sessions in throwaway directories; each case ran once",
+      "a Read rule refused Read, Glob and Grep",
+      "Edit and Write rules refused Edit and Write; cp into the protected path was refused while cp into another directory ran",
+      "a python3 -c one-liner wrote into the protected path",
+      "Bash(git push:*), Bash(gh pr create:*) and Bash(glab mr create:*) refused those commands, --help included; git -C . push did not match and ran",
+      "a subdirectory's .claude/settings.json was unused when the session started in its parent",
+      "with user-level settings loaded (they included a command-rewriting hook) a Bash(git push:*) allow rule did not apply, and without them it did; the cause was not isolated",
+      "with Bash missing from the allowed tools, read-only find and head still ran in the working directory, cat ../outside.txt was refused, and --disallowedTools Bash removed the tool",
+      "--restricted confined Read and Glob to the working directory"
+    ],
+    "not_observed": [
+      "Windows paths in rules",
+      "shell redirection: under a Bash(echo:*) allow rule it was refused even into an unprotected directory, so whether the Write rule alone stops it is unknown"
+    ]
   },
   "hooks": {
     "mechanism": ".claude/settings.json hooks",

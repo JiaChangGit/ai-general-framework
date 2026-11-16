@@ -14,14 +14,16 @@
 
 ```console
 python evals/host/trigger.py run --framework . --base /tmp/agf-trigger-base --out /tmp/agf-trigger-out \
-  --ids trace-lossy-id-conversion,object-authorization-and-model-output --group framework --group control \
-  --skill trace-code --pid-file /tmp/agf-trigger.pid
+  --model claude-sonnet-5-5 --ids trace-lossy-id-conversion,object-authorization-and-model-output \
+  --group framework --group control --skill trace-code --pid-file /tmp/agf-trigger.pid
 python evals/host/trigger.py report /tmp/agf-trigger-out
 python evals/host/trigger.py stop --pid-file /tmp/agf-trigger.pid
 ```
 
 `--base` 必須是空目錄，而且不能在任何專案底下。每次執行都在裡面建一個私有的上層目錄，跑完就刪。
-CLI 依序取 `--cli`、`CLAUDE_CLI`、PATH 上的 `claude`；模型預設 `claude-sonnet-5-5`，每次預算上限 2 美元，受試者只能用 `Read Grep Glob Skill`。
+CLI 依序取 `--cli`、`CLAUDE_CLI`、PATH 上的 `claude`；`--model` 必填，沒有預設值。每次預算上限預設 2 美元，受試者只能用 `Read Grep Glob Skill`。
+Bash 預設用 `--disallowedTools Bash` 整個拿掉：Claude Code 2.1.325 實測，允許的工具裡沒有 Bash 時，`find`、`head` 這類唯讀命令仍會在工作目錄裡執行。要重現 2026-11-16 那兩輪的條件，加 `--allow-readonly-bash`；結果的 `bash_ran` 列出實際執行過的 Bash 命令。
+環境變數名稱像宿主通道或憑證的（含 CLAUDE、ANTHROPIC、SESSION、TOKEN 等），不論是保留下來的還是用 `--env` 設的，預檢都會擋下，除非用 `--allow-env 名稱` 明確放行。
 每次 session 都會真的花錢：2026-11-16 在這些情境裡，一次約 0.1 美元（CLI 的估算）。
 
 要停止進行中的量測，用 `stop`。它先確認 PID 屬於 `trigger.py run`，才送 SIGTERM；已完成的結果會保留。
@@ -33,7 +35,8 @@ CLI 依序取 `--cli`、`CLAUDE_CLI`、PATH 上的 `claude`；模型預設 `clau
 - **入口檔裡的絕對路徑。** 複製出來的專案，入口檔寫著原專案的絕對路徑，受試者照著去讀了原專案的交接文件。複製專案做實驗時，用 `--forbid <原專案路徑>` 讓預檢擋下。
 - **Read 不限於工作目錄。** 一般模式下，Read、Glob、Grep 都能讀工作目錄外的檔。Claude Code 2.1.325 的 `--restricted` 會把它們限制在工作目錄內（2026-11-16 實測），
   但它同時不載入使用者、專案與本機的設定檔；這會不會改變 skill 與 `CLAUDE.md` 的載入，還沒有驗證，所以 `trigger.py` 沒有用它。
-- **其他行程。** 允許 `ps` 之類的命令時，受試者看得到主持實驗的 session 與它的命令列。`trigger.py` 不給 Bash。
+- **其他行程。** 允許 `ps` 之類的命令時，受試者看得到主持實驗的 session 與它的命令列。`trigger.py` 預設拿掉 Bash。
+- **Windows。** `run_claude.py` 在 Windows 會多保留幾個系統變數（`SYSTEMROOT`、`USERPROFILE` 等）；這些工具還沒在 Windows 上跑過，`stop` 也只在 Linux 上核對行程。
 - **使用者層的設定照樣載入。** 受試 session 仍會載入使用者的全域設定（例如 hook、全域 `CLAUDE.md`、使用者層級的 skill），兩組相同；解讀結果時要記得它們存在。
 
 ## 結果怎麼讀

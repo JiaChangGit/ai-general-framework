@@ -120,6 +120,21 @@ class ProjectTests(unittest.TestCase):
         self.assertEqual(len(status["warnings"]), 1)
         self.assertEqual(status["_exit_code"], 0)
 
+    def test_import_depth_stops_at_five_hops_like_claude_code(self):
+        for hops, expected in ((5, "imported"), (6, "not_found")):
+            with self.subTest(hops=hops):
+                chain = self.root / f"chain{hops}"
+                chain.mkdir()
+                (self.root / "CLAUDE.md").write_text(f"@chain{hops}/1.md\n", encoding="utf-8")
+                for step in range(1, hops):
+                    target = f"{step + 1}.md" if step + 1 < hops else "../.agf/managed/project-rules.md"
+                    (chain / f"{step}.md").write_text(f"@{target}\n", encoding="utf-8")
+                self.assertEqual(manage._rules_state(self.root, "CLAUDE.md", follow=True), expected)
+
+    def test_unusable_import_tokens_are_skipped(self):
+        (self.root / "CLAUDE.md").write_text("@bad\x00name\n@also/../../../../../../../../nowhere\n", encoding="utf-8")
+        self.assertEqual(manage._rules_state(self.root, "CLAUDE.md", follow=True), "not_found")
+
     def test_status_without_installation_has_no_rule_entries(self):
         status = self.run_project("status")
         self.assertEqual((status["rule_entries"], status["warnings"]), ([], []))
