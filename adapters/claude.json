@@ -2,7 +2,7 @@
   "host": "claude",
   "skills": ".claude/skills/<name>/SKILL.md",
   "rules": "AGENTS.md, or CLAUDE.md imports",
-  "existing_rules": "preserve; create CLAUDE.md imports only when absent",
+  "existing_rules": "preserve; create CLAUDE.md imports only when absent; project status warns while neither CLAUDE.md nor .claude/CLAUDE.md imports .agf/managed/project-rules.md",
   "version_requirement": "Direct AGENTS.md support requires Claude Code v2.1.277+ and appropriate settings; CLAUDE.md import remains a compatibility option",
   "managed_copy": "Generated skill copies originate from the same framework source; do not edit copies independently",
   "hooks": {

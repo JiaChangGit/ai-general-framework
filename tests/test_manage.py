@@ -67,6 +67,63 @@ class ProjectTests(unittest.TestCase):
         self.run_project("rollback", True)
         self.assertEqual((self.root / "AGENTS.md").read_bytes(), original)
 
+    def test_status_warns_while_an_existing_claude_md_only_mentions_the_rules(self):
+        (self.root / "CLAUDE.md").write_text("Notes. Rules live in `.agf/managed/project-rules.md`.\n", encoding="utf-8")
+        result = self.run_project("install", True, ["claude"])
+        notice = next(item for item in result["notices"] if item.startswith("Preserved existing CLAUDE.md"))
+        self.assertIn("`@.agf/managed/project-rules.md`", notice)
+        status = self.run_project("status")
+        self.assertEqual(status["rule_entries"], [{"path": "CLAUDE.md", "hosts": ["claude"], "rules": "mentioned"}])
+        self.assertEqual(len(status["warnings"]), 1)
+        self.assertIn("`@.agf/managed/project-rules.md`", status["warnings"][0])
+        self.assertTrue(status["clean"])
+        self.assertEqual(status["_exit_code"], 0)
+
+    def test_status_follows_imports_relative_to_the_importing_file(self):
+        (self.root / "CLAUDE.md").write_text("@docs/rules.md\n", encoding="utf-8")
+        (self.root / "docs").mkdir()
+        (self.root / "docs/rules.md").write_text("Shared rules.\n", encoding="utf-8")
+        self.run_project("install", True, ["claude"])
+        self.assertEqual(self.run_project("status")["rule_entries"][0]["rules"], "not_found")
+        (self.root / "docs/rules.md").write_text("Shared rules.\n@../.agf/managed/project-rules.md\n", encoding="utf-8")
+        status = self.run_project("status")
+        self.assertEqual(status["rule_entries"][0]["rules"], "imported")
+        self.assertEqual(status["warnings"], [])
+
+    def test_imports_inside_code_are_not_imports(self):
+        (self.root / "CLAUDE.md").write_text("```\n@.agf/managed/project-rules.md\n```\nWrite `@.agf/managed/project-rules.md` to import.\nMail admin@example.com.\n", encoding="utf-8")
+        self.run_project("install", True, ["claude"])
+        self.assertEqual(self.run_project("status")["rule_entries"][0]["rules"], "mentioned")
+
+    def test_dot_claude_entry_counts_for_claude(self):
+        (self.root / "CLAUDE.md").write_text("Notes only.\n", encoding="utf-8")
+        (self.root / ".claude").mkdir()
+        (self.root / ".claude/CLAUDE.md").write_text("@../.agf/managed/project-rules.md\n", encoding="utf-8")
+        self.run_project("install", True, ["claude"])
+        status = self.run_project("status")
+        self.assertEqual(status["rule_entries"], [{"path": ".claude/CLAUDE.md", "hosts": ["claude"], "rules": "imported"}])
+        self.assertEqual(status["warnings"], [])
+
+    def test_generated_entries_load_the_rules_for_every_host(self):
+        self.run_project("install", True, list(manage.HOSTS))
+        status = self.run_project("status")
+        self.assertEqual(status["warnings"], [])
+        self.assertEqual([(entry["path"], entry["hosts"], entry["rules"]) for entry in status["rule_entries"]],
+                         [("AGENTS.md", ["codex", "opencode"], "mentioned"), ("CLAUDE.md", ["claude"], "imported"), ("GEMINI.md", ["gemini"], "imported")])
+
+    def test_status_warns_when_agents_md_does_not_point_to_the_rules(self):
+        (self.root / "AGENTS.md").write_text("Project rules only.\n", encoding="utf-8")
+        result = self.run_project("install", True, ["codex"])
+        self.assertIn("does not mention .agf/managed/project-rules.md", result["notices"][0])
+        status = self.run_project("status")
+        self.assertEqual(status["rule_entries"], [{"path": "AGENTS.md", "hosts": ["codex"], "rules": "not_found"}])
+        self.assertEqual(len(status["warnings"]), 1)
+        self.assertEqual(status["_exit_code"], 0)
+
+    def test_status_without_installation_has_no_rule_entries(self):
+        status = self.run_project("status")
+        self.assertEqual((status["rule_entries"], status["warnings"]), ([], []))
+
     def test_existing_unmanaged_skill_is_not_overwritten_even_if_identical(self):
         path = self.root / ".agents/skills/trace/SKILL.md"
         path.parent.mkdir(parents=True)

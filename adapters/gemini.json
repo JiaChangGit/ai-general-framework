@@ -2,7 +2,7 @@
   "host": "gemini",
   "skills": ".agents/skills/<name>/SKILL.md",
   "rules": "GEMINI.md with imports; context.fileName is another opt-in native option",
-  "existing_rules": "preserve; do not overwrite GEMINI.md or settings.json",
+  "existing_rules": "preserve; do not overwrite GEMINI.md or settings.json; project status warns while GEMINI.md does not import .agf/managed/project-rules.md",
   "version_requirement": "Version with Agent Skills and .agents/skills alias support; inspect installed version",
   "hooks": {
     "mechanism": ".gemini/settings.json hooks",

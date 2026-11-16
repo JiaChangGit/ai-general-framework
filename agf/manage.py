@@ -10,6 +10,7 @@ import base64
 import hashlib
 import os
 from pathlib import Path, PurePosixPath
+import re
 import shutil
 import stat
 import sys
@@ -23,6 +24,11 @@ SOURCE = Path(__file__).resolve().parent.parent
 MANIFEST = ".agf/manifest.json"
 SCHEMA = 1
 GUIDES = ("workflow.md", "writing.md", "tools.md", "delivery.md")
+RULES = ".agf/managed/project-rules.md"
+# Claude Code and Gemini CLI load these files and follow their @-imports.
+# Codex and OpenCode read AGENTS.md, which can only point to the rules.
+IMPORT_ENTRIES = {"claude": ("CLAUDE.md", ".claude/CLAUDE.md"), "gemini": ("GEMINI.md",)}
+HOST_NAMES = {"claude": "Claude Code", "gemini": "Gemini CLI", "codex": "Codex", "opencode": "OpenCode"}
 
 
 def _sha(data: bytes) -> str:
@@ -89,6 +95,89 @@ def _drift(root: Path, manifest: dict | None) -> list[dict]:
         if actual != entry["sha256"]:
             found.append({"path": name, "expected": entry["sha256"], "actual": actual})
     return found
+
+
+def _imports(file: Path) -> list[Path]:
+    """@-imports outside code spans and fences, resolved relative to the importing file."""
+    try:
+        if file.stat().st_size > 1_000_000:
+            return []
+        text = file.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return []
+    found, fenced = [], False
+    for line in text.splitlines():
+        if line.lstrip().startswith(("```", "~~~")):
+            fenced = not fenced
+            continue
+        if fenced:
+            continue
+        for token in re.findall(r"(?:^|\s)@(\S+)", re.sub(r"`[^`]*`", " ", line)):
+            target = Path(token.rstrip(".,;:)")).expanduser()
+            found.append(target if target.is_absolute() else file.parent / target)
+    return found
+
+
+def _rules_state(root: Path, entry: str, follow: bool) -> str:
+    """Whether one entry file imports the rules, only mentions them, or neither."""
+    start = root / entry
+    if not start.is_file():
+        return "missing_file"
+    if follow:
+        rules, seen, frontier = (root / RULES).resolve(), set(), [start]
+        for _ in range(6):  # the entry itself plus Claude Code's documented five import hops
+            following = []
+            for file in frontier:
+                key = file.resolve()
+                if key in seen or not file.is_file():
+                    continue
+                seen.add(key)
+                for target in _imports(file):
+                    if target.resolve() == rules:
+                        return "imported"
+                    following.append(target)
+            frontier = following
+    try:
+        mentioned = RULES in start.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        mentioned = False
+    return "mentioned" if mentioned else "not_found"
+
+
+def _import_state(root: Path, host: str) -> tuple[str, str]:
+    states = [(name, _rules_state(root, name, follow=True)) for name in IMPORT_ENTRIES[host]]
+    return next((item for item in states if item[1] == "imported"), states[0])
+
+
+def _rule_entries(root: Path, hosts: list[str]) -> tuple[list[dict], list[str]]:
+    """Report whether each host's own entry file reaches the rules; never changes the exit code."""
+    entries, warnings = [], []
+    readers = [host for host in hosts if host not in IMPORT_ENTRIES]
+    if readers:
+        state = _rules_state(root, "AGENTS.md", follow=False)
+        entries.append({"path": "AGENTS.md", "hosts": readers, "rules": state})
+        if state != "mentioned":
+            names = " and ".join(HOST_NAMES[host] for host in readers)
+            warnings.append(f"AGENTS.md does not mention {RULES}; {names} will not find the framework rules. Add a sentence that points to it, for example: Read `{RULES}` for this framework's working guidance.")
+    for host in hosts:
+        if host in IMPORT_ENTRIES:
+            path, state = _import_state(root, host)
+            entries.append({"path": path, "hosts": [host], "rules": state})
+            if state != "imported":
+                warnings.append(f"{path} does not import {RULES}; {HOST_NAMES[host]} will not load the framework rules on its own. Add the line `@{RULES}` to {path} if every session should load them.")
+    return sorted(entries, key=lambda entry: entry["path"]), warnings
+
+
+def _preserved_notice(root: Path, name: str) -> str:
+    kept = f"Preserved existing {name}; existing instructions are not rewritten."
+    if name == "AGENTS.md":
+        if _rules_state(root, name, follow=False) == "mentioned":
+            return f"{kept} It already mentions {RULES}."
+        return f"{kept} It does not mention {RULES}; Codex and OpenCode read AGENTS.md, so add a sentence that points to it if they should find the framework rules."
+    host = next(host for host, names in IMPORT_ENTRIES.items() if names[0] == name)
+    if _import_state(root, host)[1] == "imported":
+        return f"{kept} It already imports {RULES}."
+    return f"{kept} It does not import {RULES}, so {HOST_NAMES[host]} will not load the framework rules on its own. To load them in every session, add the line `@{RULES}`; project status warns until it is present."
 
 
 def doctor(args: argparse.Namespace) -> dict:
@@ -194,7 +283,7 @@ def _desired(source: Path, root: Path, hosts: list[str], old: dict | None, selec
         entries["GEMINI.md"] = "@AGENTS.md\n@.agf/managed/project-rules.md\n"
     for name, text in entries.items():
         if _path(root, name).exists() and name not in (old or {}).get("files", {}):
-            notices.append(f"Preserved existing {name}. Review .agf/managed/project-rules.md and add an appropriate reference manually if wanted; existing instructions are not rewritten.")
+            notices.append(_preserved_notice(root, name))
         else:
             add(name, text.encode("utf-8"), "generated:rule-entry")
     return files, notices
@@ -417,7 +506,9 @@ def project(args: argparse.Namespace) -> dict:
         tools_mode = old.get("tools_mode", "copy") if old else None
         entry = Path(old["source"]) / "scripts/agf.py" if tools_mode == "shared" else root / ".agf/managed/runtime/scripts/agf.py"
         tools_available = old is not None and entry.is_absolute() and entry.is_file()
+        rule_entries, warnings = _rule_entries(root, (old or {}).get("hosts", []))
         return {"command": "project status", "target": str(root), "installed": old is not None,
+                "rule_entries": rule_entries, "warnings": warnings,
                 "hosts": (old or {}).get("hosts", []), "managed_files": len((old or {}).get("files", {})),
                 "drift": drift, "clean": old is not None and not drift,
                 "tools_mode": tools_mode, "tools_available": tools_available,

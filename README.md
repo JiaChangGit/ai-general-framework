@@ -31,9 +31,9 @@ python scripts/agf.py project plan --target ../my-project --host opencode --skil
 python scripts/agf.py project install --target ../my-project --host opencode --skill trace-code --skill debug-root-cause --apply
 ```
 
-`--host`、`--skill` 可重複指定。目標目錄須已存在；工具保留既有規則、未受管理檔案及本地修改。專案的 `.agf/managed/project-rules.md` 會列出目前環境可用的工具入口；不必複製或手改整套程式。
+`--host`、`--skill` 可重複指定。目標目錄須已存在；工具保留既有規則、未受管理檔案及本地修改。既有的 `CLAUDE.md`、`GEMINI.md` 不會被改寫，所以也不會自動接上規則；要每個 session 都載入，自己加一行 `@.agf/managed/project-rules.md`。專案的 `.agf/managed/project-rules.md` 會列出目前環境可用的工具入口；不必複製或手改整套程式。
 
-配置後執行 `python scripts/agf.py project status --target ../my-project`，再從目標專案開啟宿主的新對話，確認它的技能清單或探索工具看得到所選 skill。`status` 只驗證受管理檔案與工具入口，不代表宿主真的載入了技能。接著交付一個有原始材料的小任務，例如「請追這筆輸入到回傳結果，指出中途狀態怎麼變」；從宿主提供的載入紀錄與實際成果確認行為，不只採信 AI 自稱已啟用。詳細對照方式見[行為驗收](evals/README.md)。
+配置後執行 `python scripts/agf.py project status --target ../my-project`，再從目標專案開啟宿主的新對話，確認它的技能清單或探索工具看得到所選 skill。`status` 驗證受管理檔案、工具入口，以及各宿主的入口有沒有接上規則（沒接上時列在 `warnings`）；這些都不代表宿主真的載入了技能。接著交付一個有原始材料的小任務，例如「請追這筆輸入到回傳結果，指出中途狀態怎麼變」；從宿主提供的載入紀錄與實際成果確認行為，不只採信 AI 自稱已啟用。詳細對照方式見[行為驗收](evals/README.md)。
 
 OpenCode 可在同一個 session 手動切換模型；一般切換不用額外建立交接檔。只有換對話、換工具或需要留存決策時，再使用交接紀錄。
 
