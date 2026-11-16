@@ -22,6 +22,7 @@ TEMPLATES = {
     "quality": "quality.example.json",
     "quality-framework": "quality.framework.json",
     "permissions": "permissions.example.json",
+    "claude-permissions": "claude-permissions.example.json",
     "dockerfile": "Dockerfile",
     "dockerfile-ignore": "Dockerfile.dockerignore",
     "docker-compose": "docker-compose.yml",

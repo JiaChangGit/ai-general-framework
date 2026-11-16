@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(//ABSOLUTE/PATH/TO/PROTECTED/**)",
+      "Write(//ABSOLUTE/PATH/TO/PROTECTED/**)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(glab mr create:*)"
+    ]
+  }
+}

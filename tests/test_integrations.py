@@ -93,6 +93,16 @@ class IntegrationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(json.loads(result.stdout)["command"], "doctor")
 
+    def test_claude_permissions_template_holds_only_native_deny_rules(self):
+        value = json.loads(integrations.template(argparse.Namespace(name="claude-permissions", output=None, apply=False))["content"])
+        self.assertEqual(set(value), {"permissions"})
+        deny = value["permissions"]["deny"]
+        self.assertTrue(any(rule.startswith("Edit(//") for rule in deny))
+        self.assertTrue(any(rule.startswith("Write(//") for rule in deny))
+        self.assertIn("Bash(git push:*)", deny)
+        adapter = json.loads((integrations.SOURCE / "adapters/claude.json").read_text(encoding="utf-8"))
+        self.assertEqual(adapter["permissions"]["template"], "templates/claude-permissions.example.json")
+
     def test_framework_quality_uses_real_cli_contract(self):
         value = json.loads(integrations.template(argparse.Namespace(name="quality-framework", output=None, apply=False))["content"])
         self.assertEqual(value["version"], 1)

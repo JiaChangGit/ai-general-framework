@@ -2,6 +2,7 @@
   "goal": "解釋一批工作加入失敗時，佇列狀態為何仍改變",
   "scope": ["examples/learning/queue_walkthrough.py"],
   "acceptance": ["區分錯誤回傳與狀態副作用", "以可重現輸入驗證最小修法"],
+  "checks": ["執行 `python examples/learning/queue_walkthrough.py`：BuggyQueue 那一行應是 `result` 為 `capacity`、`after` 為 A 與 B（回報失敗，佇列卻多了一筆）；輸出不同時以實際輸出為準"],
   "decisions": ["先比較狀態變化，再判斷需要修改哪個步驟"],
   "verification": ["尚未執行；來源檔案不是測試結果"],
   "next_steps": ["以容量不足的輸入重現，記錄回傳值與佇列狀態"],

@@ -8,7 +8,7 @@ from pathlib import Path
 from .common import AgfError, digest, json_text, read_json, write_text
 
 
-_OPTIONAL_LISTS = ("decisions", "unknowns", "verification", "next_steps", "boundaries")
+_OPTIONAL_LISTS = ("checks", "decisions", "unknowns", "verification", "next_steps", "boundaries")
 
 
 def _validate_contract(data):
@@ -100,6 +100,11 @@ def handoff(path, output=None):
     if data.get("repository"):
         state = data["repository"]
         parts += [f"Repository: `{state['repo']}`", f"Base commit: `{state['head']}`", ""]
+    # A receiver may repeat a handoff's conclusions without checking them; commands with
+    # expected results come first so that comparing is the first thing to do.
+    parts += ["## Checks to run first", "", "Run each one and compare with the expected result; where they differ, trust what you observe, not this record.", ""]
+    parts += [f"- {value}" for value in data.get("checks", [])] or ["- None recorded."]
+    parts.append("")
     for key, title in (("scope", "Scope"), ("acceptance", "Acceptance"), ("decisions", "Decisions"),
                        ("verification", "Verification"), ("unknowns", "Unknowns"),
                        ("next_steps", "Next steps"), ("boundaries", "Boundaries")):

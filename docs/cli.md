@@ -114,7 +114,7 @@ python scripts/agf.py git scope --repo . --allow agf --allow tests
 
 POSIX 環境以 `0700` 建立最終保存目錄，不調整既有父目錄；其他平台依本機存取控制處理，這不是隔離或自動隱私保證。若命令完成後 metadata 保存失敗，回傳的 `evidence.metadata_saved` 為 false，並保留實際執行結果；命令的 PASS／FAIL 與紀錄是否存妥須分開看。先查原始輸出及當前狀態，不為補紀錄重跑已完成的寫入。啟動前的準備失敗可能留下新建目錄與空檔，錯誤會明示命令未啟動。
 
-Task 記錄可明列任何本地檔案，不依賴 Git。`verification`、`next_steps`、`boundaries` 是可選的字串陣列，分別保留已做／未做的驗證、下一步及操作範圍；驗證項目應寫實際時間與結果位置。工具自動加入的 UTC `recorded_at` 只代表建立紀錄的時間，不代表剛重跑過測試。`task handoff .agf/task.json --output .agf/handoff.md` 會核對證據並產生交接；舊版 v1 紀錄仍可讀取，未記載的續接資訊不會自行補造。
+Task 記錄可明列任何本地檔案，不依賴 Git。`verification`、`next_steps`、`boundaries` 是可選的字串陣列，分別保留已做／未做的驗證、下一步及操作範圍；驗證項目應寫實際時間與結果位置。`checks` 也是可選的字串陣列，寫接手者要自己執行的核對命令和預期結果；`task handoff` 把它放在最前面一節。工具自動加入的 UTC `recorded_at` 只代表建立紀錄的時間，不代表剛重跑過測試。`task handoff .agf/task.json --output .agf/handoff.md` 會核對證據並產生交接；舊版 v1 紀錄仍可讀取，未記載的續接資訊不會自行補造。
 
 只有選用 `--repo` 才保存 Git 身分；SVN revision 或其他版本條件可用原生命令取得並列為證據。hash 相同只是檔案身分檢查，接手仍需讀來源及目前變更。`git summary/scope` 維持 Git 專用，不包裝成通用版本控制 API。
 
@@ -138,5 +138,7 @@ python scripts/agf.py integration hook --target ../my-project --kind git
 Git hook 與 OpenCode plugin 依同一 manifest 選共享來源或工具副本。先確認目標的 `.agf/quality.json` 是真正需要的檢查；Git hook 保留既有檔案，AI hook 先看版本相關接線計畫。OpenCode 範本只對成功的 edit/write 執行 quick checks，沒有涵蓋所有 shell、patch 或外部修改。
 
 Git hook 的 `--apply` 與 `check --profile quick` 共用設定驗證：檢查名稱、參數陣列、profiles、工作目錄、timeout 及 encoding，並要求至少一項 quick 檢查。無效設定會在寫入 hook／安裝紀錄前拒絕；安裝時不執行設定中的命令。實際執行檔是否可用、命令是否成功，仍要在授權範圍內執行檢查確認；安裝成功不代表檢查已通過。
+
+Claude Code 的原生權限可從 `integration template claude-permissions` 取得範本：擋受保護目錄的 Edit 與 Write，也擋 `git push` 與建立 PR／MR。把 `//ABSOLUTE/PATH/TO/PROTECTED/**` 換成實際的絕對路徑（`//` 開頭表示從根目錄算起），審閱後再合併進專案的 `.claude/settings.json`；`project install` 不會替你寫入。這份設定只在 Claude Code 從該專案目錄啟動時載入；從上層目錄啟動的 session 用不到它。規則依路徑擋 Read、Edit、Write（Read 的規則也會限制 Grep 與 Glob），依命令開頭擋 Bash。2026-11-16 用 Claude Code 2.1.325 實測：`cp` 與重導向寫進被保護的路徑也被擋下，`python3 -c` 這類由程式自己寫檔的命令沒有被擋；使用者層有改寫命令的 hook 時，`Bash(git push:*)` 這類允許規則沒有生效，禁止規則仍然有效。觀察紀錄見 `adapters/claude.json` 的 `permissions`。
 
 MCP 選用改查[工具指引](tools.md)，不維護另一套 Python 名單與未實測的跨 host 設定產生器。Commit 理由直接依[寫作指引](writing.md)和目標專案慣例撰寫，純文字拼接不再需要 `git intent`。v0.2 因此移除 `integration mcp` 與 `git intent`；其他 helper 依實際增益選用。

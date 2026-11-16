@@ -36,7 +36,7 @@ class EvidenceTests(unittest.TestCase):
             root = Path(temp)
             contract = root / "input.json"
             output = root / "record.json"
-            for field in ("verification", "next_steps", "boundaries"):
+            for field in ("checks", "verification", "next_steps", "boundaries"):
                 for value in ("looks valid", [42], [" "]):
                     with self.subTest(field=field, value=value):
                         contract.write_text(json.dumps({"goal": "test", "scope": ["x"], "acceptance": ["done"], field: value}))
@@ -49,7 +49,25 @@ class EvidenceTests(unittest.TestCase):
             path = Path(temp) / "record.json"
             path.write_text(json.dumps({"version": 1, "goal": "test", "scope": ["x"], "acceptance": ["done"], "evidence": []}))
             self.assertEqual(check_task(path)["status"], "UNCHANGED")
-            self.assertIn("## Next steps\n\n- None recorded.", handoff(path)["markdown"])
+            report = handoff(path)["markdown"]
+            self.assertIn("## Next steps\n\n- None recorded.", report)
+            self.assertIn("## Checks to run first", report)
+            self.assertIn("- None recorded.", report.split("## Checks to run first", 1)[1].split("## Scope", 1)[0])
+
+    def test_checks_for_the_receiver_come_first_in_the_handoff(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            contract = root / "input.json"
+            details = {"goal": "Resume the retry fix", "scope": ["queue.py"], "acceptance": ["Failed batches leave state unchanged"],
+                       "checks": ["`git status --short` prints nothing", "`python -m unittest tests.test_queue` reports OK"],
+                       "verification": ["2026-11-09: queue regression passes"]}
+            contract.write_text(json.dumps(details))
+            output = root / "record.json"
+            self.assertEqual(record_task(contract, output, root)["checks"], details["checks"])
+            report = handoff(output)["markdown"]
+            self.assertLess(report.index("## Checks to run first"), report.index("## Scope"))
+            for check in details["checks"]:
+                self.assertIn(f"- {check}", report)
 
     def test_handoff_rejects_malformed_contract_instead_of_splitting_characters(self):
         with tempfile.TemporaryDirectory() as temp:
