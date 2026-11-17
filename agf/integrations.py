@@ -33,6 +33,8 @@ TEMPLATES = {
     "project-rules": "project-rules.md",
     "opencode-plugin": "opencode-plugin.js",
     "git-hook-runner": "git-hook.py",
+    "claude-guard-hook": "claude-guard-hook.py",
+    "claude-guard-settings": "claude-guard-settings.example.json",
 }
 
 def _adapters() -> list[dict]:

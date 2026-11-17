@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /ABSOLUTE/PATH/TO/claude-guard-hook.py /ABSOLUTE/PATH/TO/guard.json",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

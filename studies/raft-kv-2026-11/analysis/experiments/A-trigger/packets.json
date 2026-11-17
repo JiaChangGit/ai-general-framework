@@ -1,0 +1,29 @@
+{
+ "seed": 20261116,
+ "packets": {
+  "trace-without-lesson": {
+   "X": "control",
+   "Y": "framework"
+  },
+  "learning-with-trace": {
+   "X": "control",
+   "Y": "framework"
+  },
+  "flaky-repeat-evidence": {
+   "X": "framework",
+   "Y": "control"
+  },
+  "cleaned-copy-is-not-original": {
+   "X": "framework",
+   "Y": "control"
+  },
+  "object-authorization-and-model-output": {
+   "X": "framework",
+   "Y": "control"
+  },
+  "presentation-priority-and-decision": {
+   "X": "control",
+   "Y": "framework"
+  }
+ }
+}

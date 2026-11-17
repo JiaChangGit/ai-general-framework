@@ -1,0 +1,29 @@
+{
+ "seed": 20261117,
+ "packets": {
+  "trace-without-lesson": {
+   "X": "s8",
+   "Y": "rerun"
+  },
+  "learning-with-trace": {
+   "X": "s8",
+   "Y": "rerun"
+  },
+  "flaky-repeat-evidence": {
+   "X": "s8",
+   "Y": "rerun"
+  },
+  "cleaned-copy-is-not-original": {
+   "X": "s8",
+   "Y": "rerun"
+  },
+  "object-authorization-and-model-output": {
+   "X": "s8",
+   "Y": "rerun"
+  },
+  "presentation-priority-and-decision": {
+   "X": "rerun",
+   "Y": "s8"
+  }
+ }
+}

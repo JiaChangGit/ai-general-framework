@@ -1,0 +1,109 @@
+{
+ "framework_commit": "2569a91156451b9138b3375bacd87672c64040ad",
+ "model": "claude-sonnet-5-5",
+ "tools": "Read Grep Glob Skill",
+ "runs": [
+  {
+   "scenario": "trace-without-lesson",
+   "group": "control",
+   "expected_skill": "trace-code",
+   "exit": 0,
+   "framework_skills_listed": [],
+   "skills_listed_count": 30,
+   "skill_calls": [],
+   "files_read": [
+    "./AGENTS.md",
+    "./queue.py",
+    "./input.md"
+   ],
+   "denied": [
+    {
+     "tool": "Bash",
+     "error": "Permission to use Bash has been denied because Claude Code is running in don't ask mode. IMPORTANT: You *may* attempt to accomplish this action using other tools that might naturally be used to accomp"
+    },
+    {
+     "tool": "Read",
+     "error": "File does not exist. Note: your current working directory is /tmp/claude-1000/-home-user-src/bba72f3a-afa3-4057-bc56-1e6fe9cc0325/scratchpad/s8/A/trace-without-lesson/control."
+    }
+   ],
+   "tool_uses": 5,
+   "is_error": false,
+   "subtype": "success",
+   "turns": 6,
+   "duration_ms": 13701,
+   "cost_usd": 0.0701965,
+   "input_tokens": 8,
+   "cache_creation_input_tokens": 13315,
+   "cache_read_input_tokens": 78105,
+   "output_tokens": 911
+  },
+  {
+   "scenario": "trace-without-lesson",
+   "group": "framework",
+   "expected_skill": "trace-code",
+   "exit": 0,
+   "framework_skills_listed": [
+    "trace-code",
+    "debug-root-cause",
+    "guide-learning",
+    "read-research",
+    "review-change"
+   ],
+   "skills_listed_count": 35,
+   "skill_calls": [],
+   "files_read": [
+    "/tmp/claude-1000/-home-user-src/bba72f3a-afa3-4057-bc56-1e6fe9cc0325/scratchpad/s8/A/trace-without-lesson/control/queue.py",
+    "/tmp/claude-1000/-home-user-src/bba72f3a-afa3-4057-bc56-1e6fe9cc0325/scratchpad/s8/A/trace-without-lesson/control/input.md",
+    "./.agents/skills/trace-code/SKILL.md"
+   ],
+   "denied": [
+    {
+     "tool": "Bash",
+     "error": "Permission to use Bash has been denied because Claude Code is running in don't ask mode. IMPORTANT: You *may* attempt to accomplish this action using other tools that might naturally be used to accomp"
+    }
+   ],
+   "tool_uses": 5,
+   "is_error": false,
+   "subtype": "success",
+   "turns": 6,
+   "duration_ms": 33626,
+   "cost_usd": 0.0888238,
+   "input_tokens": 8,
+   "cache_creation_input_tokens": 17109,
+   "cache_read_input_tokens": 85618,
+   "output_tokens": 1181
+  },
+  {
+   "scenario": "learning-with-trace",
+   "group": "framework",
+   "expected_skill": "guide-learning",
+   "exit": 0,
+   "framework_skills_listed": [
+    "trace-code",
+    "debug-root-cause",
+    "guide-learning",
+    "read-research",
+    "review-change"
+   ],
+   "skills_listed_count": 35,
+   "skill_calls": [],
+   "files_read": [
+    "./queue.py",
+    "./input.md",
+    "./.claude/skills/trace-code/SKILL.md",
+    "./.claude/skills/guide-learning/SKILL.md"
+   ],
+   "denied": [],
+   "tool_uses": 6,
+   "is_error": false,
+   "subtype": "success",
+   "turns": 7,
+   "duration_ms": 23636,
+   "cost_usd": 0.1024314,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 17623,
+   "cache_read_input_tokens": 59774,
+   "output_tokens": 2595
+  }
+ ]
+}

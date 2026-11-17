@@ -1,0 +1,106 @@
+{
+ "graded_by": "另開的 Opus 5.5 子代理，看不到組別（grader_prompt.md）",
+ "record": "評分者回傳的 JSON 只留在主持 session 的對話裡；WSL 重啟清掉了子代理的紀錄檔。分數與逐條判定照抄，note 為節錄，略去評分者自己寫的「正確答案要點」",
+ "tasks": {
+  "dense-explanation-for-newcomer": {
+   "X": {
+    "group": "as-is",
+    "correctness": 4,
+    "evidence": 1,
+    "scope": 2,
+    "total": 7,
+    "preserve": [
+     "保留",
+     "保留",
+     "保留",
+     "保留"
+    ],
+    "observe": [
+     "做到",
+     "做到",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "三項行為先用具體情境講清楚再接回術語；末句把「未說明補送方式」寫成確定的設計結論，證據扣一分"
+   },
+   "Y": {
+    "group": "entry-link",
+    "correctness": 4,
+    "evidence": 2,
+    "scope": 2,
+    "total": 8,
+    "preserve": [
+     "保留",
+     "保留",
+     "保留",
+     "保留"
+    ],
+    "observe": [
+     "做到",
+     "做到",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "分段說明，兩項未知明說需要另外查證、不推測"
+   }
+  },
+  "animacy-and-collocation": {
+   "X": {
+    "group": "as-is",
+    "correctness": 4,
+    "evidence": 2,
+    "scope": 2,
+    "total": 8,
+    "preserve": [
+     "保留",
+     "保留",
+     "保留"
+    ],
+    "observe": [
+     "做到",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "已確認與未確認分開，三個比喻都換成實際狀態；小瑕疵不影響判定"
+   },
+   "Y": {
+    "group": "entry-link",
+    "correctness": 4,
+    "evidence": 1,
+    "scope": 1,
+    "total": 6,
+    "preserve": [
+     "保留",
+     "保留",
+     "保留"
+    ],
+    "observe": [
+     "做到",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "有（部分）",
+     "沒有"
+    ],
+    "note": "寫成「等於這筆工作遺失了」，部分觸犯「聲稱工作已永久遺失」，證據與範圍各扣一分"
+   }
+  }
+ }
+}

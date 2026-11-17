@@ -1,0 +1,29 @@
+{
+ "seed": 20261118,
+ "packets": {
+  "trace-without-lesson": {
+   "X": "s8",
+   "Y": "wording1"
+  },
+  "learning-with-trace": {
+   "X": "wording1",
+   "Y": "s8"
+  },
+  "flaky-repeat-evidence": {
+   "X": "s8",
+   "Y": "wording1"
+  },
+  "cleaned-copy-is-not-original": {
+   "X": "s8",
+   "Y": "wording1"
+  },
+  "object-authorization-and-model-output": {
+   "X": "s8",
+   "Y": "wording1"
+  },
+  "presentation-priority-and-decision": {
+   "X": "s8",
+   "Y": "wording1"
+  }
+ }
+}

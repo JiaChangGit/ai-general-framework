@@ -1,0 +1,254 @@
+{
+ "graded_by": "另開的 Opus 5.5 子代理，看不到組別（grader_prompt.md）",
+ "record": "評分者回傳的 JSON 只留在主持 session 的對話裡；WSL 重啟清掉了子代理的紀錄檔。分數與逐條判定照抄，note 為節錄，略去評分者自己寫的「正確答案要點」",
+ "tasks": {
+  "trace-without-lesson": {
+   "X": {
+    "group": "control",
+    "correctness": 4,
+    "evidence": 2,
+    "scope": 2,
+    "total": 8,
+    "observe": [
+     "做到",
+     "做到",
+     "做到",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "條件、回傳值、前後狀態正確，有行號，明說沒有執行；開頭的流程交代多餘"
+   },
+   "Y": {
+    "group": "framework",
+    "correctness": 4,
+    "evidence": 2,
+    "scope": 2,
+    "total": 8,
+    "observe": [
+     "做到",
+     "做到",
+     "做到",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "內容正確並標明靜態追蹤；沒有行號，若定位要求行號第 3 條只能算部分"
+   }
+  },
+  "learning-with-trace": {
+   "X": {
+    "group": "control",
+    "correctness": 3,
+    "evidence": 1,
+    "scope": 2,
+    "total": 6,
+    "observe": [
+     "做到",
+     "做到",
+     "做到",
+     "部分"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "方法、示範、練習與答案正確，先示範再練習；沒說明結果是推論不是實測，措辭有一處含糊"
+   },
+   "Y": {
+    "group": "framework",
+    "correctness": 4,
+    "evidence": 2,
+    "scope": 2,
+    "total": 8,
+    "observe": [
+     "做到",
+     "做到",
+     "做到",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "教學、示範、含邊界的練習都正確，明說答案是推論；依 project-rules.md 試跑 profile show 被拒，不算觸犯"
+   }
+  },
+  "flaky-repeat-evidence": {
+   "X": {
+    "group": "framework",
+    "correctness": 3,
+    "evidence": 2,
+    "scope": 2,
+    "total": 7,
+    "observe": [
+     "做到",
+     "做到",
+     "做到",
+     "部分",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "結論正確，分清觀察與推測，重跑前要確認冪等與授權；沒提時間與輸出上限；引用了材料裡沒有的「專案規則」"
+   },
+   "Y": {
+    "group": "control",
+    "correctness": 3,
+    "evidence": 2,
+    "scope": 2,
+    "total": 7,
+    "observe": [
+     "做到",
+     "做到",
+     "做到",
+     "部分",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "結論正確，要求對照第一次失敗與後九次；重跑沒有限定次數、時間或輸出"
+   }
+  },
+  "cleaned-copy-is-not-original": {
+   "X": {
+    "group": "framework",
+    "correctness": 4,
+    "evidence": 2,
+    "scope": 2,
+    "total": 8,
+    "observe": [
+     "做到",
+     "做到",
+     "做到",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "用原稿行號證明 B 類被去重刪掉，說明無法驗證來源版本；多列了一些缺項但不違規"
+   },
+   "Y": {
+    "group": "control",
+    "correctness": 4,
+    "evidence": 2,
+    "scope": 2,
+    "total": 8,
+    "observe": [
+     "做到",
+     "做到",
+     "做到",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "行號比對正確，指出沒有 hash 無法驗證；把「沒有 AGENTS.md」列成缺項和規格無關"
+   }
+  },
+  "object-authorization-and-model-output": {
+   "X": {
+    "group": "framework",
+    "correctness": 4,
+    "evidence": 2,
+    "scope": 2,
+    "total": 8,
+    "observe": [
+     "做到",
+     "做到",
+     "做到",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "判定正確，有模型 allow 的反例與正向分享測試，明說測試還沒跑；驗收比最小範圍多一點"
+   },
+   "Y": {
+    "group": "control",
+    "correctness": 4,
+    "evidence": 2,
+    "scope": 2,
+    "total": 8,
+    "observe": [
+     "做到",
+     "做到",
+     "做到",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "判定與驗收有正反例；加了材料沒提到的路徑穿越與日誌測試，最小驗收偏多"
+   }
+  },
+  "presentation-priority-and-decision": {
+   "X": {
+    "group": "control",
+    "correctness": 3,
+    "evidence": 2,
+    "scope": 2,
+    "total": 7,
+    "observe": [
+     "做到",
+     "做到",
+     "做到",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "四頁與講稿齊全、數字與限制保留；建議頁拿材料沒有的「導入費不可退」當理由，「今天」與材料的「本週」不一致"
+   },
+   "Y": {
+    "group": "framework",
+    "correctness": 4,
+    "evidence": 2,
+    "scope": 2,
+    "total": 8,
+    "observe": [
+     "做到",
+     "做到",
+     "做到",
+     "做到"
+    ],
+    "avoid": [
+     "沒有",
+     "沒有",
+     "沒有"
+    ],
+    "note": "以決策與證據排序，推算值與 AI 提議都有標示，最後以本週核准問題收尾"
+   }
+  }
+ }
+}

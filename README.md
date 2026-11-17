@@ -35,7 +35,7 @@ python scripts/agf.py project install --target ../my-project --host opencode --s
 
 配置後執行 `python scripts/agf.py project status --target ../my-project`，再從目標專案開啟宿主的新對話，確認它的技能清單或探索工具看得到所選 skill。`status` 驗證受管理檔案、工具入口，以及各宿主的入口有沒有接上規則（沒接上時列在 `warnings`）；這些都不代表宿主真的載入了技能。接著交付一個有原始材料的小任務，例如「請追這筆輸入到回傳結果，指出中途狀態怎麼變」；從宿主提供的載入紀錄與實際成果確認行為，不只採信 AI 自稱已啟用。詳細對照方式見[行為驗收](evals/README.md)。
 
-OpenCode 可在同一個 session 手動切換模型；一般切換不用額外建立交接檔。只有換對話、換工具或需要留存決策時，再使用交接紀錄。
+換主模型會讓之前的內容重新讀一次、重新計費：在里程碑寫好交接檔之後再換；只有某一步需要別的模型（例如審查）時，改用指定模型的子代理。同時開多個子代理、跑長時間的命令，或用量可能不夠之前，也先寫交接檔，額度用完時才救得回來。做法見[工作指引](docs/workflow.md)的「續接、換模型與用量」。
 
 需要離線或獨立交付時，加 `--tools copy`，把當時工具複製成專案內的快照。日常預設是 `--tools shared`；共享來源移動後用 `--source` 更新入口。Windows 與 WSL 的路徑各自核對，工具不默默跨環境執行。
 
@@ -60,6 +60,7 @@ python scripts/agf.py project rollback --target ../my-project
 | `read-research` | 判讀論文或規格、聚焦文獻比較；依要求短答或完整帶讀 |
 | `guide-learning` | 學習專案、工具或概念，調整示範與練習深度 |
 | `review-sql` | 分析慢 SQL／計畫、索引或資料庫變更，保留測試、審查與部署界線；普通資料查詢不需要 |
+| `align-with-me` | 只由你叫用（Claude Code 打 `/align-with-me`）：動手前一輪一輪把會改變成果的決定講定，每題附建議；不在模型的 skill 清單裡，不會誤觸 |
 
 一般開發、需求對齊、寫作、多模型合作與工具選擇使用精簡的[工作指引](docs/workflow.md)、[表達與創作指引](docs/writing.md)、[工具指引](docs/tools.md)及[交付指引](docs/delivery.md)。不為 APP、股市程式、kernel、Boost、STM32、小說、作曲或影片各建一套重複技能；領域條件等具體任務出現再查。
 
@@ -69,16 +70,16 @@ python scripts/agf.py project rollback --target ../my-project
 
 | 需求 | 目前做法 |
 |---|---|
-| 多模型、跨部門合作 | [分工指引](docs/workflow.md)先對齊成果、介面及失敗行為；模型與角色可互換，交接保留驗證、下一步與操作邊界，主責者整合驗證 |
+| 多模型、跨部門合作 | [分工指引](docs/workflow.md)先對齊成果、介面及失敗行為；模型與角色可互換，交接保留驗證、下一步、操作邊界與接手者自己要跑的核對命令；換模型、開子代理與用量上限的做法在「續接、換模型與用量」 |
 | 個人化、自然中文與教學 | `profile show --root DIR` 合併偏好；[表達指引](docs/writing.md)保留因果與真實修改理由；trace 與教學 skills 依讀者選圖和示範 |
 | 降低 token 消耗 | [按問題取資料](docs/tools.md)，搜尋限制筆數與文字量，重用 scripts；[首次文字層對照](evals/paired/results-2026-11-09.md)品質相同、框架組用量較高，原生選讀效果尚未驗證 |
 | 降低 bug | 最小修改、風險相稱的檢查與 `review-change`；用原始失敗與相關回歸驗證成果 |
 | 有效率找根因 | `debug-root-cause` 用能區分假設的觀察縮小範圍，將緩解與原因確認分開 |
-| Grill me、對齊想法 | [需求對齊](docs/workflow.md)只問會改變決策的未知，理解後執行 |
+| Grill me、對齊想法 | 平常依[需求對齊](docs/workflow.md)只問會改變決策的未知；要徹底對齊時叫用 `align-with-me` |
 | 提醒漏項與誤解 | 指出影響結果的矛盾和缺失條件，有材料先核對，需要取捨才提問 |
 | 不過度思考 | 相關驗證足夠即交付；沒有新增觀察價值時說明缺什麼，不無限重試 |
 | 不膨脹、易更新 | 專用 skills、按需 references、共用工具；[維護指引](docs/maintenance.md)要求改在最窄位置 |
-| 資安、隱私、CI/CD、hooks 邊界 | [依操作效果判斷授權](docs/delivery.md)，只使用所需資料；文字規則與 hook 不冒充強制隔離 |
+| 資安、隱私、CI/CD、hooks 邊界 | [依操作效果判斷授權](docs/delivery.md)，只使用所需資料。文字擋不住的操作交給 hook：`templates/claude-guard-hook.py` 擋下各種寫法的 `git push`、建立 PR、`pkill -f` 與寫入受保護路徑（已用 Claude Code 2.1.325 實測）；它仍不是 sandbox |
 | 自動判斷 MCP 與工具品質 | [工具指引](docs/tools.md)依任務探索已連接能力，先查來源、安全與使用者回饋；省 token 工具另比較完整任務的實際用量與品質 |
 
 MCP 選用由宿主代理讀取規則後，透過其工具探索能力執行。RTK 等工具的來源查證、實測範圍與採用取捨保存在[研究紀錄](docs/research.md)，不是永久的推薦名單。
@@ -92,6 +93,15 @@ MCP 選用由宿主代理讀取規則後，透過其工具探索能力執行。R
 簡報沿用[按需簡報指引](templates/presentations/README.md)：主題、Excel／CSV 或作品連結交給 AI，依已連接能力編輯帳號作品，或把內容交給既有版型工具；核對數字、缺值、版面與實際可編輯範圍。配音、影片和分享需有相應工具與授權，框架沒有內建簡報引擎或新增 skill。
 
 資料製成 PDF、HTML、文字、聲音、歌曲與影片時，按需讀[跨格式成果指引](templates/outputs/README.md)：共用確認內容與素材，先驗代表小樣，再依交付格式檢查實際結果。既有工具用時選，不預裝創作平台；這批使用者參考來源的重複、採納與未採納理由見[取捨紀錄](docs/link-study.md)。
+
+要讓 Claude Code 在任何目錄啟動時都擋下 push 與寫入受保護的目錄，用 guard hook：
+
+```console
+python scripts/agf.py integration template claude-guard-hook
+python scripts/agf.py integration template claude-guard-settings
+```
+
+把前者存成檔案，依後者把它加進 `~/.claude/settings.json`（每個 session 都生效）或專案的 `.claude/settings.json`（只在從那個目錄啟動時生效），再用一個 JSON 列出受保護的路徑：`{"protected_paths": ["/path/to/repo"]}`。它只看命令列，看不到程式執行之後做了什麼（例如 `python3 -c` 寫檔），限制見檔案開頭的說明。
 
 完整命令、權限範圍、共用工具與 hooks 見 [CLI 操作](docs/cli.md)。[設計說明](docs/design.md)與[研究紀錄](docs/research.md)交代採納和刪減理由。共用創作指引可協助小說、音樂與投影片式影片；真正使用時再選可用工具，分清企劃、草稿與可播放成品。
 

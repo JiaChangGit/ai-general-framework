@@ -1,0 +1,21 @@
+{
+ "sessions_scanned": 12,
+ "since": null,
+ "skill_tool_calls": {
+  "other": 1,
+  "review-change": 4
+ },
+ "skill_file_reads": {
+  "review-change": 2
+ },
+ "skill_file_copies": {
+  ".claude/skills": 2
+ },
+ "agf_commands": {
+  "audit": 6,
+  "check": 3,
+  "profile": 2,
+  "project": 16
+ },
+ "meaning": "Counts of calls found in local transcripts; not evidence that a call helped."
+}

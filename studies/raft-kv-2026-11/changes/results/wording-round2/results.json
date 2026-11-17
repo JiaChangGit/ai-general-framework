@@ -1,0 +1,296 @@
+{
+ "framework": "/home/user/src/agf-worktrees/rehearsal-stash",
+ "framework_commit": "1651661472332ad5a65bd5e631ab6e1c64368798",
+ "model": "claude-sonnet-5-5",
+ "tools": "Read Grep Glob Skill",
+ "skills": [
+  "trace-code",
+  "debug-root-cause",
+  "guide-learning",
+  "read-research",
+  "review-change"
+ ],
+ "budget_usd": 2.0,
+ "bash_removed": false,
+ "runs": [
+  {
+   "scenario": "trace-without-lesson",
+   "group": "framework",
+   "expected_skill": "trace-code",
+   "exit": 0,
+   "framework_skills_listed": [
+    "trace-code",
+    "debug-root-cause",
+    "guide-learning",
+    "read-research",
+    "review-change"
+   ],
+   "skills_listed_count": 35,
+   "skill_calls": [
+    "trace-code"
+   ],
+   "skill_reads": [],
+   "skills_used": [
+    "trace-code"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "outside_paths": [],
+   "bash_ran": [],
+   "tool_errors": [
+    {
+     "tool": "Bash",
+     "error": "Permission to use Bash has been denied because Claude Code is running in don't ask mode. IMPORTANT: You *may* attempt to accomplish this action using other tools that might naturally be used to accomp"
+    }
+   ],
+   "tool_uses": 7,
+   "files_read": [
+    "./queue.py",
+    "./input.md",
+    "./.claude/skills/trace-code/references/trace-contract.md"
+   ],
+   "is_error": false,
+   "subtype": "success",
+   "turns": 9,
+   "duration_ms": 36926,
+   "cost_usd": 0.0972957,
+   "input_tokens": 10,
+   "cache_creation_input_tokens": 18003,
+   "cache_read_input_tokens": 113037,
+   "output_tokens": 1396
+  },
+  {
+   "scenario": "learning-with-trace",
+   "group": "framework",
+   "expected_skill": "guide-learning",
+   "exit": 0,
+   "framework_skills_listed": [
+    "trace-code",
+    "debug-root-cause",
+    "guide-learning",
+    "read-research",
+    "review-change"
+   ],
+   "skills_listed_count": 35,
+   "skill_calls": [
+    "trace-code"
+   ],
+   "skill_reads": [],
+   "skills_used": [
+    "trace-code"
+   ],
+   "hit": false,
+   "hit_via_skill_tool": false,
+   "misfire": null,
+   "other_skills": [
+    "trace-code"
+   ],
+   "outside_paths": [],
+   "bash_ran": [],
+   "tool_errors": [
+    {
+     "tool": "Bash",
+     "error": "Permission to use Bash has been denied because Claude Code is running in don't ask mode. IMPORTANT: You *may* attempt to accomplish this action using other tools that might naturally be used to accomp"
+    }
+   ],
+   "tool_uses": 7,
+   "files_read": [
+    "./queue.py",
+    "./input.md",
+    "./.agf/managed/guides/writing.md"
+   ],
+   "is_error": false,
+   "subtype": "success",
+   "turns": 9,
+   "duration_ms": 29745,
+   "cost_usd": 0.1218164,
+   "input_tokens": 8,
+   "cache_creation_input_tokens": 21031,
+   "cache_read_input_tokens": 87564,
+   "output_tokens": 2892
+  },
+  {
+   "scenario": "flaky-repeat-evidence",
+   "group": "framework",
+   "expected_skill": "debug-root-cause",
+   "exit": 0,
+   "framework_skills_listed": [
+    "trace-code",
+    "debug-root-cause",
+    "guide-learning",
+    "read-research",
+    "review-change"
+   ],
+   "skills_listed_count": 35,
+   "skill_calls": [
+    "debug-root-cause"
+   ],
+   "skill_reads": [],
+   "skills_used": [
+    "debug-root-cause"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "outside_paths": [],
+   "bash_ran": [],
+   "tool_errors": [],
+   "tool_uses": 4,
+   "files_read": [
+    "./context.txt",
+    "./.agf/history/0b352c003107478ba0b706e9eb2ac35c.json"
+   ],
+   "is_error": false,
+   "subtype": "success",
+   "turns": 6,
+   "duration_ms": 22345,
+   "cost_usd": 0.1001293,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 19647,
+   "cache_read_input_tokens": 60593,
+   "output_tokens": 1547
+  },
+  {
+   "scenario": "cleaned-copy-is-not-original",
+   "group": "framework",
+   "expected_skill": "read-research",
+   "exit": 0,
+   "framework_skills_listed": [
+    "trace-code",
+    "debug-root-cause",
+    "guide-learning",
+    "read-research",
+    "review-change"
+   ],
+   "skills_listed_count": 35,
+   "skill_calls": [],
+   "skill_reads": [],
+   "skills_used": [],
+   "hit": false,
+   "hit_via_skill_tool": false,
+   "misfire": null,
+   "other_skills": [],
+   "outside_paths": [],
+   "bash_ran": [
+    "find . -type f -not -path './.git/*' | head -100"
+   ],
+   "tool_errors": [
+    {
+     "tool": "Bash",
+     "error": "Permission to use Bash has been denied because Claude Code is running in don't ask mode. IMPORTANT: You *may* attempt to accomplish this action using other tools that might naturally be used to accomp"
+    }
+   ],
+   "tool_uses": 6,
+   "files_read": [
+    "./.claude/skills/read-research/references/specifications.md",
+    "./cleaned.md",
+    "./original-v2.txt",
+    "./conversion-note.txt"
+   ],
+   "is_error": false,
+   "subtype": "success",
+   "turns": 7,
+   "duration_ms": 25525,
+   "cost_usd": 0.0961175,
+   "input_tokens": 8,
+   "cache_creation_input_tokens": 17175,
+   "cache_read_input_tokens": 86715,
+   "output_tokens": 1873
+  },
+  {
+   "scenario": "object-authorization-and-model-output",
+   "group": "framework",
+   "expected_skill": null,
+   "exit": 0,
+   "framework_skills_listed": [
+    "trace-code",
+    "debug-root-cause",
+    "guide-learning",
+    "read-research",
+    "review-change"
+   ],
+   "skills_listed_count": 35,
+   "skill_calls": [],
+   "skill_reads": [],
+   "skills_used": [],
+   "hit": null,
+   "hit_via_skill_tool": null,
+   "misfire": false,
+   "other_skills": [],
+   "outside_paths": [],
+   "bash_ran": [],
+   "tool_errors": [
+    {
+     "tool": "Bash",
+     "error": "Permission to use Bash has been denied because Claude Code is running in don't ask mode. IMPORTANT: You *may* attempt to accomplish this action using other tools that might naturally be used to accomp"
+    }
+   ],
+   "tool_uses": 5,
+   "files_read": [
+    "./policy.md",
+    "./model-output.json",
+    "./.agf/managed/guides/writing.md"
+   ],
+   "is_error": false,
+   "subtype": "success",
+   "turns": 6,
+   "duration_ms": 26018,
+   "cost_usd": 0.11263720000000002,
+   "input_tokens": 8,
+   "cache_creation_input_tokens": 19915,
+   "cache_read_input_tokens": 85712,
+   "output_tokens": 2439
+  },
+  {
+   "scenario": "presentation-priority-and-decision",
+   "group": "framework",
+   "expected_skill": null,
+   "exit": 0,
+   "framework_skills_listed": [
+    "trace-code",
+    "debug-root-cause",
+    "guide-learning",
+    "read-research",
+    "review-change"
+   ],
+   "skills_listed_count": 35,
+   "skill_calls": [],
+   "skill_reads": [],
+   "skills_used": [],
+   "hit": null,
+   "hit_via_skill_tool": null,
+   "misfire": false,
+   "other_skills": [],
+   "outside_paths": [
+    "Read /home/user/src/agf-worktrees/rehearsal-stash/templates/presentations/README.md"
+   ],
+   "bash_ran": [],
+   "tool_errors": [
+    {
+     "tool": "Bash",
+     "error": "Permission to use Bash has been denied because Claude Code is running in don't ask mode. IMPORTANT: You *may* attempt to accomplish this action using other tools that might naturally be used to accomp"
+    }
+   ],
+   "tool_uses": 7,
+   "files_read": [
+    "./draft.md",
+    "./facts.md",
+    "./.agf/managed/guides/writing.md",
+    "/home/user/src/agf-worktrees/rehearsal-stash/templates/presentations/README.md"
+   ],
+   "is_error": false,
+   "subtype": "success",
+   "turns": 8,
+   "duration_ms": 37606,
+   "cost_usd": 0.143969,
+   "input_tokens": 10,
+   "cache_creation_input_tokens": 24773,
+   "cache_read_input_tokens": 116270,
+   "output_tokens": 3323
+  }
+ ],
+ "stopped": false
+}
