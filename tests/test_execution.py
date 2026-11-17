@@ -12,6 +12,117 @@ from agf.execution import check_project, run_command
 
 
 class ExecutionTests(unittest.TestCase):
+    def test_capture_read_failure_reports_unknown_byte_count(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            original_open = Path.open
+
+            class FailingTell:
+                def __init__(self, stream):
+                    self.stream = stream
+
+                def __getattr__(self, name):
+                    return getattr(self.stream, name)
+
+                def tell(self):
+                    raise OSError("simulated position failure")
+
+            def open_with_failure(path, *args, **kwargs):
+                stream = original_open(path, *args, **kwargs)
+                return FailingTell(stream) if path.name == "stdout.bin" else stream
+
+            with mock.patch.object(Path, "open", open_with_failure):
+                result = run_command([sys.executable, "-c", "print('done')"], output_dir=root / "run")
+            self.assertEqual(result["process_exit_code"], 0)
+            self.assertEqual(result["exit_code"], 125)
+            self.assertFalse(result["capture_complete"])
+            self.assertIsNone(result["stdout_bytes"])
+            self.assertIn("simulated position failure", result["capture_error"])
+            self.assertEqual(json.loads((root / "run" / "result.json").read_text(encoding="utf-8")), result)
+
+    def test_capture_write_failure_reports_command_already_ran(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            original_open = Path.open
+
+            class FailingWrite:
+                def __init__(self, stream):
+                    self.stream = stream
+
+                def __getattr__(self, name):
+                    return getattr(self.stream, name)
+
+                def write(self, data):
+                    self.stream.write(data[:2])
+                    raise OSError("simulated full disk")
+
+            def open_with_failure(path, *args, **kwargs):
+                stream = original_open(path, *args, **kwargs)
+                return FailingWrite(stream) if path.name == "stdout.bin" else stream
+
+            with mock.patch.object(Path, "open", open_with_failure):
+                result = run_command([sys.executable, "-c", "from pathlib import Path; import os; Path('marker').write_text('ran'); os.write(1,b'output')"],
+                                     cwd=root, output_dir=root / "run")
+            self.assertEqual((root / "marker").read_text(), "ran")
+            self.assertEqual(result["status"], "FAIL")
+            self.assertEqual(result["exit_code"], 125)
+            self.assertFalse(result["capture_complete"])
+            self.assertIn("simulated full disk", result["capture_error"])
+            self.assertEqual(result["stdout_bytes"], 2)
+            self.assertEqual((root / "run" / "stdout.bin").read_bytes(), b"ou")
+            self.assertEqual(json.loads((root / "run" / "result.json").read_text(encoding="utf-8")), result)
+
+    def test_capture_close_failure_is_reported_in_saved_result(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            original_open = Path.open
+
+            class FailingClose:
+                def __init__(self, stream):
+                    self.stream = stream
+
+                def __getattr__(self, name):
+                    return getattr(self.stream, name)
+
+                def close(self):
+                    self.stream.close()
+                    raise OSError("simulated close failure")
+
+            def open_with_failure(path, *args, **kwargs):
+                stream = original_open(path, *args, **kwargs)
+                return FailingClose(stream) if path.name == "stdout.bin" else stream
+
+            with mock.patch.object(Path, "open", open_with_failure):
+                result = run_command([sys.executable, "-c", "print('done')"], output_dir=root / "run")
+            self.assertEqual(result["process_exit_code"], 0)
+            self.assertEqual(result["exit_code"], 125)
+            self.assertFalse(result["capture_complete"])
+            self.assertIn("simulated close failure", result["capture_error"])
+            self.assertEqual(json.loads((root / "run" / "result.json").read_text(encoding="utf-8")), result)
+
+    def test_unlimited_capture_waits_for_inherited_output_before_success(self):
+        child = "import sys,time; time.sleep(0.5); print('late output', flush=True); print('late error', file=sys.stderr, flush=True)"
+        parent = "import subprocess,sys; subprocess.Popen([sys.executable,'-c',sys.argv[1]])"
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "run"
+            result = run_command([sys.executable, "-c", parent, child], output_dir=output, timeout=5)
+            self.assertEqual(result["status"], "PASS")
+            self.assertEqual(result["stdout"].strip(), "late output")
+            self.assertEqual(result["stderr"].strip(), "late error")
+            self.assertEqual(result["stdout_bytes"], len((output / "stdout.bin").read_bytes()))
+            self.assertEqual(result["stderr_bytes"], len((output / "stderr.bin").read_bytes()))
+            self.assertEqual(json.loads((output / "result.json").read_text(encoding="utf-8")), result)
+
+    def test_unlimited_capture_times_out_when_descendant_keeps_output_open(self):
+        child = "import time; time.sleep(5)"
+        parent = "import subprocess,sys; subprocess.Popen([sys.executable,'-c',sys.argv[1]])"
+        result = run_command([sys.executable, "-c", parent, child], timeout=1.5)
+        self.assertEqual(result["status"], "FAIL")
+        self.assertTrue(result["timed_out"])
+        self.assertEqual(result["exit_code"], 124)
+        self.assertFalse(result["capture_complete"])
+        self.assertEqual(result["process_exit_code"], 0)
+
     def test_raw_output_limit_bounds_combined_evidence_and_fails(self):
         with tempfile.TemporaryDirectory() as temp:
             output = Path(temp) / "run"

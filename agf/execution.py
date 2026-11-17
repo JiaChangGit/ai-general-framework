@@ -73,8 +73,8 @@ def _terminate(process):
     return cleanup
 
 
-def _capture_bounded(process, stdout, stderr, limit, timeout):
-    """Drain both pipes; never spool more than the shared byte budget."""
+def _capture_output(process, stdout, stderr, limit, timeout):
+    """Drain both pipes to EOF, respecting an optional shared byte budget."""
     lock = threading.Lock()
     stop = threading.Event()
     exceeded = threading.Event()
@@ -88,7 +88,7 @@ def _capture_bounded(process, stdout, stderr, limit, timeout):
                 with lock:
                     if stop.is_set():
                         break
-                    size = min(len(chunk), limit - total)
+                    size = len(chunk) if limit is None else min(len(chunk), limit - total)
                     if size and destination.write(chunk[:size]) != size:
                         raise OSError("Incomplete capture write")
                     total += size
@@ -152,46 +152,60 @@ def run_command(argv, *, cwd=None, timeout=60, max_chars=16000, encoding="utf-8"
     cleanup = "not_needed"
     with ExitStack() as stack:
         metadata = None
+        close_errors = []
+
+        def close_stream(stream, name):
+            if not stream.closed:
+                try:
+                    stream.close()
+                except OSError as exc:
+                    close_errors.append(f"{name} close failed: {exc}")
+
         if output_dir is None:
-            stdout = stack.enter_context(tempfile.TemporaryFile())
-            stderr = stack.enter_context(tempfile.TemporaryFile())
+            stdout = tempfile.TemporaryFile(buffering=0)
+            stack.callback(close_stream, stdout, "stdout")
+            stderr = tempfile.TemporaryFile(buffering=0)
+            stack.callback(close_stream, stderr, "stderr")
         else:
             # Reserve every destination before starting the supplied command.
             # absolute(), unlike resolve(), does not follow an existing final symlink.
             evidence_dir = Path(output_dir).absolute()
             try:
                 evidence_dir.mkdir(mode=0o700, parents=True, exist_ok=False)
-                stdout = stack.enter_context((evidence_dir / "stdout.bin").open("x+b"))
-                stderr = stack.enter_context((evidence_dir / "stderr.bin").open("x+b"))
-                metadata = stack.enter_context((evidence_dir / "result.json").open("xb", buffering=0))
+                stdout = (evidence_dir / "stdout.bin").open("x+b", buffering=0)
+                stack.callback(close_stream, stdout, "stdout")
+                stderr = (evidence_dir / "stderr.bin").open("x+b", buffering=0)
+                stack.callback(close_stream, stderr, "stderr")
+                metadata = (evidence_dir / "result.json").open("xb", buffering=0)
+                stack.callback(close_stream, metadata, "metadata")
             except OSError as exc:
                 raise AgfError(f"Cannot prepare a new output directory {evidence_dir}; command was not started: {exc}") from exc
         options = {"start_new_session": True} if os.name != "nt" else {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
         try:
             process = subprocess.Popen(command, cwd=directory, stdin=subprocess.DEVNULL,
-                                       stdout=stdout if max_output_bytes is None else subprocess.PIPE,
-                                       stderr=stderr if max_output_bytes is None else subprocess.PIPE, shell=False, **options)
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, **options)
         except OSError as exc:
             raise AgfError(f"Cannot start command: {exc}") from exc
-        capture_state = {}
-        if max_output_bytes is None:
-            try:
-                process.wait(timeout=timeout)
-            except subprocess.TimeoutExpired:
-                timed_out = True
-                cleanup = _terminate(process)
-        else:
-            timed_out, cleanup, capture_state = _capture_bounded(process, stdout, stderr, max_output_bytes, timeout)
-        failed_capture = capture_state and not capture_state["capture_complete"]
+        timed_out, cleanup, capture_state = _capture_output(process, stdout, stderr, max_output_bytes, timeout)
+        failed_capture = not capture_state["capture_complete"]
         result = {"argv": argv, "cwd": str(directory), "exit_code": 124 if timed_out else 125 if failed_capture else process.returncode,
                   "timed_out": timed_out, "cleanup": cleanup, "duration_seconds": round(time.monotonic() - started, 3)}
         result.update(capture_state)
         for name, stream in (("stdout", stdout), ("stderr", stderr)):
-            count = stream.tell()
-            stream.seek(0)
-            # Bounded read even for an extremely verbose child process.
-            raw = stream.read(max_chars * 4 + 4)
-            final = count <= len(raw) and not failed_capture
+            count = None
+            try:
+                count = stream.tell()
+                stream.seek(0)
+                # Bounded read even for an extremely verbose child process.
+                raw = stream.read(max_chars * 4 + 4)
+            except OSError as exc:
+                raw = b""
+                close_errors.append(f"{name} read failed: {exc}")
+                failed_capture = True
+            close_stream(stream, name)
+            if close_errors:
+                failed_capture = True
+            final = count is not None and count <= len(raw) and not failed_capture
             try:
                 decoder = codecs.getincrementaldecoder(encoding)(errors="strict")
                 decoded = decoder.decode(raw, final=final)
@@ -202,8 +216,13 @@ def run_command(argv, *, cwd=None, timeout=60, max_chars=16000, encoding="utf-8"
                 decode_errors = True
             result[name] = decoded[:max_chars]
             result[name + "_bytes"] = count
-            result[name + "_truncated"] = bool(failed_capture) or count > max_chars * 4 + 4 or len(decoded) > max_chars
+            result[name + "_truncated"] = bool(failed_capture) or count is None or count > max_chars * 4 + 4 or len(decoded) > max_chars
             result[name + "_decode_errors"] = decode_errors
+        if close_errors:
+            result["capture_error"] = "; ".join(filter(None, (result.get("capture_error"), *close_errors)))
+            result["capture_complete"] = False
+            result["stdout_truncated"] = result["stderr_truncated"] = True
+            result["exit_code"] = 124 if timed_out else 125
         result["encoding"] = encoding
         result["status"] = "PASS" if result["exit_code"] == 0 else "FAIL"
         if metadata is not None:
@@ -217,6 +236,10 @@ def run_command(argv, *, cwd=None, timeout=60, max_chars=16000, encoding="utf-8"
                 encoded = json_text(result).encode("utf-8")
                 if metadata.write(encoded) != len(encoded):
                     raise OSError("Incomplete metadata write")
+                before_close = len(close_errors)
+                close_stream(metadata, "metadata")
+                if len(close_errors) != before_close:
+                    raise OSError(close_errors[-1])
             except (OSError, UnicodeError) as exc:
                 result["evidence"]["metadata_saved"] = False
                 result["evidence"]["error"] = f"Command already ran; metadata could not be fully saved: {exc}. Do not rerun it solely to recover output."

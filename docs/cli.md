@@ -106,9 +106,9 @@ python scripts/agf.py git scope --repo . --allow agf --allow tests
 
 `run` 會真的執行傳入的程式，需在當次授權內。它用參數陣列，支援 `--max-chars`、`--encoding`、逾時與截斷回報；`.cmd/.bat` 需專用接線。品質 JSON 的 `{python}` 換成目前 interpreter；空檢查不能通過。
 
-`--max-chars` 只限制回傳文字。需要限制原始輸出時，另用 `--max-output-bytes N`，限制 stdout、stderr 合計保存的 bytes；品質 JSON 的單項 check 也可設 `max_output_bytes`。超限會停止命令並回傳 FAIL、結果內 `exit_code: 125`，CLI 自身退出 1；逾時仍為 124。恰好等於上限且完整結束可通過。`capture_complete: false` 表示證據不完整，`process_exit_code` 保留子程序實際退出碼；`stdout_bytes`／`stderr_bytes` 在此模式只代表已保存量，不能當成原程式總輸出。即使子程序已回 0，輸出超限或擷取失敗仍不能通過。
+`--max-chars` 只限制回傳文字。需要限制原始輸出時，另用 `--max-output-bytes N`，限制 stdout、stderr 合計保存的 bytes；品質 JSON 的單項 check 也可設 `max_output_bytes`。超限會停止命令並回傳 FAIL、結果內 `exit_code: 125`，CLI 自身退出 1；逾時仍為 124。恰好等於上限且完整結束可通過。`capture_complete: false` 表示證據不完整，`process_exit_code` 保留子程序實際退出碼；`stdout_bytes`／`stderr_bytes` 只代表已保存量，不能當成原程式總輸出，無法取得長度時為 `null`。即使子程序已回 0，輸出超限或擷取失敗仍不能通過；命令已執行，不應只為補回輸出而重跑可能有副作用的操作。
 
-未指定 byte 上限時保留完整暫存行為，大量輸出仍可能耗盡磁碟。上限不涵蓋 metadata、程式自行寫檔、記憶體或網路，也不是程序隔離。POSIX 會嘗試清除 process group；Windows 在父程序先退出、後代仍持有管線時，會回報 `parent_exited_descendants_unknown` 與不完整擷取，不能保證清除後代。需要完整診斷時提高上限或縮小命令輸出，不為補記錄自動重跑有副作用的命令。
+未指定 byte 上限時會持續暫存輸出，大量輸出仍可能耗盡磁碟。兩種模式都等待父程序結束及 stdout／stderr 管線關閉；後代若繼續持有管線，會等到管線關閉或逾時，逾時回報不完整擷取。這不代表後代若自行關閉或重新導向管線，便已經結束。上限不涵蓋 metadata、程式自行寫檔、記憶體或網路，也不是程序隔離。POSIX 會嘗試清除 process group；Windows 在父程序先退出、後代仍持有管線時，會回報 `parent_exited_descendants_unknown` 與不完整擷取，不能保證清除後代。需要完整診斷時提高上限或縮小命令輸出，不為補記錄自動重跑有副作用的命令。
 
 需要保存診斷時，可選 `run --output-dir DIR`。路徑相對於呼叫 CLI 的目錄，不隨 `--cwd` 改變；目錄必須尚未存在，包含 symlink 在內的既有目的地一律拒絕。命令啟動前先建立並開啟三個檔案：`stdout.bin`、`stderr.bin` 保存已擷取 bytes，`result.json` 記錄退出碼、編碼、byte 數、摘要是否截斷及檔案路徑。超限、非零退出和逾時的輸出也會保存；未指定此選項時不留下額外紀錄。保存的內容沒有自動脫敏，依任務選擇本機位置與分享範圍。
 
