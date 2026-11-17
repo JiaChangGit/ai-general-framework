@@ -45,7 +45,7 @@ python3 -B <框架目錄>/scripts/agf.py integration list | grep claude-guard   
 6. 品質範本加「定期」檔位（示範、文件命令、乾淨重建）。
 7. 子命令用量紀錄與退場。
 
-`align-with-me` 還沒在宿主上實際叫用過；guard hook 只在 Linux 的 Claude Code 2.1.325 實測過一次，沒有在使用者層級、Windows 或其他宿主上試過。
+`align-with-me` 還沒在宿主上實際叫用過。guard hook 在 Linux 的 Claude Code 2.1.325 用無頭 session 實測過兩次（修正前後各一次，結果在 `adapters/claude.json` 的 `guard_hook`），沒有在使用者層級、Windows 或其他宿主上試過；其餘寫法只有 `tests/test_guard_hook.py` 的單元測試。
 
 ## 踩過的坑
 
