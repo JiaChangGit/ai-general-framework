@@ -49,7 +49,7 @@ python3 -B <框架目錄>/scripts/agf.py integration list | grep claude-guard   
 
 ## 踩過的坑
 
-- **框架的主目錄被 deny 規則保護。** `/home/user/src/.claude/settings.json`（工作區上一層）禁止用 Edit／Write 改框架目錄；這是使用者刻意設的，不要去改它。使用者點名要改框架時，在框架目錄外開 worktree（`git -C <框架目錄> worktree add ../ai-general-framework-<名稱> -b <分支>`），改完經使用者同意再快轉併進 main。
+- **框架的主目錄被 deny 規則保護。** `/home/user/src/.claude/settings.json`（工作區上一層）禁止用 Edit／Write 改框架目錄；這是使用者刻意設的，不要去改它。使用者點名要改框架時，在框架目錄外開 worktree（`git -C <框架目錄> worktree add ../ai-general-framework-<名稱> -b <分支>`），改完由使用者自己快轉併進 main（`git -C <框架目錄> merge --ff-only <分支>`）：2026-11-17 在自動模式下由代理執行，被權限審查以「繞過保護」擋下。
 - **RTK hook 會改寫 Bash 命令。** 自動權限審查偶爾因此要求原樣重送；`find -exec` 這類寫法會被它拒絕，改用 Python。需要原始輸出時用 `rtk proxy <命令>`。
 - **`cd` 會延續到之後的命令**，宿主還會把主要工作目錄跟著改過去。唯讀查看別的 repo 時用 `git -C` 或絕對路徑。
 - **`pkill -f` 會連自己的 shell 一起殺掉**；用 PID 停行程。
