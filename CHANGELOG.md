@@ -8,9 +8,9 @@
 
 | 修改 | 為什麼 | 驗證 |
 |---|---|---|
-| `templates/project-rules.md` 重寫（每個 session 都載入） | 句子改短、改自然；多三條這次證實需要的規則：續接與用量、只做過一次的檢查要重跑、commit 前看暫存範圍；「改程式」換成依序問的五個問題 | 字數 1,310 → 1,316，幾乎不變；`tests/test_manage.py` 通過；沒有量測對行為的影響 |
-| 新 skill `skills/align-with-me/` | 使用者要「grill me」時有一個直接的入口；`disable-model-invocation: true`，不進模型的 skill 清單、不會誤觸 | `agf audit` 無錯誤；沒有在宿主上實際叫用過 |
-| `templates/claude-guard-hook.py`、`templates/claude-guard-settings.example.json`，登記為 `integration template` | 文字規則與 deny 規則擋不住 `git -C . push`、`sh -c`、從上層目錄啟動的 session；hook 可以裝在使用者層級 | `tests/test_guard_hook.py` 10 個測試；Claude Code 2.1.325 無頭 session 實測：`git -C <dir> push` 與 Write 進受保護目錄都被擋下（2026-11-17，花費約 0.004 美元） |
+| `templates/project-rules.md` 重寫（每個 session 都載入） | 句子改短、改自然；多三條這次證實需要的規則：續接與用量、只做過一次的檢查要重跑、commit 前看暫存範圍；「改程式」換成依序問的五個問題。原本「開始任務時執行 `profile show`」改成「需要偏好時再查」：S8 與這次都沒有用到它，卻每次都要付讀取成本 | 字數 1,310 → 1,316，幾乎不變；`tests/test_manage.py` 通過；沒有量測對行為的影響 |
+| 新 skill `skills/align-with-me/` | 使用者要「grill me」時有一個直接的入口；`disable-model-invocation: true`，在 Claude Code 上不進模型的 skill 清單、不會誤觸 | `agf audit` 只檢查結構，不檢查這個欄位；它是 Claude Code 的欄位、不在 agentskills.io 規格裡，其他宿主可能忽略；沒有在宿主上實際叫用過 |
+| `templates/claude-guard-hook.py`、`templates/claude-guard-settings.example.json`，登記為 `integration template` | 文字規則與 deny 規則擋不住 `git -C . push`、`sh -c`、從上層目錄啟動的 session；hook 可以裝在使用者層級 | `tests/test_guard_hook.py` 17 個測試；Claude Code 2.1.325 無頭 session 實測一次：`git -C <dir> push` 與 Write 進受保護目錄都被擋下（2026-11-17，花費約 0.004 美元）。審查後修正的版本再實測一次：`bash -lc '... push'` 與重導向進受保護目錄被擋、`git log` 照常執行；模型自己拒絕改用 `rtk proxy git push` 繞過，所以那一種只有單元測試 |
 | `adapters/claude.json` 新增 `guard_hook` | 記下 guard hook 實測過與沒測過的情況；原本「跑品質檢查的 Stop hook」那一筆仍標示未測試 | 同上 |
 | `docs/workflow.md` 新增「續接、換模型與用量」 | 這次 4 個平行子代理撞到 5 小時上限、使用者換模型後要求重試；原本沒有任何指引 | 文字修改，未量測 |
 | `docs/delivery.md` 的暫存規則 | 這次重設 index 後，先前暫存的刪除跟著進了錯的 commit | 文字修改 |
@@ -18,6 +18,8 @@
 | `docs/analysis-2026-11.md` | 依使用者的 11 項標準寫優缺點與建議 | — |
 | `studies/`：S7、S8 的研究搬自 Raft 專案；這次的四份研究報告 | 框架的研究應該跟著框架 | 內容未改 |
 | `README.md` | 換模型的說法、新 skill、guard hook 的用法 | — |
+
+**審查。** 第一版交給沒參與的模型（claude-sonnet-5-5）審查，報告在 [studies/research-2026-11/E-framework-review.md](studies/research-2026-11/E-framework-review.md)。找到：hook 的 9 組繞過（例如 `rtk proxy git push`、`bash -lc`、`sudo -u bob git push`、`(git push)`、`gh -R a/b pr create`、在受保護的 repo 裡直接 `git commit`、`>|`、`cp -t`、`tar -C`、`curl -o`）、4 個誤擋（引號裡的 `>`、`git -C <受保護> branch` 這類只是列出的命令）、怪輸入會讓 hook 當掉、設定檔的路徑沒有驗證；文件 7 處：workflow 一句和新規則矛盾、`profile show` 的改變沒寫、audit 的說法過頭、align-with-me 前後矛盾、README 與分析把「測過兩個情況一次」寫得像全面驗證、`docs/cli.md` 沒提新範本、分析指向 CHANGELOG 裡沒有的審查結果。全部修正，每個 hook 的問題各加了測試。
 
 沒做的事與理由見分析報告的「之後的優先順序」。
 

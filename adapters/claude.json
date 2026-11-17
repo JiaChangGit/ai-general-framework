@@ -45,7 +45,8 @@
     "observed": [
       "2026-11-17, Claude Code 2.1.325 on Linux, one headless session (claude-haiku-5-5) in a throwaway directory with the guard in its .claude/settings.json and the user's own PreToolUse hook also loaded",
       "git -C <dir> push origin HEAD was refused with the guard's message; the model reported it and did not retry",
-      "a Write into a protected directory was refused; the file was not created"
+      "a Write into a protected directory was refused; the file was not created",
+      "2026-11-17, the revised hook in a second headless session: bash -lc wrapping git -C <dir> push was refused, echo > <protected>/file was refused, git -C <dir> log ran; the model declined on its own to retry the push through rtk proxy, so that form was not exercised in a session"
     ],
     "not_observed": [
       "the guard installed in user-level settings",

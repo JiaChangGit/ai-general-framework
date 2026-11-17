@@ -40,7 +40,7 @@
 - **現況**：6 個專用 skill（加上這次的第 7 個，只能由使用者叫用）、按需讀的四份指引、`agf` CLI 的 14 個子命令、templates 與 evals。
 - **優點**：skill 描述短（6 段共約 1,500 字元，遠低於 Claude Code 每段 1,536 字元的上限）；S8 的實驗裡不該用時沒有誤觸；`agf audit` 檢查結構與連結。
 - **缺點**：S8 證實「沒觸發」是主要問題（已在 S8 後續改善措辭，量測差距在雜訊內）。這次 session 從專案的上一層啟動，專案的 skill 完全沒列出，只能直接讀 `SKILL.md`：skill 能不能被用到，取決於使用者從哪個目錄啟動。`agf` 的 14 個子命令在 Raft 專案只用過 3 個，那個專案還自己重寫了一份限時限量的執行器。
-- **這次改了**：新增的 `align-with-me` 用 `disable-model-invocation`，不進模型的 skill 清單，不會和其他 skill 搶觸發。
+- **這次改了**：新增的 `align-with-me` 用 `disable-model-invocation`，在 Claude Code 上不進模型的 skill 清單，不會和其他 skill 搶觸發。這個欄位不在 agentskills.io 的規格裡，其他宿主可能忽略它、照常列出（沒有驗證）；`agf audit` 也不檢查 frontmatter 欄位。
 - **之後**：（高）在 `agf project status` 加一行：偵測 session 可能從上層目錄啟動時（例如上層有 `.claude/` 而專案的 skill 不在上層），提醒使用者 skill 不會被列出。（中）記錄各專案實際用到的子命令，一年都沒人用的考慮移到範本或刪掉。MCP 在這幾個專案都沒用到，沒有證據可以評。
 
 ### 2. 自然地利用多種模型、跨部門合作；交接與長期記憶
@@ -115,7 +115,7 @@
 - **現況**：`delivery.md` 依操作效果判斷授權；原生權限範本（S8 後續）；adapter 誠實標示哪些實測過、哪些沒有。
 - **優點**：框架沒有假裝文字能隔離。
 - **缺點**：S8 實測：專案的 deny 規則只在 session 從那個目錄啟動時生效；`git -C . push` 不符合 `Bash(git push:*)`；`python3 -c` 能寫進受保護的目錄。這次 session 從上一層啟動，靠的是上一層的 deny 規則，它確實擋住了寫入框架主目錄（所以這次的修改在 worktree 上做）。hooks 原本標示「未測試」。
-- **這次改了**：`templates/claude-guard-hook.py`：PreToolUse hook，擋下各種寫法的 `git push`（`git -C`、`sh -c`、`env`、`rtk` 前綴）、建立或合併 PR、`pkill -f`／`killall`、寫入受保護路徑（檔案工具與常見的 shell 寫法）。10 個單元測試；用 Claude Code 2.1.325 的無頭 session 實測，`git -C <dir> push` 與寫入受保護目錄都被擋下，模型照實回報、沒有嘗試繞過。adapter 另記一筆 `guard_hook`：已實測的情況與沒測過的部分（原本「跑品質檢查的 Stop hook」那一筆仍是未測試）。commit 前看暫存範圍的規則寫進 `delivery.md` 與常駐規則（這次我自己就犯了一次：重設 index 後，先前暫存的刪除跟著進了錯的 commit）。
+- **這次改了**：`templates/claude-guard-hook.py`：PreToolUse hook，擋下命令列上看得到的 `git push`（包括 `git -C`、`sh -c`、`bash -lc`、`sudo -u`、`rtk proxy`、括號與 `if/then` 包起來的寫法）、建立或合併 PR、`pkill -f`／`killall`、寫入受保護路徑（檔案工具與常見的 shell 寫法）。第一版交給沒參與的模型審查，找到 9 組繞過、4 個誤擋與當掉的情況，都已修正並各加了測試（共 17 個測試）；用 Claude Code 2.1.325 的無頭 session 實測，`git -C <dir> push` 與寫入受保護目錄都被擋下，模型照實回報、沒有嘗試繞過。adapter 另記一筆 `guard_hook`：已實測的情況與沒測過的部分（原本「跑品質檢查的 Stop hook」那一筆仍是未測試）。commit 前看暫存範圍的規則寫進 `delivery.md` 與常駐規則（這次我自己就犯了一次：重設 index 後，先前暫存的刪除跟著進了錯的 commit）。
 - **之後**：（高）由使用者決定是否把 guard hook 裝進使用者層級的 `~/.claude/settings.json`，讓它不論從哪個目錄啟動都生效；裝之前先在一個專案試用一陣子。（中）CI、容器在這幾個專案都沒用到，維持現狀，不擴充。
 
 ## 這次的修改
@@ -144,6 +144,6 @@
 
 ## 方法與限制
 
-- 這份分析的作者，也是這次修改框架的人；修改已交給沒參與的模型審查（結果見 CHANGELOG），但評分與判斷仍偏向作者自己的經驗。
+- 這份分析的作者，也是這次修改框架的人；修改已交給沒參與的模型審查（結果見 CHANGELOG 與 `studies/research-2026-11/E-framework-review.md`），但評分與判斷仍偏向作者自己的經驗。
 - 只有 Claude Code 一個宿主；Codex、Gemini CLI、OpenCode 上的行為沒有驗證。
 - 外部數字多數是各專案作者自己量的（ponytail、rtk），或單一 benchmark（SkillsBench）；引用時照實寫出來源與限制。

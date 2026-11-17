@@ -112,6 +112,77 @@ class GuardHookTests(unittest.TestCase):
         event["tool_input"]["command"] = f"echo x > {self.protected}/a"
         self.assertEqual(run(event).returncode, 0)
 
+    # The cases below come from an independent review of the first version
+    # (2026-11-17); each command passed or was refused wrongly before the fix.
+
+    def test_wrapped_pushes_found_by_the_review_are_refused(self):
+        for command in ["rtk proxy git push", "rtk err git push", "rtk run 'git push origin'", "rtk git push",
+                        "bash -lc 'git push'", "bash -xc \"git push\"", "eval git push", "sudo -u bob git push",
+                        "env -u HOME git push", "env -S 'git push'", "timeout -s KILL 10 git push",
+                        "nice -n 5 git push", "(git push)", "{ git push; }", "if true; then git push; fi",
+                        "echo | xargs git push", "git push 2>&1 | tail"]:
+            with self.subTest(command=command):
+                self.assertEqual(self.bash(command).returncode, 2, command)
+
+    def test_pull_requests_with_global_options_and_full_pattern_kills_are_refused(self):
+        for command in ["gh --repo a/b pr create", "gh -R a/b pr create --fill", "gh --repo=a/b pr merge 3",
+                        "glab -R g/p mr create", "pkill --full raft-node"]:
+            with self.subTest(command=command):
+                self.assertEqual(self.bash(command).returncode, 2, command)
+
+    def test_git_writes_from_inside_a_protected_repository_are_refused(self):
+        inside = {"hook_event_name": "PreToolUse", "tool_name": "Bash", "cwd": str(self.protected)}
+        run = lambda command: subprocess.run([sys.executable, str(HOOK), str(self.config)],
+                                             input=json.dumps({**inside, "tool_input": {"command": command}}),
+                                             capture_output=True, text=True, timeout=10).returncode
+        for command in ["git commit -m x", "git add .", "git reset --hard", "git stash", "git branch new"]:
+            with self.subTest(command=command):
+                self.assertEqual(run(command), 2, command)
+        for command in ["git status", "git log -3", "git branch", "git branch --show-current", "git tag",
+                        "git stash list", "git diff", "python3 -c 'print(1>2)'", "grep 'a>b' docs"]:
+            with self.subTest(command=command):
+                self.assertEqual(run(command), 0, command)
+        self.assertEqual(self.bash(f"(cd {self.protected} && touch a)").returncode, 2)
+
+    def test_more_shell_writes_into_a_protected_path_are_refused(self):
+        p = str(self.protected)
+        for command in [f"echo x >| {p}/a", f"echo x &> {p}/a", f'echo x > "{p}/quoted"', f"cp -t {p} notes.md",
+                        f"cp --target-directory={p} notes.md", f"install -t {p} tool", f"perl -pi -e s/a/b/ {p}/a",
+                        f"find {p} -name '*.tmp' -delete", f"tar -xzf a.tgz -C {p}", f"tar xf a.tar --directory={p}",
+                        f"curl -o {p}/page https://example.invalid", f"wget -O {p}/page https://example.invalid",
+                        f"wget -P {p} https://example.invalid", f"unzip a.zip -d {p}", f"cp a b {p}/ 2>/dev/null"]:
+            with self.subTest(command=command):
+                self.assertEqual(self.bash(command).returncode, 2, command)
+
+    def test_reads_and_mentions_that_looked_like_writes_are_allowed(self):
+        p = str(self.protected)
+        for command in [f'echo "a > {p}/b"', f"echo 'tee {p}/a'", f"git -C {p} branch", f"git -C {p} branch -a",
+                        f"git -C {p} branch --show-current", f"git -C {p} tag", f"git -C {p} tag -l 'v*'",
+                        f"git -C {p} stash list", f"git -C {p} config --get user.name", f"find {p} -name '*.md'",
+                        f"tar -tzf a.tgz -C {p}", f"curl https://example.invalid > {self.work}/page",
+                        f"cp {p}/a {self.work}/b 2>&1", f"ls {p} > {self.work}/listing"]:
+            with self.subTest(command=command):
+                self.assertEqual(self.bash(command).returncode, 0, command)
+
+    def test_unexpected_event_shapes_are_handled_without_crashing(self):
+        for event in [{"tool_name": "Bash", "tool_input": "git push", "cwd": str(self.work)},
+                      {"tool_name": "Bash", "tool_input": {"command": "ls"}, "cwd": 42},
+                      {"tool_name": "Write", "tool_input": None}, {"tool_name": 7}]:
+            with self.subTest(event=event):
+                result = subprocess.run([sys.executable, str(HOOK), str(self.config)], input=json.dumps(event),
+                                        capture_output=True, text=True, timeout=10)
+                self.assertIn(result.returncode, (0, 2), result.stderr)
+                self.assertNotIn("Traceback", result.stderr)
+
+    def test_a_configuration_with_bad_paths_refuses_everything(self):
+        for paths in ["/tmp/prot", ["/"], [""], [3]]:
+            with self.subTest(paths=paths):
+                bad = self.root / "bad.json"
+                bad.write_text(json.dumps({"protected_paths": paths}), encoding="utf-8")
+                result = self.run_hook("Bash", {"command": "ls"}, config=bad)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("configuration", result.stderr)
+
     def test_input_that_is_not_an_event_is_not_judged(self):
         result = subprocess.run([sys.executable, str(HOOK), str(self.config)], input="not json",
                                 capture_output=True, text=True, timeout=10)
