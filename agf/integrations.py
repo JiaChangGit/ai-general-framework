@@ -35,6 +35,8 @@ TEMPLATES = {
     "git-hook-runner": "git-hook.py",
     "claude-guard-hook": "claude-guard-hook.py",
     "claude-guard-settings": "claude-guard-settings.example.json",
+    "claude-continuity-hook": "claude-continuity-hook.py",
+    "claude-continuity-settings": "claude-continuity-settings.example.json",
 }
 
 def _adapters() -> list[dict]:

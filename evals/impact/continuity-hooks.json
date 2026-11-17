@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {"hooks": [{"type": "command", "command": "python3 {framework}/templates/claude-continuity-hook.py session-start", "timeout": 10}]}
+    ],
+    "PreCompact": [
+      {"hooks": [{"type": "command", "command": "python3 {framework}/templates/claude-continuity-hook.py pre-compact", "timeout": 10}]}
+    ],
+    "PostCompact": [
+      {"hooks": [{"type": "command", "command": "python3 {framework}/templates/claude-continuity-hook.py post-compact", "timeout": 10}]}
+    ],
+    "StopFailure": [
+      {"hooks": [{"type": "command", "command": "python3 {framework}/templates/claude-continuity-hook.py stop-failure", "timeout": 10}]}
+    ],
+    "SessionEnd": [
+      {"hooks": [{"type": "command", "command": "python3 {framework}/templates/claude-continuity-hook.py session-end", "timeout": 10}]}
+    ],
+    "PreModelSwitch": [
+      {"hooks": [{"type": "command", "command": "python3 {framework}/templates/claude-continuity-hook.py pre-model-switch", "timeout": 10}]}
+    ],
+    "Stop": [
+      {"hooks": [{"type": "command", "command": "python3 {framework}/templates/claude-continuity-hook.py stop", "timeout": 10}]}
+    ]
+  }
+}
