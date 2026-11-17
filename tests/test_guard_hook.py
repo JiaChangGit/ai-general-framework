@@ -164,6 +164,26 @@ class GuardHookTests(unittest.TestCase):
             with self.subTest(command=command):
                 self.assertEqual(self.bash(command).returncode, 0, command)
 
+    def test_text_the_shell_never_runs_is_not_read_as_a_command(self):
+        # 2026-11-18: the installed guard refused a Python heredoc whose text quoted
+        # `git -C . push` in Markdown backticks. A quoted heredoc is never expanded.
+        allowed = ["python3 - <<'EOF'\nprint('原生權限擋不住的寫法（`git -C . push`、`sh -c`）')\nEOF",
+                   'cat <<"DOC" > notes.md\nrun `git push` later; $(gh pr create) too\nDOC',
+                   "cat <<-'EOF'\n\tgit push\n\tEOF\necho done",
+                   "echo 'remember: `git push` is for the user'",
+                   "git commit -m 'explain why `git push` was not run'"]
+        for command in allowed:
+            with self.subTest(command=command):
+                self.assertEqual(self.bash(command).returncode, 0, command)
+
+    def test_text_the_shell_does_run_is_still_checked(self):
+        refused = ["cat <<EOF\n$(git push)\nEOF", "cat <<EOF > x\n`git push`\nEOF",
+                   'echo "now $(git push origin main)"', "python3 - <<'EOF'\nprint(1)\nEOF\ngit push",
+                   f"cat <<'EOF' > {self.protected}/a\ntext\nEOF"]
+        for command in refused:
+            with self.subTest(command=command):
+                self.assertEqual(self.bash(command).returncode, 2, command)
+
     def test_unexpected_event_shapes_are_handled_without_crashing(self):
         for event in [{"tool_name": "Bash", "tool_input": "git push", "cwd": str(self.work)},
                       {"tool_name": "Bash", "tool_input": {"command": "ls"}, "cwd": 42},

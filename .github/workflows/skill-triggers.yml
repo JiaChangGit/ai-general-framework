@@ -1,0 +1,65 @@
+# 手動執行：在 GitHub 上量「該用 skill 時有沒有用、不該用時有沒有誤用」。
+# 每次執行都會呼叫模型、花錢，所以只在 Actions 頁面按 Run workflow 才跑，不跟 push 一起跑。
+# 需要 repository secret ANTHROPIC_API_KEY；沒有設定時這個 job 直接結束。
+# 結果上傳成 artifact（results.json、每個 session 的輸出），不因觸發率高低讓 build 失敗：
+# 觸發本來就會隨機變動，單次結果只能看方向，判讀方式見 evals/host/README.md。
+# 這份 workflow 寫好時（2026-11-17）還沒有在 GitHub 上實際跑過。
+name: Skill triggers
+on:
+  workflow_dispatch:
+    inputs:
+      ids:
+        description: "evals/scenarios.json 的情境 id，用逗號分隔"
+        required: true
+        default: "trace-lossy-id-conversion,review-diff-with-materials,ask-me-first-without-invocation"
+      model:
+        description: "受試 session 的模型 id"
+        required: true
+        default: "claude-sonnet-5-5"
+      budget:
+        description: "每個 session 的花費上限（美元）"
+        required: true
+        default: "0.3"
+permissions:
+  contents: read
+concurrency:
+  group: skill-triggers
+  cancel-in-progress: false
+jobs:
+  triggers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - name: Stop when the secret is missing
+        id: secret
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then echo "ANTHROPIC_API_KEY is not set; nothing to run."; echo "skip=true" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: steps.secret.outputs.skip != 'true'
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        if: steps.secret.outputs.skip != 'true'
+        with:
+          python-version: '3.13'
+      - name: Install Claude Code
+        if: steps.secret.outputs.skip != 'true'
+        # 換成你在本機測過的版本；觸發行為會隨版本改變。
+        run: npm install -g @anthropic-ai/claude-code@2.1.325
+      - name: Run the trigger scenarios
+        if: steps.secret.outputs.skip != 'true'
+        # --env ANTHROPIC_API_KEY copies the key by name, so it never appears on a command line.
+        run: >
+          python evals/host/trigger.py run --framework . --base "$RUNNER_TEMP/base" --out "$RUNNER_TEMP/out"
+          --model "${{ inputs.model }}" --ids "${{ inputs.ids }}" --group framework --budget "${{ inputs.budget }}"
+          --env ANTHROPIC_API_KEY --allow-env ANTHROPIC_API_KEY
+      - name: Summarise
+        if: steps.secret.outputs.skip != 'true' && always()
+        run: python evals/host/trigger.py report "$RUNNER_TEMP/out" | tee "$RUNNER_TEMP/out/summary.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.secret.outputs.skip != 'true' && always()
+        with:
+          name: skill-triggers
+          path: ${{ runner.temp }}/out

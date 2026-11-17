@@ -150,11 +150,17 @@ def summarize(path: Path, inside: Path | None = None) -> dict:
 
 
 def _pairs(values: list[str]) -> dict[str, str]:
+    """NAME=VALUE sets a value; a bare NAME copies it from this process's environment,
+    so a secret such as an API key never has to appear on a command line."""
     pairs = {}
     for value in values:
         name, separator, text = value.partition("=")
-        if not separator or not name:
-            raise SystemExit(f"--env needs NAME=VALUE: {value!r}")
+        if not name:
+            raise SystemExit(f"--env needs NAME=VALUE or NAME: {value!r}")
+        if not separator:
+            if name not in os.environ:
+                raise SystemExit(f"--env {name}: not set in this environment")
+            text = os.environ[name]
         pairs[name] = text
     return pairs
 

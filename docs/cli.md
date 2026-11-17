@@ -139,6 +139,10 @@ Git hook 與 OpenCode plugin 依同一 manifest 選共享來源或工具副本�
 
 Git hook 的 `--apply` 與 `check --profile quick` 共用設定驗證：檢查名稱、參數陣列、profiles、工作目錄、timeout 及 encoding，並要求至少一項 quick 檢查。無效設定會在寫入 hook／安裝紀錄前拒絕；安裝時不執行設定中的命令。實際執行檔是否可用、命令是否成功，仍要在授權範圍內執行檢查確認；安裝成功不代表檢查已通過。
 
+額度用完、對話被壓縮或換模型時，用 continuity hooks 把狀態留在檔案裡：`integration template claude-continuity-hook` 取得程式，`integration template claude-continuity-settings` 取得設定寫法。
+它們做的事：session 開始時，若專案有交接檔（預設找 `HANDOFF.md`、`.ai/HANDOFF.md`、`docs/HANDOFF.md`）或上次留下的檢查點，提醒 AI 先讀；恢復一個快取已過期的舊對話時，告訴使用者重新讀入的估計費用。壓縮前要求摘要保留任務、決定、commit 與下一步；壓縮後、API 出錯（含 `rate_limit`）、session 結束、換模型前，把 git 狀態、錯誤、AI 最後一則訊息與壓縮摘要寫進 `.agf/checkpoints/latest.md`（另留最近 10 份）。換模型時若快取還熱、重新寫入估計超過 0.5 美元，顯示費用提醒，預設不擋。AI 準備結束時，若這個 session 做了 commit、交接檔卻比它們舊，提醒更新一次。
+沒有交接檔也沒有檢查點時，它們什麼都不輸出，不增加 token。檢查點只有程式收集得到的事實，計畫與決定仍要寫在交接檔裡。`.agf/` 若不在專案的 `.gitignore`，記得加上。2026-11-18 用 Claude Code 2.1.325 的無頭 session 實測：SessionStart、Stop、SessionEnd 都會觸發；PreCompact、PostCompact、StopFailure、PreModelSwitch 只有單元測試。
+
 原生權限擋不住的寫法（`git -C . push`、`sh -c`、從上層目錄啟動的 session），改用 guard hook：`integration template claude-guard-hook` 取得 PreToolUse hook 的程式，`integration template claude-guard-settings` 取得加進設定檔的寫法，再用一個 JSON 列出受保護的路徑。裝在 `~/.claude/settings.json` 時每個 session 都生效。它只看命令列，看不到程式執行後做的事、變數裡的路徑或執行時才組出的命令；涵蓋與不涵蓋的寫法見程式開頭的說明與 `tests/test_guard_hook.py`。
 
 Claude Code 的原生權限可從 `integration template claude-permissions` 取得範本：擋受保護目錄的 Edit 與 Write，也擋 `git push` 與建立 PR／MR。把 `//ABSOLUTE/PATH/TO/PROTECTED/**` 換成實際的絕對路徑（`//` 開頭表示從根目錄算起），審閱後再合併進專案的 `.claude/settings.json`；`project install` 不會替你寫入。佔位路徑沒換掉時，Edit 與 Write 的規則什麼都不保護。這份設定只在 Claude Code 從該專案目錄啟動時載入；從上層目錄啟動的 session 用不到它。2026-11-16 用 Claude Code 2.1.325 實測（每種情況一次）：Read 的規則擋下 Read、Glob 與 Grep；Edit、Write 的規則擋下這兩個工具，`cp` 寫進被保護的路徑也被擋，`python3 -c` 卻寫得進去。命令規則只比對開頭：`git push`、`gh pr create`、`glab mr create` 被擋，`git -C . push` 沒有。允許的工具裡沒有 Bash 時，`find`、`head` 這類唯讀命令仍會在工作目錄裡執行；要整個拿掉 Bash，用 `--disallowedTools Bash`。逐項紀錄與沒驗到的部分見 `adapters/claude.json` 的 `permissions`。

@@ -143,8 +143,38 @@ def segments(command: str) -> list[str]:
             current.append(char)
         index += 1
     parts.append("".join(current))
-    inner = re.findall(r"\$\(([^()]*)\)", command) + re.findall(r"`([^`]*)`", command)
-    return [part for part in parts + [s for body in inner for s in segments(body)] if part.strip()]
+    return [part for part in parts + [s for body in substitutions(command) for s in segments(body)] if part.strip()]
+
+
+def substitutions(text: str) -> list[str]:
+    """Bodies of $(...) and backticks that the shell would run: not those inside single quotes."""
+    visible = re.sub(r"'[^']*'", lambda m: " " * len(m.group()), text)
+    return re.findall(r"\$\(([^()]*)\)", visible) + re.findall(r"`([^`]*)`", visible)
+
+
+def strip_heredocs(command: str) -> tuple[str, list[str]]:
+    """(command without heredoc bodies, bodies whose delimiter was unquoted).
+
+    A body under a quoted delimiter (<<'EOF', <<"EOF") is data the shell never
+    expands, so it is dropped. An unquoted body is not a command either, but its
+    $(...) and backticks do run, so it is returned for those to be checked."""
+    lines, kept, expanded, index = command.split("\n"), [], [], 0
+    while index < len(lines):
+        line = lines[index]
+        kept.append(line)
+        index += 1
+        visible = re.sub(r"'[^']*'|\"[^\"]*\"", lambda m: m.group() if re.match(r"['\"][A-Za-z_]\w*['\"]$", m.group()) else " " * len(m.group()), line)
+        for dash, quote, delimiter in re.findall(r"(?<!<)<<(?!<)(-?)\s*(['\"]?)([A-Za-z_]\w*)\2", visible):
+            body = []
+            while index < len(lines):
+                candidate = lines[index].lstrip("\t") if dash else lines[index]
+                index += 1
+                if candidate == delimiter:
+                    break
+                body.append(lines[index - 1])
+            if not quote:
+                expanded.append("\n".join(body))
+    return "\n".join(kept), expanded
 
 
 def blank_quotes(segment: str) -> str:
@@ -267,6 +297,10 @@ def short_flags(argv: list[str]) -> str:
 def check_bash(command: str, cwd: Path, config: dict, depth: int = 0) -> None:
     if depth > 3:
         return
+    command, expanded = strip_heredocs(command)
+    for body in expanded:
+        for inner in substitutions(body):
+            check_bash(inner, cwd, config, depth + 1)
     for segment in segments(command):
         # Operators are found where nothing is quoted; the target is then read from
         # the original text, so `> "/protected/a"` is still seen.

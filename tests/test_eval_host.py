@@ -75,6 +75,12 @@ class RunClaudeTests(unittest.TestCase):
             self.assertEqual(summary["bash_ran"], ["find . -type f"])  # ran although Bash was never allowed
             self.assertEqual((summary["result"]["turns"], summary["result"]["cost_usd"]), (2, 0.5))
 
+    def test_a_bare_env_name_copies_the_value_without_putting_it_on_the_command_line(self):
+        with patch.dict(os.environ, {"AGF_TEST_SECRET": "s3cret"}):
+            self.assertEqual(run_claude._pairs(["AGF_TEST_SECRET", "A=1"]), {"AGF_TEST_SECRET": "s3cret", "A": "1"})
+        with self.assertRaises(SystemExit):
+            run_claude._pairs(["AGF_SURELY_UNSET_NAME"])
+
     def test_clean_environment_drops_host_channels(self):
         with patch.dict(os.environ, {"CLAUDECODE": "1", "CLAUDE_CODE_SSE_PORT": "4242", "HOME": "/h", "PATH": "/p"}):
             env = run_claude.clean_env({"ANTHROPIC_BASE_URL": "https://api.anthropic.com"})

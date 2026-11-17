@@ -219,7 +219,7 @@ def main() -> int:
     one.add_argument("--timeout", type=int, default=900)
     one.add_argument("--pid-file", type=Path)
     one.add_argument("--cli")
-    one.add_argument("--env", action="append", default=[], help="NAME=VALUE passed to every session (repeatable)")
+    one.add_argument("--env", action="append", default=[], help="NAME=VALUE, or NAME to copy it from this environment, passed to every session (repeatable)")
     one.add_argument("--allow-env", action="append", default=[], help="a host-like --env name the preflight may let through (repeatable)")
     one.add_argument("--forbid", action="append", default=[], help="a path no file in a run directory may name (repeatable)")
     one.add_argument("--allow-readonly-bash", action="store_true", help="keep Bash available (reproduces runs made before Bash was removed)")

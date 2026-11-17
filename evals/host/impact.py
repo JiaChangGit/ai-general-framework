@@ -264,7 +264,7 @@ def main() -> int:
     one.add_argument("--cli")
     one.add_argument("--env", action="append", default=[])
     one.add_argument("--allow-env", action="append", default=[])
-    one.add_argument("--forbid", action="append", default=[], type=Path)
+    one.add_argument("--forbid", action="append", default=[], help="a path the subject's files must not mention (repeatable)")
     one.set_defaults(func=run)
     two = sub.add_parser("report")
     two.add_argument("out", type=Path)

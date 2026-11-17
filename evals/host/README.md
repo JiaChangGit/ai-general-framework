@@ -40,6 +40,28 @@ Bash 預設用 `--disallowedTools Bash` 整個拿掉：Claude Code 2.1.325 實�
 - **框架本身的路徑。** shared 模式的安裝會把框架的絕對路徑寫進受試目錄的規則檔與 manifest（那是工具入口，設計如此），受試者可能照著去讀框架的按需參考；`outside_paths` 會記下這些讀取。預檢只搜尋 `--forbid` 給的路徑，報告也會列出它讀不了的檔。
 - **使用者層的設定照樣載入。** 受試 session 仍會載入使用者的全域設定（例如 hook、全域 `CLAUDE.md`、使用者層級的 skill），兩組相同；解讀結果時要記得它們存在。
 
+## 框架到底有沒有幫助、多花多少：`impact.py`
+
+`impact.py` 用 [`../impact/tasks.json`](../impact/tasks.json) 的任務做配對實驗：每個任務在「有裝框架」與「沒裝框架」兩組各跑 `--runs` 次，組別順序每個任務交替。
+任務的成敗由**隱藏檢查**決定：session 結束後才在工作目錄裡執行的 Python 片段、對最後回答的正規表示式，或對受試者寫出的檔案的正規表示式；受試者看不到它們。
+token（input、cache creation、cache read、output 分開）與費用取自 CLI 的 result 事件，加總一個任務的所有 session。
+
+```console
+python evals/host/impact.py run --framework . --base /tmp/agf-impact-base --out /tmp/agf-impact-out \
+  --model claude-sonnet-5-5 --switch-model claude-haiku-5-5 --runs 2 \
+  --hooks evals/impact/continuity-hooks.json --budget 0.5 --total-budget 3
+python evals/host/impact.py report /tmp/agf-impact-out
+```
+
+- 有兩個任務先跑一個被 `max_turns` 截斷的 session，再開新的 session 接著做：一個代表「額度用完，新 session 接手」，另一個在第二段換成 `--switch-model`，代表「換模型接手」。
+- `--hooks` 把那份 JSON 合併進框架組的 `.claude/settings.json`；`{framework}` 會換成框架的路徑。不給就只量規則與 skill。
+- `--total-budget` 是整次實驗的上限：下一個 session 可能讓總花費超過它時就停下，已完成的結果保留。`report` 另寫一份 `report.md`。
+- 受試者能用 Read、Grep、Glob、Edit、Write、Skill，Bash 整個拿掉；隔離與預檢和 `trigger.py` 相同。
+- `--env NAME` 不帶值時，從目前的環境複製那個變數，例如在 CI 裡傳 API key，不必把它寫在命令列上。
+- 每個條件只跑一兩次時，差異可能是雜訊。要比較時固定模型、任務與 CLI 版本；Claude Code 的快取在訂閱方案內是 1 小時、其他情況 5 分鐘，跑的先後會影響 cache read 的多寡，所以 token 要分開看，不只看總數。
+
+`.github/workflows/skill-triggers.yml` 讓同一套觸發檢查在 GitHub Actions 上跑：只在手動按下時執行，需要 `ANTHROPIC_API_KEY` secret，結果上傳成 artifact，不讓 build 失敗。
+
 ## 結果怎麼讀
 
 每個條件只跑一次時，差異可能只是雜訊，只能看方向。「用到了」只代表事件串流裡有那次呼叫或讀檔，不代表成果比較好；成果的品質要另外盲評。

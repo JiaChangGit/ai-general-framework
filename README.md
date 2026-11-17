@@ -72,7 +72,7 @@ python scripts/agf.py project rollback --target ../my-project
 |---|---|
 | 多模型、跨部門合作 | [分工指引](docs/workflow.md)先對齊成果、介面及失敗行為；模型與角色可互換，交接保留驗證、下一步、操作邊界與接手者自己要跑的核對命令；換模型、開子代理與用量上限的做法在「續接、換模型與用量」 |
 | 個人化、自然中文與教學 | `profile show --root DIR` 合併偏好；[表達指引](docs/writing.md)保留因果與真實修改理由；trace 與教學 skills 依讀者選圖和示範 |
-| 降低 token 消耗 | [按問題取資料](docs/tools.md)，搜尋限制筆數與文字量，重用 scripts；[首次文字層對照](evals/paired/results-2026-11-09.md)品質相同、框架組用量較高，原生選讀效果尚未驗證 |
+| 降低 token 消耗 | [按問題取資料](docs/tools.md)，搜尋限制筆數與文字量，重用 scripts。要知道框架實際多花或省下多少，用 `evals/host/impact.py` 在真實 session 裡做有無框架的配對量測（tokens 分 input、cache 與 output，加上隱藏檢查判斷成敗），做法見 [evals/host/README.md](evals/host/README.md) |
 | 降低 bug | 最小修改、風險相稱的檢查與 `review-change`；用原始失敗與相關回歸驗證成果 |
 | 有效率找根因 | `debug-root-cause` 用能區分假設的觀察縮小範圍，將緩解與原因確認分開 |
 | Grill me、對齊想法 | 平常依[需求對齊](docs/workflow.md)只問會改變決策的未知；要徹底對齊時叫用 `align-with-me` |
@@ -93,6 +93,9 @@ MCP 選用由宿主代理讀取規則後，透過其工具探索能力執行。R
 簡報沿用[按需簡報指引](templates/presentations/README.md)：主題、Excel／CSV 或作品連結交給 AI，依已連接能力編輯帳號作品，或把內容交給既有版型工具；核對數字、缺值、版面與實際可編輯範圍。配音、影片和分享需有相應工具與授權，框架沒有內建簡報引擎或新增 skill。
 
 資料製成 PDF、HTML、文字、聲音、歌曲與影片時，按需讀[跨格式成果指引](templates/outputs/README.md)：共用確認內容與素材，先驗代表小樣，再依交付格式檢查實際結果。既有工具用時選，不預裝創作平台；這批使用者參考來源的重複、採納與未採納理由見[取捨紀錄](docs/link-study.md)。
+
+額度用完、對話被壓縮或換模型時，continuity hooks 會把 git 狀態、錯誤、AI 最後一則訊息與壓縮摘要寫進 `.agf/checkpoints/latest.md`，下一個 session 開始時提醒先讀交接檔與檢查點；換模型前顯示重新讀入的估計費用。取得與安裝方式見 [CLI 操作](docs/cli.md)。
+`.github/workflows/skill-triggers.yml` 可以在 GitHub Actions 上手動執行 skill 觸發檢查（需要 `ANTHROPIC_API_KEY` secret，每次都會花錢）。
 
 要讓 Claude Code 在任何目錄啟動時都擋下 push 與寫入受保護的目錄，用 guard hook：
 

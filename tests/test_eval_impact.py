@@ -64,6 +64,11 @@ class ImpactTests(unittest.TestCase):
         # Only the framework group got the framework installed.
         self.assertFalse(any((self.temp / "base").iterdir()), "private run directories are removed")
 
+    def test_forbidden_paths_reach_the_preflight(self):
+        result, data = self.run_impact("--ids", "edit", "--runs", "1", "--group", "control", "--forbid", "/nowhere/original-project")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(data["runs"][0]["passed"])
+
     def test_a_task_the_subject_did_not_solve_fails_with_the_reason(self):
         _, data = self.run_impact("--ids", "edit", "--runs", "1", "--group", "control", mode="none")
         row = data["runs"][0]
