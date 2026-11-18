@@ -1,6 +1,6 @@
 ---
 name: review-sql
-description: Analyze slow SQL and execution plans, and review query rewrites, indexes, migrations or database permissions with test evidence and deployment boundaries. Excludes simple record lookup, general code review and database administration unrelated to a proposed change.
+description: Analyze slow SQL and execution plans, and review query rewrites, indexes, migrations or database permissions with test evidence and deployment boundaries. When the main question is why a reported failure or regression happened, debug-root-cause is the entry point and this skill reviews the SQL fix after it. Excludes simple record lookup, general code review and database administration unrelated to a proposed change.
 ---
 
 # 審查 SQL 效能與資料庫變更

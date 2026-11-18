@@ -159,6 +159,101 @@
    "checks": {
     "same_as": "continue-after-limit"
    }
+  },
+  {
+   "id": "decision-only-in-chat",
+   "kind": "continuation",
+   "files": {
+    "durations.py": "def format_duration(seconds):\n    raise NotImplementedError\n",
+    "README.md": "# durations\n\n`format_duration(seconds)`：把非負整數秒數轉成 `H:MM:SS`，例如 `3723` → `\"1:02:03\"`、`123` → `\"0:02:03\"`。負數 `raise ValueError`。\n"
+   },
+   "parts": [
+    {
+     "prompt": "實作 durations.py 的 format_duration。注意：README 寫的格式已經過時，產品上週決定改成 `1h02m03s` 這種寫法，小時是 0 時省略小時，例如 `123` → `2m03s`，`5` → `0m05s`；負數一樣 raise ValueError。README 先不要改，之後另外處理。",
+     "max_turns": 1
+    },
+    {
+     "prompt": "上一個 session 做這個目錄的工作做到一半，因為用量上限被中斷了。請接著把工作完成。"
+    }
+   ],
+   "checks": {
+    "python": [
+     "import durations as d\nassert d.format_duration(3723) == '1h02m03s', d.format_duration(3723)\nassert d.format_duration(123) == '2m03s'\nassert d.format_duration(5) == '0m05s'\ntry:\n    d.format_duration(-1)\nexcept ValueError:\n    pass\nelse:\n    raise AssertionError('negative')"
+    ],
+    "file_patterns": {
+     "README.md": [
+      "1:02:03"
+     ]
+    }
+   }
+  },
+  {
+   "id": "decision-only-in-chat-switch",
+   "kind": "continuation",
+   "files": {
+    "bill.py": "def split_bill(total_cents, people):\n    raise NotImplementedError\n",
+    "README.md": "# bill\n\n`split_bill(total_cents, people)`：把總金額（整數，單位是分）平均分給 `people` 個人，回傳每人金額的 list。除不盡的餘數全部給最後一個人，例如 `split_bill(100, 3)` → `[33, 33, 34]`。`people` 小於 1 時 `raise ValueError`。\n"
+   },
+   "parts": [
+    {
+     "prompt": "實作 bill.py 的 split_bill。注意：會計剛說 README 的分法不對，餘數要從第一個人開始，每人多分 1 分，直到分完，例如 `split_bill(100, 3)` → `[34, 33, 33]`、`split_bill(101, 3)` → `[34, 34, 33]`。README 先不要改。",
+     "max_turns": 1
+    },
+    {
+     "prompt": "另一個模型先做了這個目錄的工作，還沒做完就換你接手。請接著把工作完成。",
+     "model": "switch"
+    }
+   ],
+   "checks": {
+    "python": [
+     "import bill\nassert bill.split_bill(100, 3) == [34, 33, 33], bill.split_bill(100, 3)\nassert bill.split_bill(101, 3) == [34, 34, 33]\nassert bill.split_bill(99, 3) == [33, 33, 33]\ntry:\n    bill.split_bill(10, 0)\nexcept ValueError:\n    pass\nelse:\n    raise AssertionError('zero people')"
+    ],
+    "file_patterns": {
+     "README.md": [
+      "\\[33, 33, 34\\]"
+     ]
+    }
+   }
+  },
+  {
+   "id": "docs-follow-the-change",
+   "kind": "simple",
+   "files": {
+    "greeting.py": "def greet(name):\n    return 'Hello, ' + name\n",
+    "README.md": "# greeting\n\n```python\n>>> from greeting import greet\n>>> greet('Ann')\n'Hello, Ann'\n```\n"
+   },
+   "parts": [
+    {
+     "prompt": "把 greet 的回傳改成 `Hi, <name>!`，例如 greet('Ann') 回傳 'Hi, Ann!'。"
+    }
+   ],
+   "checks": {
+    "python": [
+     "import greeting\nassert greeting.greet('Ann') == 'Hi, Ann!'"
+    ],
+    "file_patterns": {
+     "README.md": [
+      "'Hi, Ann!'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "probe-context",
+   "kind": "probe",
+   "files": {
+    "README.md": "這是一個空的練習目錄。\n"
+   },
+   "parts": [
+    {
+     "prompt": "只回覆 OK 兩個英文字母。不要讀檔，也不要叫用任何工具或 skill。"
+    }
+   ],
+   "checks": {
+    "answer_patterns": [
+     "OK"
+    ]
+   }
   }
  ]
 }

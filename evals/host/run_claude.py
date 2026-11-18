@@ -98,7 +98,7 @@ def outside(paths: list[str], inside: Path) -> list[str]:
 
 
 def summarize(path: Path, inside: Path | None = None) -> dict:
-    summary = {"skills_listed": None, "tools_listed": None, "model": None, "version": None, "cwd": None,
+    summary = {"skills_listed": None, "tools_listed": None, "model": None, "version": None, "cwd": None, "first_context_tokens": None,
                "tool_uses": [], "skill_calls": [], "skill_reads": [], "files_read": [], "tool_errors": [], "bash_ran": [], "result": None}
     pending, commands = {}, {}
     for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
@@ -111,6 +111,11 @@ def summarize(path: Path, inside: Path | None = None) -> dict:
             summary.update(skills_listed=event.get("skills"), tools_listed=len(event.get("tools") or []),
                            model=event.get("model"), version=event.get("claude_code_version"), cwd=event.get("cwd"))
         elif kind == "assistant":
+            usage = event.get("message", {}).get("usage")
+            if summary["first_context_tokens"] is None and isinstance(usage, dict):
+                # What the first model call read: system prompt, tools, rules, skill list, prompt.
+                summary["first_context_tokens"] = sum(usage.get(key) or 0 for key in
+                                                      ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
             for part in event.get("message", {}).get("content", []):
                 if part.get("type") != "tool_use":
                     continue

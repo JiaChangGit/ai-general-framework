@@ -8,7 +8,7 @@ import unittest
 from unittest import mock
 
 from agf.common import AgfError
-from agf.execution import check_project, run_command
+from agf.execution import check_project, run_command, validate_checks
 
 
 class ExecutionTests(unittest.TestCase):
@@ -382,6 +382,26 @@ class ExecutionTests(unittest.TestCase):
                 {"name": "regression", "argv": ["{python}", "-c", "raise SystemExit(3)"], "profiles": ["full"]}]}))
             self.assertEqual(check_project(temp, path, "quick")["status"], "PASS")
             self.assertEqual(check_project(temp, path, "full")["status"], "FAIL")
+
+    def test_the_periodic_profile_runs_only_the_checks_that_list_it(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "quality.json"
+            path.write_text(json.dumps({"version": 1, "checks": [
+                {"name": "unit", "argv": ["{python}", "-c", "print('unit')"]},
+                {"name": "demo", "argv": ["{python}", "-c", "print('demo')"], "profiles": ["periodic"]}]}))
+            self.assertEqual([item["name"] for item in check_project(temp, path, "periodic")["checks"]], ["demo"])
+            self.assertEqual([item["name"] for item in check_project(temp, path, "full")["checks"]], ["unit"])
+            path.write_text(json.dumps({"version": 1, "checks": [{"name": "unit", "argv": ["{python}", "-c", "print(1)"]}]}))
+            with self.assertRaises(AgfError):
+                check_project(temp, path, "periodic")
+
+    def test_the_shipped_quality_template_is_valid_for_every_profile(self):
+        template = Path(__file__).resolve().parents[1] / "templates" / "quality.example.json"
+        data = json.loads(template.read_text(encoding="utf-8"))
+        self.assertTrue(any("periodic" in check.get("profiles", []) for check in data["checks"]))
+        with tempfile.TemporaryDirectory() as temp:
+            for profile in ("quick", "full", "periodic"):
+                self.assertTrue(validate_checks(temp, template, profile), profile)
 
     def test_all_selected_checks_are_validated_before_any_check_runs(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -10,7 +10,11 @@
 Each task in evals/impact/tasks.json is run --runs times in each group. The
 framework group gets `project install --host claude` with the chosen skills,
 and, with --hooks, a .claude/settings.json built from that file (for example
-the continuity hooks); the control group gets the task files only. A task has
+the continuity hooks); the control group gets the task files only. Two more
+groups split the framework's fixed cost: rules-only (the install without
+skills) and skills-only (the skills without CLAUDE.md, AGENTS.md and .agf/).
+Neither gets the hooks. Each part records first_context_tokens, what the
+first model call read, so the groups' fixed cost can be compared directly. A task has
 one or more parts: every part is a new session in the same directory, so a part
 with max_turns that is cut off, followed by a fresh part, stands for "the usage
 limit stopped the session and a new one has to continue". A part with
@@ -58,6 +62,7 @@ import run_claude  # noqa: E402
 import trigger  # noqa: E402
 
 TOOLS = "Read Grep Glob Edit Write Skill"
+GROUPS = ("framework", "control", "rules-only", "skills-only")
 TOKEN_KEYS = ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "output_tokens")
 
 
@@ -174,9 +179,13 @@ def run_one(args, framework, base, out, cli, env, startup, task, group, repeat, 
         work.mkdir()
         for name, text in task["files"].items():
             (work / name).write_text(text, encoding="utf-8")
-        if group == "framework":
-            trigger._install(framework, work, skills)
-            if args.hooks:
+        if group != "control":
+            trigger._install(framework, work, [] if group == "rules-only" else skills)
+            if group == "skills-only":
+                for name in ("CLAUDE.md", "AGENTS.md"):
+                    (work / name).unlink(missing_ok=True)
+                shutil.rmtree(work / ".agf", ignore_errors=True)
+            if args.hooks and group == "framework":
                 _install_hooks(framework, work, args.hooks.resolve())
         checked = preflight.check(work, args.forbid, env, set(args.allow_env))
         if not checked["ok"]:
@@ -198,6 +207,7 @@ def run_one(args, framework, base, out, cli, env, startup, task, group, repeat, 
             planned_cut = part.get("max_turns") and result.get("subtype") == "error_max_turns"
             row["parts"].append({"model": model, "exit": code, "subtype": result.get("subtype"), "planned_cut": bool(planned_cut),
                                  "turns": result.get("turns"), "cost_usd": result.get("cost_usd"),
+                                 "first_context_tokens": summary.get("first_context_tokens"),
                                  **{key: result.get(key) for key in TOKEN_KEYS},
                                  "skills_used": trigger.measure(summary, None)["skills_used"],
                                  "files_read": [path.replace(str(work), ".") for path in summary["files_read"]],
@@ -226,7 +236,8 @@ def summarize_runs(data: dict) -> dict:
     table = {}
     for row in done:
         cell = table.setdefault(row["task"], {}).setdefault(row["group"], {"runs": 0, "passed": 0, "cost": [], "tokens": [], "turns": [], "last_part_tokens": [],
-                                                                            "cuts_planned": 0, "cuts_happened": 0, "outside_reads": 0})
+                                                                            "cuts_planned": 0, "cuts_happened": 0, "outside_reads": 0,
+                                                                            "first_context": []})
         cell["runs"] += 1
         cell["passed"] += bool(row["passed"])
         for part in row["parts"][:-1]:
@@ -234,6 +245,8 @@ def summarize_runs(data: dict) -> dict:
             cell["cuts_planned"] += 1
             cell["cuts_happened"] += bool(part.get("planned_cut"))
         cell["outside_reads"] += sum(len(part.get("outside_paths") or []) for part in row["parts"])
+        if row["parts"] and row["parts"][0].get("first_context_tokens") is not None:
+            cell["first_context"].append(row["parts"][0]["first_context_tokens"])
         cell["cost"].append(_sum(row, "cost_usd"))
         cell["tokens"].append(sum(_sum(row, key) for key in TOKEN_KEYS))
         cell["turns"].append(_sum(row, "turns"))
@@ -251,6 +264,7 @@ def summarize_runs(data: dict) -> dict:
     tasks = {task: {group: {"passed": f"{cell['passed']}/{cell['runs']}", "median_cost_usd": median(cell["cost"]),
                             "median_tokens": median(cell["tokens"]), "median_turns": median(cell["turns"]),
                             "median_last_part_tokens": median(cell["last_part_tokens"]), "outside_reads": cell["outside_reads"],
+                            "median_first_context_tokens": median(cell["first_context"]),
                             **({"cuts": f"{cell['cuts_happened']}/{cell['cuts_planned']}"} if cell["cuts_planned"] else {})}
                     for group, cell in cells.items()} for task, cells in table.items()}
     return {"model": data["model"], "switch_model": data.get("switch_model"), "framework_commit": data["framework_commit"],
@@ -290,12 +304,12 @@ def report(args: argparse.Namespace) -> int:
         return 2
     summary = summarize_runs(data)
     print(json.dumps(summary, ensure_ascii=False, indent=1))
-    lines = ["| task | group | passed | median cost (USD) | median tokens | median turns | last session tokens | cut as planned | reads outside |",
-             "|---|---|---|---|---|---|---|---|---|"]
+    lines = ["| task | group | passed | median cost (USD) | median tokens | median turns | last session tokens | first call context | cut as planned | reads outside |",
+             "|---|---|---|---|---|---|---|---|---|---|"]
     for task, cells in summary["tasks"].items():
         for group, cell in sorted(cells.items()):
             lines.append(f"| {task} | {group} | {cell['passed']} | {cell['median_cost_usd']} | {cell['median_tokens']} | {cell['median_turns']} "
-                         f"| {cell['median_last_part_tokens']} | {cell.get('cuts', '—')} | {cell['outside_reads']} |")
+                         f"| {cell['median_last_part_tokens']} | {cell['median_first_context_tokens']} | {cell.get('cuts', '—')} | {cell['outside_reads']} |")
     target = args.md or (args.out[0] / "report.md" if len(args.out) == 1 else None)
     if target:
         target.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -314,7 +328,7 @@ def main() -> int:
     one.add_argument("--tasks", type=Path, help="task file (default: the framework's evals/impact/tasks.json)")
     one.add_argument("--ids", action="append", help="task ids, comma-separated or repeated (default: all)")
     one.add_argument("--runs", type=int, default=2, help="repeats per task and group")
-    one.add_argument("--group", action="append", choices=("framework", "control"))
+    one.add_argument("--group", action="append", choices=GROUPS)
     one.add_argument("--skill", action="append", help="skills installed in the framework group (default: all)")
     one.add_argument("--hooks", type=Path, help="JSON merged into the framework group's .claude/settings.json")
     one.add_argument("--budget", type=float, default=0.5, help="per-session --max-budget-usd")

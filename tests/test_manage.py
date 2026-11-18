@@ -135,6 +135,20 @@ class ProjectTests(unittest.TestCase):
         (self.root / "CLAUDE.md").write_text("@bad\x00name\n@also/../../../../../../../../nowhere\n", encoding="utf-8")
         self.assertEqual(manage._rules_state(self.root, "CLAUDE.md", follow=True), "not_found")
 
+    def test_status_notes_a_parent_directory_with_its_own_claude_code_files(self):
+        # S8 and S10 started sessions one level up; the project's skills and deny rules did not load.
+        self.run_project("install", True, ["claude"])
+        parent = self.root.parent
+        (parent / ".claude").mkdir()
+        (parent / ".claude" / "settings.json").write_text("{}", encoding="utf-8")
+        status = self.run_project("status")
+        mine = [item for item in status["parent_claude_dirs"] if item["path"] == str(parent)]
+        self.assertEqual(mine, [{"path": str(parent), "files": [".claude/settings.json"]}])
+        self.assertTrue(any(str(parent) in notice and "Start Claude Code from" in notice for notice in status["launch_notices"]))
+        self.assertEqual(status["warnings"], [], "a notice, not a warning: the project itself is fine")
+        shutil.rmtree(parent / ".claude")
+        self.assertFalse([item for item in self.run_project("status")["parent_claude_dirs"] if item["path"] == str(parent)])
+
     def test_status_without_installation_has_no_rule_entries(self):
         status = self.run_project("status")
         self.assertEqual((status["rule_entries"], status["warnings"]), ([], []))

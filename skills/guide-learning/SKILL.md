@@ -1,6 +1,6 @@
 ---
 name: guide-learning
-description: Teach a repository, programming or engineering concept, or tool through examples matched to the learner. Excludes a specified paper or spec (use read-research), execution tracing alone, ordinary implementation, and fiction, music, or video creation.
+description: Teach a repository, programming or engineering concept, or tool through examples matched to the learner. Also the entry point when someone wants to learn a method, such as how to trace code or read a plan, through a demonstration plus practice, even if the demonstration is a concrete trace. Excludes a specified paper or spec (use read-research), execution tracing alone, ordinary implementation, and fiction, music, or video creation.
 ---
 
 # 依目標與理解程度帶讀

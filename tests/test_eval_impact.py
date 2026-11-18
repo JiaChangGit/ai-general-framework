@@ -18,9 +18,10 @@ cut = "--max-turns" in sys.argv
 print(json.dumps({{"type": "system", "subtype": "init", "skills": [], "tools": ["Read"], "model": "fake", "cwd": os.getcwd()}}))
 if mode == "fix" and not cut and Path("greeting.py").exists():
     Path("greeting.py").write_text("def greet(name):\\n    return 'Hello, ' + name\\n")
-print(json.dumps({{"type": "assistant", "message": {{"content": []}}}}))
+print(json.dumps({{"type": "assistant", "message": {{"content": [], "usage": {{"input_tokens": 10, "cache_creation_input_tokens": 5, "cache_read_input_tokens": 1}}}}}}))
+seen = " ".join(name for name in ("CLAUDE.md", "AGENTS.md", ".agf", ".claude/skills", ".claude/settings.json") if Path(name).exists())
 print(json.dumps({{"type": "result", "is_error": cut, "subtype": "error_max_turns" if cut else "success", "num_turns": 2,
-                  "total_cost_usd": 0.02, "result": "renamed n to name",
+                  "total_cost_usd": 0.02, "result": "renamed n to name; saw: " + seen,
                   "usage": {{"input_tokens": 100, "cache_creation_input_tokens": 50, "cache_read_input_tokens": 200, "output_tokens": 30}}}}))
 sys.exit(1 if cut else 0)
 '''
@@ -133,6 +134,19 @@ class ImpactTests(unittest.TestCase):
         self.assertNotIn(str(ROOT), settings)
         self.assertTrue((work / ".claude" / "agf-hooks" / "claude-continuity-hook.py").is_file())
         self.assertIn(str(work / ".claude" / "agf-hooks" / "claude-continuity-hook.py"), settings)
+
+    def test_rules_only_and_skills_only_split_the_install(self):
+        result, data = self.run_impact("--ids", "edit", "--runs", "1", "--group", "rules-only", "--group", "skills-only")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        seen = {group: (self.temp / "out" / "outputs" / f"edit-{group}-0.md").read_text(encoding="utf-8") for group in ("rules-only", "skills-only")}
+        self.assertIn("CLAUDE.md", seen["rules-only"])
+        self.assertNotIn(".claude/skills", seen["rules-only"])
+        self.assertIn(".claude/skills", seen["skills-only"])
+        for name in ("CLAUDE.md", "AGENTS.md", ".agf"):
+            self.assertNotIn(name, seen["skills-only"].split("saw:")[1].split())
+        self.assertTrue(all(row["parts"][0]["first_context_tokens"] == 16 for row in data["runs"]))
+        summary = impact.summarize_runs(data)
+        self.assertEqual(summary["tasks"]["edit"]["skills-only"]["median_first_context_tokens"], 16)
 
     def test_a_switch_task_needs_the_second_model(self):
         tasks = json.loads(self.tasks.read_text())

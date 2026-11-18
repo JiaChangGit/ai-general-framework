@@ -314,5 +314,6 @@ def register(subparsers):
     check = subparsers.add_parser("check", help="Run configured project checks; empty gates fail")
     check.add_argument("--root", default=".")
     check.add_argument("--config", required=True)
-    check.add_argument("--profile", choices=["quick", "full"], default="quick")
+    check.add_argument("--profile", choices=["quick", "full", "periodic"], default="quick",
+                       help="periodic runs only checks that list it: slow ones that run rarely and break unnoticed")
     check.set_defaults(func=lambda args: check_project(args.root, args.config, args.profile))

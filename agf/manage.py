@@ -174,6 +174,32 @@ def _rule_entries(root: Path, hosts: list[str]) -> tuple[list[dict], list[str]]:
     return sorted(entries, key=lambda entry: entry["path"]), warnings
 
 
+CLAUDE_PROJECT_FILES = (".claude/settings.json", ".claude/settings.local.json", ".claude/skills", "CLAUDE.md")
+
+
+def _launch_notices(root: Path, hosts: list[str]) -> tuple[list[dict], list[str]]:
+    """Directories above the project that have their own Claude Code project files.
+
+    Someone who starts Claude Code there gets that directory's settings, not this
+    project's: the project's .claude/settings.json (permissions, hooks) is not
+    loaded. Headless sessions of Claude Code 2.1.325 (2026-11-18) did not list the
+    project's skills either. The home directory is skipped: ~/.claude is user-level."""
+    if "claude" not in hosts:
+        return [], []
+    home = Path.home().resolve()
+    found = []
+    for parent in root.parents:
+        if parent == home or parent == Path(parent.anchor):
+            continue
+        files = [name for name in CLAUDE_PROJECT_FILES if (parent / name).exists()]
+        if files:
+            found.append({"path": str(parent), "files": files})
+    notices = [f"{item['path']} has its own Claude Code project files ({', '.join(item['files'])}). A session started there does not load "
+               f"this project's .claude/settings.json (permissions, hooks), and headless sessions of Claude Code 2.1.325 did not list this "
+               f"project's skills either. Start Claude Code from {root} to work on this project." for item in found]
+    return found, notices
+
+
 def _preserved_notice(root: Path, name: str) -> str:
     kept = f"Preserved existing {name}; existing instructions are not rewritten."
     if name == "AGENTS.md":
@@ -513,8 +539,10 @@ def project(args: argparse.Namespace) -> dict:
         entry = Path(old["source"]) / "scripts/agf.py" if tools_mode == "shared" else root / ".agf/managed/runtime/scripts/agf.py"
         tools_available = old is not None and entry.is_absolute() and entry.is_file()
         rule_entries, warnings = _rule_entries(root, (old or {}).get("hosts", []))
+        parents, launch_notices = _launch_notices(root, (old or {}).get("hosts", []))
         return {"command": "project status", "target": str(root), "installed": old is not None,
                 "rule_entries": rule_entries, "warnings": warnings,
+                "parent_claude_dirs": parents, "launch_notices": launch_notices,
                 "hosts": (old or {}).get("hosts", []), "managed_files": len((old or {}).get("files", {})),
                 "drift": drift, "clean": old is not None and not drift,
                 "tools_mode": tools_mode, "tools_available": tools_available,

@@ -1,13 +1,66 @@
 {
   "version": 1,
-  "description": "Python stdlib 專案範例；先確認 tests 是目標專案的真實測試入口，再存為 .agf/quality.json。",
+  "description": "Python stdlib 專案範例；先確認 tests 是目標專案的真實測試入口，再存為 .agf/quality.json。periodic 的三項是例子：換成專案真的有的示範腳本、文件裡的命令與乾淨重建，沒有的就刪掉。",
   "checks": [
     {
       "name": "unit-tests",
-      "argv": ["{python}", "-m", "unittest", "discover", "-s", "tests", "-v"],
+      "argv": [
+        "{python}",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-v"
+      ],
       "cwd": ".",
       "timeout": 120,
-      "profiles": ["quick", "full"]
+      "profiles": [
+        "quick",
+        "full"
+      ]
+    },
+    {
+      "name": "demo-runs-to-the-end",
+      "note": "文件教讀者執行的示範；只在寫文件時跑過一次的命令，最容易在之後的修改裡壞掉",
+      "argv": [
+        "{python}",
+        "examples/demo.py"
+      ],
+      "cwd": ".",
+      "timeout": 300,
+      "max_output_bytes": 1048576,
+      "profiles": [
+        "periodic"
+      ]
+    },
+    {
+      "name": "documented-commands",
+      "note": "把 README 或教學裡的命令寫成一支腳本，逐一執行並比對文件寫的結果",
+      "argv": [
+        "{python}",
+        "scripts/check_documented_commands.py"
+      ],
+      "cwd": ".",
+      "timeout": 600,
+      "max_output_bytes": 1048576,
+      "profiles": [
+        "periodic"
+      ]
+    },
+    {
+      "name": "clean-rebuild",
+      "note": "在新的目錄 clone 一份、從頭安裝與建置、跑全部測試；抓得到只在全新環境才出現的問題",
+      "argv": [
+        "{python}",
+        "scripts/clean_rebuild.py"
+      ],
+      "cwd": ".",
+      "timeout": 1800,
+      "max_output_bytes": 4194304,
+      "profiles": [
+        "periodic"
+      ]
     }
   ]
 }

@@ -7,7 +7,7 @@ import shutil
 import subprocess
 
 from agf.common import AgfError
-from agf.evidence import check_task, handoff, record_task
+from agf.evidence import check_task, checkpoint, handoff, record_task
 
 
 class EvidenceTests(unittest.TestCase):
@@ -136,3 +136,33 @@ class EvidenceTests(unittest.TestCase):
             self.assertEqual(check_task(output)["status"], "UNCHANGED")
             (root / "new.txt").write_text("new change")
             self.assertEqual(check_task(output)["status"], "STALE_OR_MISSING")
+
+
+class CheckpointTests(unittest.TestCase):
+    def test_a_checkpoint_appends_done_doing_next_and_git_facts(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            subprocess.run(["git", "-C", temp, "init", "-q"], check=True)
+            subprocess.run(["git", "-C", temp, "-c", "user.name=t", "-c", "user.email=t@example.invalid", "commit", "-q",
+                            "--allow-empty", "-m", "parse() works"], check=True)
+            (root / "format.py").write_text("x = 1\n")
+            handoff_file = root / "HANDOFF.md"
+            handoff_file.write_text("# 交接\n\n舊的內容\n", encoding="utf-8")
+            result = checkpoint(["parse()（abc1234）"], ["format()"], ["跑 format 的測試", "更新 README"], repo=temp, append=handoff_file)
+            text = handoff_file.read_text(encoding="utf-8")
+            self.assertTrue(text.startswith("# 交接\n\n舊的內容\n\n## 檢查點 "), text)
+            for line in ("- 已完成：parse()（abc1234）", "- 進行中：format()", "- 下一步：跑 format 的測試", "- 下一步：更新 README"):
+                self.assertIn(line, text)
+            self.assertIn("parse() works", text)
+            self.assertIn("`format.py`", text)
+            self.assertEqual(result["repository"]["changed_paths"], ["HANDOFF.md", "format.py"])
+
+    def test_an_empty_checkpoint_or_a_missing_file_is_refused(self):
+        with tempfile.TemporaryDirectory() as temp:
+            with self.assertRaises(AgfError):
+                checkpoint()
+            with self.assertRaises(AgfError):
+                checkpoint(["done"], append=Path(temp) / "missing.md")
+            with self.assertRaises(AgfError):
+                checkpoint(["  "])
+            self.assertNotIn("repository", checkpoint(next_steps=["only a next step"]))

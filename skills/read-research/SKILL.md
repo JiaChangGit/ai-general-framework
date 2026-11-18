@@ -1,6 +1,6 @@
 ---
 name: read-research
-description: Read or teach research papers or technical specifications, or synthesize literature for a focused research question, checking claims, conditions and limits against sources. Excludes extraction or conversion alone, general web collection, repository teaching and creative writing.
+description: Read or teach research papers or technical specifications, or synthesize literature for a focused research question, checking claims, conditions and limits against sources. Also use to check whether a summary, excerpt, or cleaned or converted copy of a spec or paper faithfully represents the original. Excludes extraction or conversion alone, general web collection, repository teaching and creative writing.
 ---
 
 # 帶著問題讀論文與規格

@@ -121,6 +121,50 @@ def handoff(path, output=None):
     return {"status": "GENERATED", "markdown": text, "output": output}
 
 
+def checkpoint(done=(), doing=(), next_steps=(), repo=None, append=None):
+    """A short milestone note: done, in progress, next, plus Git facts collected here.
+
+    Cheap enough to write at every milestone. With --append, the Markdown block is
+    added to the end of an existing hand-off file; nothing else in it changes."""
+    lists = {"done": list(done or []), "in_progress": list(doing or []), "next_steps": list(next_steps or [])}
+    for key, values in lists.items():
+        if not all(isinstance(value, str) and value.strip() for value in values):
+            raise AgfError(f"{key} entries must be nonempty strings.")
+    if not any(lists.values()):
+        raise AgfError("A checkpoint needs at least one --done, --doing or --next.")
+    now = datetime.now(timezone.utc)
+    result = {"version": 1, "kind": "checkpoint", "status": "RECORDED", "recorded_at": now.isoformat(), **lists}
+    facts = []
+    if repo:
+        from .gittools import changed_paths, git
+        branch = git(repo, "branch", "--show-current")["stdout"].strip()
+        head = git(repo, "log", "-1", "--format=%h %s", accepted=(0, 128))
+        paths = changed_paths(repo)
+        result["repository"] = {"repo": str(Path(repo).resolve()), "branch": branch or None,
+                                "head": head["stdout"].strip() if head["exit_code"] == 0 else None, "changed_paths": paths}
+        facts.append(f"- Git：分支 `{branch or '（detached）'}`，HEAD `{result['repository']['head'] or '（沒有 commit）'}`，"
+                     f"未 commit 的路徑 {len(paths)} 個" + (f"（{'、'.join(f'`{path}`' for path in paths[:5])}{'…' if len(paths) > 5 else ''}）" if paths else ""))
+    local = now.astimezone().strftime("%Y-%m-%d %H:%M %z")
+    block = [f"## 檢查點 {local}", ""]
+    for key, label in (("done", "已完成"), ("in_progress", "進行中"), ("next_steps", "下一步")):
+        block += [f"- {label}：{value}" for value in lists[key]]
+    block += facts
+    result["markdown"] = "\n".join(block) + "\n"
+    if append:
+        target = Path(append)
+        if not target.is_file():
+            raise AgfError(f"--append needs an existing file: {target}")
+        current = target.read_text(encoding="utf-8")
+        separator = "" if not current or current.endswith("\n\n") else ("\n" if current.endswith("\n") else "\n\n")
+        try:
+            with target.open("a", encoding="utf-8", newline="\n") as stream:
+                stream.write(separator + result["markdown"])
+        except OSError as exc:
+            raise AgfError(f"Cannot append to {target}: {exc}") from exc
+        result["appended_to"] = str(target)
+    return result
+
+
 def register(subparsers):
     group = subparsers.add_parser("task", help="Record task scope, decisions and evidence for optional handoff")
     children = group.add_subparsers(dest="task_action", required=True)
@@ -137,3 +181,10 @@ def register(subparsers):
     item.add_argument("path")
     item.add_argument("--output")
     item.set_defaults(func=lambda a: handoff(a.path, a.output))
+    item = children.add_parser("checkpoint", help="Note done / in progress / next at a milestone, with Git facts")
+    item.add_argument("--done", action="append", default=[], help="finished work, ideally with its commit (repeatable)")
+    item.add_argument("--doing", action="append", default=[], help="work in progress (repeatable)")
+    item.add_argument("--next", dest="next_steps", action="append", default=[], help="next step, in order (repeatable)")
+    item.add_argument("--repo", help="add branch, HEAD and uncommitted paths from this Git repository")
+    item.add_argument("--append", help="existing hand-off file to add the Markdown block to")
+    item.set_defaults(func=lambda a: checkpoint(a.done, a.doing, a.next_steps, a.repo, a.append))

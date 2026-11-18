@@ -22,6 +22,10 @@ has nothing to say prints nothing, so it costs no tokens.
   pre-model-switch  PreModelSwitch. Saves a checkpoint; when the cache is warm
                     and re-writing it is estimated above switch_warn_usd, shows
                     the cost to the user. It blocks only with block_switch.
+  user-prompt       UserPromptSubmit, only with "save_prompts": true. Keeps the
+                    user's messages of this session (each clipped, the newest 20)
+                    so that checkpoints show decisions made only in chat. Off by
+                    default: what people type can include passwords or keys.
   stop              Stop. Once per session, if commits were made during this
                     session (as recorded by session-start) after the hand-off
                     file was last changed, asks the model to update it before
@@ -30,13 +34,15 @@ has nothing to say prints nothing, so it costs no tokens.
 Checkpoints are Markdown files in checkpoint_dir (default .agf/checkpoints):
 latest.md plus timestamped copies, the newest `keep` (at least 1) of them kept. They hold
 facts a script can collect (time, event, git branch, HEAD, recent commits,
-status, the error, the last assistant message, the compaction summary), not a
-plan; the plan belongs in the hand-off file the model writes.
+status, the error, the last assistant message, the compaction summary, and
+with save_prompts the user's last messages), not a plan; the plan belongs in
+the hand-off file the model writes.
 
 Configuration (all optional):
   {"handoff_files": ["HANDOFF.md", ".ai/HANDOFF.md", "docs/HANDOFF.md"],
    "checkpoint_dir": ".agf/checkpoints", "keep": 10,
-   "switch_warn_usd": 0.5, "block_switch": false, "stop_reminder": true}
+   "switch_warn_usd": 0.5, "block_switch": false, "stop_reminder": true,
+   "save_prompts": false}
 Paths are relative to the project directory ($CLAUDE_PROJECT_DIR, else cwd).
 """
 from __future__ import annotations
@@ -50,7 +56,8 @@ import sys
 import time
 
 DEFAULTS = {"handoff_files": ["HANDOFF.md", ".ai/HANDOFF.md", "docs/HANDOFF.md"], "checkpoint_dir": ".agf/checkpoints",
-            "keep": 10, "switch_warn_usd": 0.5, "block_switch": False, "stop_reminder": True}
+            "keep": 10, "switch_warn_usd": 0.5, "block_switch": False, "stop_reminder": True, "save_prompts": False}
+PROMPTS_KEPT, PROMPT_LIMIT, PROMPTS_SHOWN = 20, 2000, 5
 LIMIT = 6000  # characters kept from any single field, well under the 10,000-character hook output cap
 # Seconds the git calls of one event may take in total, below the hook timeout in the
 # settings example (10 s). A PreModelSwitch hook that times out blocks the switch, and
@@ -121,6 +128,36 @@ def handoff_time(root: Path, path: Path) -> float:
 
 def session_marker(root: Path, config: dict, event: dict) -> Path:
     return root / config["checkpoint_dir"] / f".session-{event.get('session_id', 'unknown')}"
+
+
+def prompts_file(root: Path, config: dict, event: dict) -> Path:
+    return session_marker(root, config, event).with_name(f".prompts-{event.get('session_id', 'unknown')}.jsonl")
+
+
+def save_prompt(root: Path, config: dict, event: dict) -> None:
+    prompt = event.get("prompt")
+    if not config["save_prompts"] or not isinstance(prompt, str) or not prompt.strip():
+        return
+    path = prompts_file(root, config, event)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = path.read_text(encoding="utf-8").splitlines() if path.is_file() else []
+    lines.append(json.dumps({"time": datetime.now().astimezone().strftime("%H:%M"), "prompt": clip(prompt, PROMPT_LIMIT)}, ensure_ascii=False))
+    path.write_text("\n".join(lines[-PROMPTS_KEPT:]) + "\n", encoding="utf-8")
+
+
+def recent_prompts(root: Path, config: dict, event: dict) -> str:
+    """The user's newest messages of this session, oldest first, when save_prompts is on."""
+    path = prompts_file(root, config, event)
+    if not config["save_prompts"] or not path.is_file():
+        return ""
+    entries = []
+    for line in path.read_text(encoding="utf-8").splitlines()[-PROMPTS_SHOWN:]:
+        try:
+            entry = json.loads(line)
+            entries.append(f"- {entry['time']}：{entry['prompt']}")
+        except (ValueError, KeyError, TypeError):
+            continue
+    return "\n".join(entries)
 
 
 def saved_message(root: Path, config: dict, event: dict) -> Path:
@@ -202,7 +239,7 @@ def session_start(event: dict, config: dict, root: Path) -> dict | None:
         else:
             marker.write_text(f"{datetime.now().timestamp()}\n", encoding="utf-8")
         week = datetime.now().timestamp() - 7 * 86400
-        for stale in [*marker.parent.glob(".session-*"), *marker.parent.glob(".last-message-*")]:
+        for stale in [*marker.parent.glob(".session-*"), *marker.parent.glob(".last-message-*"), *marker.parent.glob(".prompts-*")]:
             if stale != marker and stale.stat().st_mtime < week:
                 stale.unlink(missing_ok=True)
     latest = root / config["checkpoint_dir"] / "latest.md"
@@ -255,18 +292,22 @@ def main() -> int:
         elif name == "pre-compact":
             print(pre_compact(event, config, root))
         elif name == "post-compact":
-            write_checkpoint(root, config, "post-compact", {"壓縮摘要": event.get("compact_summary") or ""})
+            write_checkpoint(root, config, "post-compact", {"壓縮摘要": event.get("compact_summary") or "",
+                                                             "使用者最近說的話（原文）": recent_prompts(root, config, event)})
         elif name == "stop-failure":
             details = event.get("error_details")
             write_checkpoint(root, config, "stop-failure", {
                 "錯誤": f"{event.get('error') or '（事件沒有提供）'}" + (f"\n{json.dumps(details, ensure_ascii=False)[:1000]}" if details else ""),
+                "使用者最近說的話（原文）": recent_prompts(root, config, event),
                 "最後一則訊息": last_message(root, config, event)})
         elif name == "session-end":
             write_checkpoint(root, config, "session-end", {"結束原因": str(event.get("reason") or ""),
+                                                            "使用者最近說的話（原文）": recent_prompts(root, config, event),
                                                             "最後一則訊息": last_message(root, config, event)})
         elif name == "pre-model-switch":
             write_checkpoint(root, config, "pre-model-switch", {
                 "切換": f"{event.get('from_model')} → {event.get('to_model')}；context {event.get('context_tokens')} tokens",
+                "使用者最近說的話（原文）": recent_prompts(root, config, event),
                 "最後一則訊息": last_message(root, config, event)})
             cost = event.get("estimated_cache_write_usd")
             if event.get("prompt_cache_warm") and isinstance(cost, (int, float)) and cost >= float(config["switch_warn_usd"]):
@@ -276,6 +317,8 @@ def main() -> int:
                     print(json.dumps({"decision": "block", "reason": message}, ensure_ascii=False))
                 else:
                     print(json.dumps({"systemMessage": message}, ensure_ascii=False))
+        elif name == "user-prompt":
+            save_prompt(root, config, event)  # prints nothing: UserPromptSubmit output would be added to the prompt
         elif name == "stop":
             # Keep the last message for a later checkpoint: sessions run without a saved transcript.
             if event.get("last_assistant_message"):

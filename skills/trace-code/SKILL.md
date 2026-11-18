@@ -1,6 +1,6 @@
 ---
 name: trace-code
-description: Explain how a concrete operation travels through actual code, state, ownership, callbacks, or components, with source-backed diagrams when useful. Use for execution tracing, not reported-failure diagnosis, patch review, ordinary edits, or document extraction.
+description: Explain how a concrete operation travels through actual code, state, ownership, callbacks, or components, with source-backed diagrams when useful. Use for execution tracing, not reported-failure diagnosis, patch review, ordinary edits, or document extraction. When the request is to learn how to trace, with a worked example and practice, guide-learning is the entry point and this skill only supplies the trace.
 ---
 
 # 追蹤一個實際操作

@@ -162,6 +162,25 @@ class ContinuityHookTests(unittest.TestCase):
         self.assertEqual(self.hook("stop", {"session_id": "s1"}).strip(), "", "only once per session")
         self.assertEqual(self.hook("stop", {"session_id": "s1", "stop_hook_active": True}).strip(), "")
 
+    def test_prompts_are_kept_only_when_asked_and_reach_the_checkpoint(self):
+        # A decision made only in chat ("the README is out of date") must survive a cut-off session.
+        event = {"session_id": "p1", "prompt": "Implement it; the README's format is out of date, use 1h02m03s."}
+        self.assertEqual(self.hook("user-prompt", event).strip(), "", "UserPromptSubmit output would join the prompt")
+        self.hook("session-end", {"session_id": "p1", "reason": "other"})
+        self.assertNotIn("1h02m03s", (self.root / ".agf/checkpoints/latest.md").read_text(), "off by default")
+        config = self.root.parent / "prompts.json"
+        config.write_text(json.dumps({"save_prompts": True}))
+        for index in range(7):
+            self.hook("user-prompt", {"session_id": "p2", "prompt": f"message {index}"}, config)
+        self.hook("user-prompt", {"session_id": "p2", "prompt": event["prompt"]}, config)
+        self.hook("user-prompt", {"session_id": "other", "prompt": "from another session"}, config)
+        self.hook("session-end", {"session_id": "p2", "reason": "other"}, config)
+        latest = (self.root / ".agf/checkpoints/latest.md").read_text()
+        self.assertIn("1h02m03s", latest)
+        self.assertIn("message 6", latest)
+        self.assertNotIn("message 2", latest, "only the newest five are shown")
+        self.assertNotIn("from another session", latest)
+
     def test_broken_input_or_configuration_never_stops_the_session(self):
         env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.root))
         for argv, stdin in [([sys.executable, str(HOOK), "stop"], "not json"),
