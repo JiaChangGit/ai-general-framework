@@ -2,6 +2,23 @@
 
 每一輪寫：改了什麼、為什麼、怎麼驗證、還沒驗證什麼。細節在各 commit 的訊息與 [docs/verification.md](docs/verification.md)。
 
+## 2026-11-19：S14（分支 `s14-framework`，在 clone `../ai-general-framework-s14` 裡做）
+
+使用者挑了：把大部分常駐規則改成需要時才讀、量 `debug-root-cause` 新加的兩條規則、重跑沒重跑過的 7 個觸發情境；另外決定續接 hook 的 `save_prompts` 不開（再送一次給模型服務也算上雲端）、guard hook 不移到使用者層級。量測中途使用者叫用了 `/align-with-me`，對齊三個後續決定。結果在 [studies/research-2026-11/J-s14.md](studies/research-2026-11/J-s14.md)。
+
+| 修改 | 為什麼 | 驗證 |
+|---|---|---|
+| `templates/project-rules.md` 1,073 → 833 字：只留對齊、skill、驗證、授權四段，加一句語言、一句寫作指引 | 常駐的文字每個 session 都要讀 | 固定成本少約 280 tokens；S11 的 8 個任務 8/8 通過，但花費合計和 S13 差不多（0.766 對 0.749），因為模型多半會去讀下面這份 |
+| 新增 `docs/practices.md`（496 字），跟其他指引一起部署 | 放改程式、工具、續接、文字四段；比 13,500 字的 workflow 指引短得多，讀它不會比省下的還貴 | 單元測試（受管理的檔案多一個） |
+| 寫作指引那一句放回常駐規則 | 只放在 `practices.md` 時，改寫中文的任務沒去讀寫作指引；盲評裡那份忠實度最差，還加了原稿沒有的行為 | 重跑一次：有讀寫作指引、通過檢查 |
+| `evals/impact/tasks.json` 新增 `debug-wrong-premise` | 量「先核對前提」：使用者說是 2.0 的四捨五入造成的，其實回報是 1.9 跑的 | 兩組 3/3 都做對，量不出差別 |
+| `evals/host/run_claude.py`、`trigger.py`：被宿主擋下的 Skill 呼叫另記在 `skill_calls_blocked`，不算使用、也不算誤用；報告多 `blocked_attempts` | 模型看到 `align-with-me` 的檔案就試著叫用，宿主依設定拒絕；使用者決定這種嘗試另外算 | 單元測試 |
+| `studies/research-2026-11/J-s14.md` 與 `measurement-s14/`（含盲評材料） | 結果與限制 | — |
+
+**量測花費**：約 2.91 美元，在使用者給的約 3 美元內。
+
+**結論**：拆分讓不寫程式、不寫文件的 session 比較便宜，真正做事的 session 花費差不多。`debug-root-cause` 的新規則在這個任務上沒有額外作用，模型本來就會先查證。其他 7 個觸發情境沒有退步。
+
 ## 2026-11-18：S13（分支 `s13-rules`，在 clone `../ai-general-framework-s13` 裡做）
 
 依據：S12 量到常駐規則是固定成本的最大一塊（分析報告第三輪的第 1 項）。結果在 [studies/research-2026-11/I-rules-s13.md](studies/research-2026-11/I-rules-s13.md)。

@@ -1,19 +1,19 @@
 # 接手文件
 
-更新日期：2026-11-18（S13 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
+更新日期：2026-11-19（S14 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
 
 ## 一開始先做什麼
 
 ```bash
 git -C <框架目錄> status --short          # 預期：沒有輸出
-git -C <框架目錄> log --oneline -3         # 預期：最上面是 S13 的 commit（見 CHANGELOG），或使用者之後的新 commit
+git -C <框架目錄> log --oneline -3         # 預期：最上面是 S14 的 commit（見 CHANGELOG），或使用者之後的新 commit
 python3 -B <框架目錄>/scripts/agf.py audit --root <框架目錄>      # 預期："errors": []、"warnings": []
 (cd <框架目錄> && python3 -B -m unittest discover -s tests)        # 預期：OK（有幾個依平台略過）
 python3 -B <框架目錄>/scripts/agf.py task checkpoint --help        # 預期：列出 --done、--doing、--next、--repo、--append
 ```
 
-`<框架目錄>` 換成實際的位置。S12、S13 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`、`../ai-general-framework-s13`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以 `git -C <框架目錄> log --oneline -5` 為準。
+`<框架目錄>` 換成實際的位置。S12～S14 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s14`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以 `git -C <框架目錄> log --oneline -5` 為準。
 
 ## 目前的位置
 
@@ -31,13 +31,15 @@ S12 的重點：
 
 S13：常駐規則從 1,413 字縮到 1,073 字，固定成本少約 310 tokens，S11 的 8 個任務照樣全過（[I 報告](studies/research-2026-11/I-rules-s13.md)）。省得不多；要再省，見分析報告第四輪。
 
+S14：常駐規則只留四段，其餘放需要時才讀的 `docs/practices.md`；寫作指引那一句留在常駐。做事的 session 幾乎都會去讀 `practices.md`，花費和之前差不多（[J 報告](studies/research-2026-11/J-s14.md)）。被宿主擋下的 Skill 呼叫，量測工具另記在 `skill_calls_blocked`。
+
 ## 拿框架到別的專案測試
 
 使用者會在其他聊天室用這個框架做別的專案，順便測它的表現。建議的做法：
 
 1. **配置。** 在目標專案執行 `project plan`、再 `project install ... --apply`（README「各專案只帶需要的內容」）。既有的 `CLAUDE.md` 不會被改寫，要自己加一行 `@.agf/managed/project-rules.md`，再用 `project status` 確認沒有 `warnings`，也看一下 `launch_notices`。
 2. **從專案目錄啟動新的 session。** 從上一層目錄啟動時，專案的 `.claude/settings.json`（權限與 hook）不會載入；無頭模式連 skill 也看不到。
-3. **要不要裝續接 hook。** 把 `templates/claude-continuity-settings.example.json` 的 `hooks` 併進專案的 `.claude/settings.json`，路徑換成框架的實際位置。要讓對話裡的決定跟著走，另外加 `UserPromptSubmit` 與 `{"save_prompts": true}` 的設定（[docs/cli.md](docs/cli.md)）；開啟前問使用者，因為對話可能有密碼或金鑰，也確認 `.agf/` 不會被 commit。
+3. **要不要裝續接 hook。** 把 `templates/claude-continuity-settings.example.json` 的 `hooks` 併進專案的 `.claude/settings.json`，路徑換成框架的實際位置。`save_prompts` **不要開**：使用者 2026-11-19 決定，存下的訊息在下一個 session 會再送給模型服務一次，這也算上雲端，所以在他的專案一律關閉（框架的預設本來就是關閉）。
 4. **要觀察的事**，每一項都記下宿主版本、模型、日期與實際看到的輸出：
    - 該用 skill 時，有沒有用宿主的機制叫用（Claude Code 的 Skill 工具）；不該用時有沒有誤觸。
    - 一開始有沒有把問題問完；問題寫得讓人看得懂嗎（名詞有解釋、選項的影響有寫）。
@@ -48,16 +50,15 @@ S13：常駐規則從 1,413 字縮到 1,073 字，固定成本少約 310 tokens�
 
 ## 還沒做的事
 
-依分析報告第三、四輪的優先順序：
+依分析報告第五輪的優先順序：
 
-1. **使用者**把 `s13-rules` 併進 main：`git -C <框架目錄> pull --ff-only ../ai-general-framework-s13 s13-rules`。
-2. 要再降固定成本：把大部分規則改成需要時才讀，或把寫作指引拆成短版與完整版（第四輪）。量法照 S13：`probe-context` 量第一次呼叫的 context，同時跑對照組並看 `tools_listed`，再用 S11 的 8 個任務確認沒有退步。
-3. `save_prompts` 要不要在使用者自己的專案開啟，由使用者決定。
-4. 在 GitHub 上實際跑一次 `skill-triggers.yml`（要先 push，並設定 `ANTHROPIC_API_KEY`，會花錢）。
-5. 其他 7 個觸發情境在新描述下重跑一次。
-6. 教學文件格式的個人化（第二輪的建議）；子命令退場（先累積使用紀錄）。
+1. **使用者**把 `s14-framework` 併進 main：`git -C <框架目錄> pull --ff-only ../ai-general-framework-s14 s14-framework`。
+2. （中）寫作指引拆成常用的短版與完整版，量文字品質（照 S14 的盲評方法）與花費。常駐規則的拆分已在 S14 做完：固定成本少了，做事的 session 花費卻差不多。
+3. （已決定）`save_prompts` 在使用者的專案不開，再送一次給模型服務也算上雲端；guard hook 維持裝在工作區上一層（`/home/user/src/.claude/settings.json`），不移到使用者層級。兩者都是 2026-11-19 使用者的決定。
+4. 要等使用者 push 的：在 GitHub 上實際跑一次 `skill-triggers.yml`（並設定 `ANTHROPIC_API_KEY`，會花錢）。
+5. （低）教學文件格式的個人化（第二輪的建議）；子命令退場（先累積使用紀錄）。
 
-沒有在真實 session 觸發過的：續接 hook 的 PreCompact、PostCompact、StopFailure、PreModelSwitch；`align-with-me` 的實際叫用。`debug-root-cause` 新加的「先驗證前提、附證據」沒有量測。
+沒有在真實 session 觸發過的：續接 hook 的 PreCompact、PostCompact、StopFailure、PreModelSwitch。`align-with-me` 在 2026-11-19 第一次被使用者實際叫用，照 skill 寫的流程走完。`debug-root-cause` 新加的「先驗證前提、附證據」量過一次（`debug-wrong-premise`），兩組都做對，量不出作用。
 
 ## 踩過的坑
 

@@ -1,0 +1,50 @@
+{
+ "model": "claude-sonnet-5-5",
+ "switch_model": null,
+ "framework_commit": "8ff67f66315468cc3afdd5218c9cf32ab101f336",
+ "spent_usd": 0.181378,
+ "stopped": null,
+ "groups": {
+  "framework": {
+   "runs": 2,
+   "passed": 2,
+   "cost_usd": 0.0988,
+   "tokens": 42808
+  },
+  "control": {
+   "runs": 2,
+   "passed": 2,
+   "cost_usd": 0.0825,
+   "tokens": 38728
+  }
+ },
+ "tasks": {
+  "probe-context": {
+   "framework": {
+    "passed": "2/2",
+    "median_cost_usd": 0.0494,
+    "median_tokens": 21404.0,
+    "median_turns": 1.0,
+    "median_last_part_tokens": 21404.0,
+    "outside_reads": 0,
+    "median_first_context_tokens": 21400.0,
+    "tools_listed": [
+     23
+    ]
+   },
+   "control": {
+    "passed": "2/2",
+    "median_cost_usd": 0.0413,
+    "median_tokens": 19364.0,
+    "median_turns": 1.0,
+    "median_last_part_tokens": 19364.0,
+    "outside_reads": 0,
+    "median_first_context_tokens": 19360.0,
+    "tools_listed": [
+     23
+    ]
+   }
+  }
+ },
+ "incomplete_runs": 0
+}

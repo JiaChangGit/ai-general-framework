@@ -1,0 +1,32 @@
+{
+ "model": "claude-sonnet-5-5",
+ "switch_model": null,
+ "framework_commit": "6d3d53e87f423a3f58fd365e9ddcaeaa7d673940",
+ "spent_usd": 0.110372,
+ "stopped": null,
+ "groups": {
+  "framework": {
+   "runs": 1,
+   "passed": 1,
+   "cost_usd": 0.1104,
+   "tokens": 82991
+  }
+ },
+ "tasks": {
+  "rewrite-zh": {
+   "framework": {
+    "passed": "1/1",
+    "median_cost_usd": 0.1104,
+    "median_tokens": 82991,
+    "median_turns": 5,
+    "median_last_part_tokens": 82991,
+    "outside_reads": 0,
+    "median_first_context_tokens": 21462,
+    "tools_listed": [
+     23
+    ]
+   }
+  }
+ },
+ "incomplete_runs": 0
+}

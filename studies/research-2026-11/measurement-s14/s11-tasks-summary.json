@@ -1,0 +1,132 @@
+{
+ "model": "claude-sonnet-5-5",
+ "switch_model": "claude-haiku-5-5",
+ "framework_commit": "8ff67f66315468cc3afdd5218c9cf32ab101f336",
+ "spent_usd": 0.765652,
+ "stopped": null,
+ "groups": {
+  "framework": {
+   "runs": 8,
+   "passed": 8,
+   "cost_usd": 0.7656,
+   "tokens": 838505
+  }
+ },
+ "tasks": {
+  "fix-admitter": {
+   "framework": {
+    "passed": "1/1",
+    "median_cost_usd": 0.092,
+    "median_tokens": 100477,
+    "median_turns": 9,
+    "median_last_part_tokens": 100477,
+    "outside_reads": 0,
+    "median_first_context_tokens": 21430,
+    "tools_listed": [
+     23
+    ]
+   }
+  },
+  "fix-pager": {
+   "framework": {
+    "passed": "1/1",
+    "median_cost_usd": 0.08,
+    "median_tokens": 71993,
+    "median_turns": 6,
+    "median_last_part_tokens": 71993,
+    "outside_reads": 0,
+    "median_first_context_tokens": 21388,
+    "tools_listed": [
+     23
+    ]
+   }
+  },
+  "trace-customer-id": {
+   "framework": {
+    "passed": "1/1",
+    "median_cost_usd": 0.0702,
+    "median_tokens": 46446,
+    "median_turns": 3,
+    "median_last_part_tokens": 46446,
+    "outside_reads": 0,
+    "median_first_context_tokens": 21472,
+    "tools_listed": [
+     23
+    ]
+   }
+  },
+  "review-withdraw": {
+   "framework": {
+    "passed": "1/1",
+    "median_cost_usd": 0.0741,
+    "median_tokens": 47133,
+    "median_turns": 5,
+    "median_last_part_tokens": 47133,
+    "outside_reads": 0,
+    "median_first_context_tokens": 21413,
+    "tools_listed": [
+     23
+    ]
+   }
+  },
+  "rewrite-zh": {
+   "framework": {
+    "passed": "1/1",
+    "median_cost_usd": 0.0868,
+    "median_tokens": 72999,
+    "median_turns": 4,
+    "median_last_part_tokens": 72999,
+    "outside_reads": 0,
+    "median_first_context_tokens": 21437,
+    "tools_listed": [
+     23
+    ]
+   }
+  },
+  "simple-edit": {
+   "framework": {
+    "passed": "1/1",
+    "median_cost_usd": 0.0708,
+    "median_tokens": 70312,
+    "median_turns": 4,
+    "median_last_part_tokens": 70312,
+    "outside_reads": 0,
+    "median_first_context_tokens": 21394,
+    "tools_listed": [
+     23
+    ]
+   }
+  },
+  "continue-after-limit": {
+   "framework": {
+    "passed": "1/1",
+    "median_cost_usd": 0.1981,
+    "median_tokens": 209049,
+    "median_turns": 12,
+    "median_last_part_tokens": 135476,
+    "outside_reads": 0,
+    "median_first_context_tokens": 21376,
+    "tools_listed": [
+     23
+    ],
+    "cuts": "1/1"
+   }
+  },
+  "switch-model": {
+   "framework": {
+    "passed": "1/1",
+    "median_cost_usd": 0.0936,
+    "median_tokens": 220096,
+    "median_turns": 13,
+    "median_last_part_tokens": 146533,
+    "outside_reads": 0,
+    "median_first_context_tokens": 21376,
+    "tools_listed": [
+     23
+    ],
+    "cuts": "1/1"
+   }
+  }
+ },
+ "incomplete_runs": 0
+}

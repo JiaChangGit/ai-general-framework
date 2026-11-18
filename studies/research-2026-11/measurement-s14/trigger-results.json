@@ -1,0 +1,213 @@
+{
+ "model": "claude-sonnet-5-5",
+ "framework_commit": "8ff67f66315468cc3afdd5218c9cf32ab101f336",
+ "total_cost_usd": 1.3257,
+ "runs": [
+  {
+   "round": 1,
+   "scenario": "trace-lossy-id-conversion",
+   "expected_skill": "trace-code",
+   "skill_calls": [
+    "trace-code"
+   ],
+   "skill_calls_blocked": [],
+   "skills_used": [
+    "trace-code"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "skill_reads": [],
+   "cost_usd": 0.083661
+  },
+  {
+   "round": 1,
+   "scenario": "object-authorization-and-model-output",
+   "expected_skill": null,
+   "skill_calls": [],
+   "skill_calls_blocked": [],
+   "skills_used": [],
+   "hit": null,
+   "hit_via_skill_tool": null,
+   "misfire": false,
+   "skill_reads": [],
+   "cost_usd": 0.089721
+  },
+  {
+   "round": 1,
+   "scenario": "flaky-repeat-evidence",
+   "expected_skill": "debug-root-cause",
+   "skill_calls": [],
+   "skill_calls_blocked": [],
+   "skills_used": [],
+   "hit": false,
+   "hit_via_skill_tool": false,
+   "misfire": null,
+   "skill_reads": [],
+   "cost_usd": 0.10072049999999999
+  },
+  {
+   "round": 1,
+   "scenario": "presentation-priority-and-decision",
+   "expected_skill": null,
+   "skill_calls": [],
+   "skill_calls_blocked": [],
+   "skills_used": [],
+   "hit": null,
+   "hit_via_skill_tool": null,
+   "misfire": false,
+   "skill_reads": [],
+   "cost_usd": 0.1428092
+  },
+  {
+   "round": 1,
+   "scenario": "media-style-continuity-scope",
+   "expected_skill": null,
+   "skill_calls": [],
+   "skill_calls_blocked": [],
+   "skills_used": [],
+   "hit": null,
+   "hit_via_skill_tool": null,
+   "misfire": false,
+   "skill_reads": [],
+   "cost_usd": 0.07793449999999999
+  },
+  {
+   "round": 1,
+   "scenario": "review-diff-with-materials",
+   "expected_skill": "review-change",
+   "skill_calls": [
+    "review-change"
+   ],
+   "skill_calls_blocked": [],
+   "skills_used": [
+    "review-change"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "skill_reads": [],
+   "cost_usd": 0.07763500000000001
+  },
+  {
+   "round": 1,
+   "scenario": "ask-me-first-without-invocation",
+   "expected_skill": null,
+   "skill_calls": [
+    "align-with-me"
+   ],
+   "skill_calls_blocked": [
+    "align-with-me"
+   ],
+   "skills_used": [],
+   "hit": null,
+   "hit_via_skill_tool": null,
+   "misfire": false,
+   "skill_reads": [],
+   "cost_usd": 0.08746220000000002
+  },
+  {
+   "round": 2,
+   "scenario": "trace-lossy-id-conversion",
+   "expected_skill": "trace-code",
+   "skill_calls": [
+    "trace-code"
+   ],
+   "skill_calls_blocked": [],
+   "skills_used": [
+    "trace-code"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "skill_reads": [],
+   "cost_usd": 0.0905522
+  },
+  {
+   "round": 2,
+   "scenario": "object-authorization-and-model-output",
+   "expected_skill": null,
+   "skill_calls": [],
+   "skill_calls_blocked": [],
+   "skills_used": [],
+   "hit": null,
+   "hit_via_skill_tool": null,
+   "misfire": false,
+   "skill_reads": [],
+   "cost_usd": 0.0904009
+  },
+  {
+   "round": 2,
+   "scenario": "flaky-repeat-evidence",
+   "expected_skill": "debug-root-cause",
+   "skill_calls": [
+    "debug-root-cause"
+   ],
+   "skill_calls_blocked": [],
+   "skills_used": [
+    "debug-root-cause"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "skill_reads": [],
+   "cost_usd": 0.1079917
+  },
+  {
+   "round": 2,
+   "scenario": "presentation-priority-and-decision",
+   "expected_skill": null,
+   "skill_calls": [],
+   "skill_calls_blocked": [],
+   "skills_used": [],
+   "hit": null,
+   "hit_via_skill_tool": null,
+   "misfire": false,
+   "skill_reads": [],
+   "cost_usd": 0.140582
+  },
+  {
+   "round": 2,
+   "scenario": "media-style-continuity-scope",
+   "expected_skill": null,
+   "skill_calls": [],
+   "skill_calls_blocked": [],
+   "skills_used": [],
+   "hit": null,
+   "hit_via_skill_tool": null,
+   "misfire": false,
+   "skill_reads": [],
+   "cost_usd": 0.0789253
+  },
+  {
+   "round": 2,
+   "scenario": "review-diff-with-materials",
+   "expected_skill": "review-change",
+   "skill_calls": [
+    "review-change"
+   ],
+   "skill_calls_blocked": [],
+   "skills_used": [
+    "review-change"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "skill_reads": [],
+   "cost_usd": 0.076595
+  },
+  {
+   "round": 2,
+   "scenario": "ask-me-first-without-invocation",
+   "expected_skill": null,
+   "skill_calls": [],
+   "skill_calls_blocked": [],
+   "skills_used": [],
+   "hit": null,
+   "hit_via_skill_tool": null,
+   "misfire": false,
+   "skill_reads": [],
+   "cost_usd": 0.0807574
+  }
+ ]
+}
