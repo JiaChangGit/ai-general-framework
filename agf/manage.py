@@ -281,10 +281,10 @@ def _desired(source: Path, root: Path, hosts: list[str], old: dict | None, selec
     if not rules.is_file():
         raise AgfError(f"Missing framework project rules: {rules}")
     script = str(source / "scripts/agf.py") if tools_mode == "shared" else ".agf/managed/runtime/scripts/agf.py"
-    mode_note = "共用同一份工具；原始框架目錄必須保持可用。" if tools_mode == "shared" else "這是離線工具快照；執行工具不依賴原始框架目錄。"
+    mode_note = "原始框架目錄要保持可用" if tools_mode == "shared" else "離線快照，不需要原始框架目錄"
     instructions = rules.read_text(encoding="utf-8").rstrip() + "\n\n"
-    instructions += f"工具模式：`{tools_mode}`。{mode_note}\nCLI 腳本路徑：`{script}`。執行時將這個路徑當作 Python 的單一參數；skills 中的 `scripts/agf.py` 範例請替換為此路徑，其餘參數保留。\n"
-    instructions += "按任務讀取 `.agf/managed/guides/` 的 workflow、writing、tools 或 delivery 指引；不要每次載入全部。\n"
+    instructions += f"工具模式：`{tools_mode}`（{mode_note}）。`agf` 用 `python3 -B \"{script}\"` 執行，skill 裡的 `scripts/agf.py` 換成這個路徑。\n"
+    instructions += "指引在 `.agf/managed/guides/`（workflow、writing、tools、delivery），需要時才讀。\n"
     add(".agf/managed/project-rules.md", instructions.encode("utf-8"), "templates/project-rules.md")
     for name in GUIDES:
         file = source / "docs" / name
