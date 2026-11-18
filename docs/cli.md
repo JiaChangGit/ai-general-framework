@@ -27,6 +27,8 @@ Manifest 是記錄受管理檔案、來源和模式的清單。`status` 分別�
 
 `status` 也檢查各宿主自己會讀的入口有沒有接到 `.agf/managed/project-rules.md`：Claude Code 看 `CLAUDE.md` 或 `.claude/CLAUDE.md`，Gemini CLI 看 `GEMINI.md`，沿著 `@` import 往下找，最多五層，程式碼區塊裡的不算；Codex 與 OpenCode 看 `AGENTS.md` 有沒有寫到它。沒接上時列在 `warnings`，退出碼不變。框架不改寫既有的入口檔；要每個 session 都載入規則，自己加一行 `@.agf/managed/project-rules.md`。
 
+配置了 Claude Code 時，`status` 另外列出專案上層有自己 Claude Code 設定的目錄（`parent_claude_dirs`，有 `.claude/settings.json`、`.claude/settings.local.json`、`.claude/skills` 或 `CLAUDE.md`；家目錄不算，`~/.claude` 是使用者層級）。從那種目錄啟動的 session，用的是那裡的設定：2026-11-18 用 Claude Code 2.1.325 的無頭 session 實測，專案自己的 `.claude/settings.json`（權限與 hook）沒有載入，專案的 skill 也不在清單裡；從專案目錄啟動時兩者都有。同一天在桌面版 app 裡，從上層啟動的 session 有列出子專案的 skill，並註明「處理那個目錄的檔案時適用」，所以 skill 這部分依宿主而異。提醒寫在 `launch_notices`，不算 `warnings`，因為專案本身沒有問題。
+
 ## 來源、檔案與圖解
 
 ```console
@@ -116,6 +118,12 @@ POSIX 環境以 `0700` 建立最終保存目錄，不調整既有父目錄；其
 
 Task 記錄可明列任何本地檔案，不依賴 Git。`verification`、`next_steps`、`boundaries` 是可選的字串陣列，分別保留已做／未做的驗證、下一步及操作範圍；驗證項目應寫實際時間與結果位置。`checks` 也是可選的字串陣列，寫接手者要自己執行的核對命令和預期結果；`task handoff` 把它放在最前面一節。工具自動加入的 UTC `recorded_at` 只代表建立紀錄的時間，不代表剛重跑過測試。`task handoff .agf/task.json --output .agf/handoff.md` 會核對證據並產生交接；舊版 v1 紀錄仍可讀取，未記載的續接資訊不會自行補造。
 
+每個里程碑都寫一份完整的 task 紀錄太重時，用 `task checkpoint`：只寫已完成、進行中、下一步三種，可重複。加 `--repo .` 會補上分支、HEAD 與未 commit 的路徑，這些由程式收集，不靠記憶；加 `--append <交接檔>` 會把一段「檢查點」接在那個既有檔案的最後，不改動其他內容。例如：
+
+```console
+python scripts/agf.py task checkpoint --done "parse() 完成（a1b2c3d）" --doing "format()" --next "跑 format 的測試" --repo . --append HANDOFF.md
+```
+
 只有選用 `--repo` 才保存 Git 身分；SVN revision 或其他版本條件可用原生命令取得並列為證據。hash 相同只是檔案身分檢查，接手仍需讀來源及目前變更。`git summary/scope` 維持 Git 專用，不包裝成通用版本控制 API。
 
 Git 狀態無法可靠解碼為 UTF-8 時，交接紀錄會報錯，不將替代字元當成原始路徑。`git summary/scope` 和 `task record --repo` 會執行本機 Git：雖然 diff 已停用 textconv／external diff，Git 仍可能依本機設定啟動 clean filter（將工作檔轉換後再交給 Git 的外部程式）。對不可信的工作目錄或 Git 設定應先審查、使用適當隔離；這些命令不是 sandbox。停用文字轉換後，較早記錄的 Git 狀態雜湊可能改變；先檢查實際差異，再決定是否重新記錄交接。
@@ -137,11 +145,13 @@ python scripts/agf.py integration hook --target ../my-project --kind git
 
 Git hook 與 OpenCode plugin 依同一 manifest 選共享來源或工具副本。先確認目標的 `.agf/quality.json` 是真正需要的檢查；Git hook 保留既有檔案，AI hook 先看版本相關接線計畫。OpenCode 範本只對成功的 edit/write 執行 quick checks，沒有涵蓋所有 shell、patch 或外部修改。
 
+`check --profile periodic` 只跑在 `profiles` 裡寫了 `periodic` 的檢查，給很慢、平常不跑、卻最容易悄悄壞掉的檢查用：文件教讀者執行的示範、README 裡的命令、在新目錄從頭建置。`integration template quality` 的範本附了這三種的例子，換成專案真的有的腳本，沒有的就刪掉。宣告一個階段完成或打 tag 之前，`full` 和 `periodic` 都跑一次。
+
 Git hook 的 `--apply` 與 `check --profile quick` 共用設定驗證：檢查名稱、參數陣列、profiles、工作目錄、timeout 及 encoding，並要求至少一項 quick 檢查。無效設定會在寫入 hook／安裝紀錄前拒絕；安裝時不執行設定中的命令。實際執行檔是否可用、命令是否成功，仍要在授權範圍內執行檢查確認；安裝成功不代表檢查已通過。
 
 額度用完、對話被壓縮或換模型時，用 continuity hooks 把狀態留在檔案裡：`integration template claude-continuity-hook` 取得程式，`integration template claude-continuity-settings` 取得設定寫法。
 它們做的事：session 開始時，若專案有交接檔（預設找 `HANDOFF.md`、`.ai/HANDOFF.md`、`docs/HANDOFF.md`）或上次留下的檢查點，提醒 AI 先讀；恢復一個快取已過期的舊對話時，告訴使用者重新讀入的估計費用。壓縮前要求摘要保留任務、決定、commit 與下一步；壓縮後、API 出錯（例如額度用完）、session 結束、換模型前，把 git 狀態、錯誤、AI 最後一則訊息與壓縮摘要寫進 `.agf/checkpoints/latest.md`（另留最近 10 份）。換模型時若快取還熱、重新寫入估計超過 0.5 美元，顯示費用提醒，預設不擋。AI 準備結束時，若這個 session 在交接檔最後一次修改或 commit 之後又做了 commit，提醒更新一次。
-沒有交接檔也沒有檢查點時，它們什麼都不輸出，不增加 token。檢查點只有程式收集得到的事實，計畫與決定仍要寫在交接檔裡。`.agf/` 若不在專案的 `.gitignore`，記得加上。2026-11-18 用 Claude Code 2.1.325 的無頭 session 實測：SessionStart、Stop、SessionEnd 都會觸發；PreCompact、PostCompact、StopFailure（包括額度用完時會不會觸發）、PreModelSwitch 只有單元測試，Stop 的提醒模型有沒有照做也沒有實測。同一天的量測裡，4 個接手的新 session 都先讀了檢查點，但工作狀態本來就在檔案裡，沒有省到錢（[量測紀錄](../studies/research-2026-11/G-measurement-2026-11-18.md)）。
+設定加 `"save_prompts": true`，並在 `UserPromptSubmit` 事件裝 `claude-continuity-hook.py user-prompt <設定檔>`，hook 會留下這個 session 使用者說過的話（每則最多 2,000 字、最多 20 則），檢查點附上最新的 5 則。這是為了「重要的決定只在對話裡說過」的情況：session 被截斷之後，新的 session 從檢查點看得到它。預設關閉，因為打進對話的東西可能有密碼或金鑰；開啟前確認 `.agf/` 不會被 commit 或分享。沒有交接檔也沒有檢查點時，它們什麼都不輸出，不增加 token。檢查點只有程式收集得到的事實，計畫與決定仍要寫在交接檔裡。`.agf/` 若不在專案的 `.gitignore`，記得加上。2026-11-18 用 Claude Code 2.1.325 的無頭 session 實測：SessionStart、Stop、SessionEnd 都會觸發；PreCompact、PostCompact、StopFailure（包括額度用完時會不會觸發）、PreModelSwitch 只有單元測試，Stop 的提醒模型有沒有照做也沒有實測。同一天的量測裡，4 個接手的新 session 都先讀了檢查點，但工作狀態本來就在檔案裡，沒有省到錢（[量測紀錄](../studies/research-2026-11/G-measurement-2026-11-18.md)）。
 
 原生權限擋不住的寫法（`git -C . push`、`sh -c`、從上層目錄啟動的 session），改用 guard hook：`integration template claude-guard-hook` 取得 PreToolUse hook 的程式，`integration template claude-guard-settings` 取得加進設定檔的寫法，再用一個 JSON 列出受保護的路徑。裝在 `~/.claude/settings.json` 時每個 session 都生效。它只看命令列，看不到程式執行後做的事、變數裡的路徑或執行時才組出的命令。heredoc（用 `<<EOF` 把多行文字接在命令後面）的內容，只有交給 shell 執行時（例如 `bash <<'EOF'`）才當命令檢查，其他時候只檢查會展開的 `$(...)` 與反引號；涵蓋與不涵蓋的寫法見程式開頭的說明與 `tests/test_guard_hook.py`。
 

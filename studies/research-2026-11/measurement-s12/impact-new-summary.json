@@ -1,0 +1,88 @@
+{
+ "model": "claude-sonnet-5-5",
+ "switch_model": "claude-haiku-5-5",
+ "framework_commit": "e063dc84c2273ee913b2a2b83338d425e3b49d11",
+ "spent_usd": 1.459596,
+ "stopped": "impact-new: total budget: 1.46 spent, the next session may cost up to 0.4",
+ "groups": {
+  "framework": {
+   "runs": 9,
+   "passed": 9,
+   "cost_usd": 0.8576,
+   "tokens": 1310680
+  },
+  "control": {
+   "runs": 8,
+   "passed": 2,
+   "cost_usd": 0.602,
+   "tokens": 875515
+  }
+ },
+ "tasks": {
+  "decision-only-in-chat": {
+   "framework": {
+    "passed": "3/3",
+    "median_cost_usd": 0.139,
+    "median_tokens": 124743,
+    "median_turns": 9,
+    "median_last_part_tokens": 102598,
+    "outside_reads": 0,
+    "median_first_context_tokens": 22083,
+    "cuts": "3/3"
+   },
+   "control": {
+    "passed": "0/3",
+    "median_cost_usd": 0.1068,
+    "median_tokens": 106181,
+    "median_turns": 9,
+    "median_last_part_tokens": 86687,
+    "outside_reads": 0,
+    "median_first_context_tokens": 19446,
+    "cuts": "3/3"
+   }
+  },
+  "decision-only-in-chat-switch": {
+   "control": {
+    "passed": "0/3",
+    "median_cost_usd": 0.0482,
+    "median_tokens": 136328,
+    "median_turns": 9,
+    "median_last_part_tokens": 116831,
+    "outside_reads": 0,
+    "median_first_context_tokens": 19444,
+    "cuts": "3/3"
+   },
+   "framework": {
+    "passed": "3/3",
+    "median_cost_usd": 0.0599,
+    "median_tokens": 185916,
+    "median_turns": 11,
+    "median_last_part_tokens": 163735,
+    "outside_reads": 0,
+    "median_first_context_tokens": 22078,
+    "cuts": "3/3"
+   }
+  },
+  "docs-follow-the-change": {
+   "framework": {
+    "passed": "3/3",
+    "median_cost_usd": 0.0865,
+    "median_tokens": 122166,
+    "median_turns": 7,
+    "median_last_part_tokens": 122166,
+    "outside_reads": 0,
+    "median_first_context_tokens": 22019
+   },
+   "control": {
+    "passed": "2/2",
+    "median_cost_usd": 0.0695,
+    "median_tokens": 86205.0,
+    "median_turns": 7.0,
+    "median_last_part_tokens": 86205.0,
+    "outside_reads": 0,
+    "median_first_context_tokens": 19374.5
+   }
+  }
+ },
+ "incomplete_runs": 1
+}

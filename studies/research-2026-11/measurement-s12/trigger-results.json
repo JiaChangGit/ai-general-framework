@@ -1,0 +1,301 @@
+{
+ "framework_commit": "e063dc84c2273ee913b2a2b83338d425e3b49d11",
+ "model": "claude-sonnet-5-5",
+ "tools": "Read Grep Glob Skill",
+ "skills": [
+  "align-with-me",
+  "debug-root-cause",
+  "guide-learning",
+  "read-research",
+  "review-change",
+  "review-sql",
+  "trace-code"
+ ],
+ "budget_usd": 0.3,
+ "bash_removed": true,
+ "total_cost_usd": 1.2411,
+ "runs": [
+  {
+   "round": "trigger-1",
+   "scenario": "learning-with-trace",
+   "expected_skill": "guide-learning",
+   "skill_calls": [
+    "guide-learning"
+   ],
+   "skills_used": [
+    "guide-learning"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 6,
+   "cost_usd": 0.09130570000000002,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 16887,
+   "cache_read_input_tokens": 57057,
+   "output_tokens": 1804
+  },
+  {
+   "round": "trigger-1",
+   "scenario": "failure-with-sql-review",
+   "expected_skill": "debug-root-cause",
+   "skill_calls": [
+    "debug-root-cause"
+   ],
+   "skills_used": [
+    "debug-root-cause",
+    "review-sql"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [
+    "review-sql"
+   ],
+   "turns": 9,
+   "cost_usd": 0.1098151,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 19513,
+   "cache_read_input_tokens": 57211,
+   "output_tokens": 2603
+  },
+  {
+   "round": "trigger-1",
+   "scenario": "cleaned-copy-is-not-original",
+   "expected_skill": "read-research",
+   "skill_calls": [
+    "read-research"
+   ],
+   "skills_used": [
+    "read-research"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 8,
+   "cost_usd": 0.0903335,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 17711,
+   "cache_read_input_tokens": 56875,
+   "output_tokens": 1379
+  },
+  {
+   "round": "trigger-2",
+   "scenario": "learning-with-trace",
+   "expected_skill": "guide-learning",
+   "skill_calls": [
+    "guide-learning"
+   ],
+   "skills_used": [
+    "guide-learning"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 6,
+   "cost_usd": 0.08911899999999999,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 16856,
+   "cache_read_input_tokens": 57030,
+   "output_tokens": 1598
+  },
+  {
+   "round": "trigger-2",
+   "scenario": "failure-with-sql-review",
+   "expected_skill": "debug-root-cause",
+   "skill_calls": [
+    "debug-root-cause"
+   ],
+   "skills_used": [
+    "debug-root-cause",
+    "review-sql"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [
+    "review-sql"
+   ],
+   "turns": 9,
+   "cost_usd": 0.1129262,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 19501,
+   "cache_read_input_tokens": 57202,
+   "output_tokens": 2919
+  },
+  {
+   "round": "trigger-2",
+   "scenario": "cleaned-copy-is-not-original",
+   "expected_skill": "read-research",
+   "skill_calls": [
+    "read-research"
+   ],
+   "skills_used": [
+    "read-research"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 8,
+   "cost_usd": 0.0927024,
+   "input_tokens": 8,
+   "cache_creation_input_tokens": 17761,
+   "cache_read_input_tokens": 82324,
+   "output_tokens": 1341
+  },
+  {
+   "round": "trigger-3",
+   "scenario": "learning-with-trace",
+   "expected_skill": "guide-learning",
+   "skill_calls": [
+    "guide-learning"
+   ],
+   "skills_used": [
+    "guide-learning"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 7,
+   "cost_usd": 0.09952729999999999,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 18770,
+   "cache_read_input_tokens": 57053,
+   "output_tokens": 1873
+  },
+  {
+   "round": "trigger-3",
+   "scenario": "failure-with-sql-review",
+   "expected_skill": "debug-root-cause",
+   "skill_calls": [
+    "debug-root-cause"
+   ],
+   "skills_used": [
+    "debug-root-cause",
+    "review-sql"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [
+    "review-sql"
+   ],
+   "turns": 9,
+   "cost_usd": 0.10902970000000001,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 19619,
+   "cache_read_input_tokens": 57317,
+   "output_tokens": 2481
+  },
+  {
+   "round": "trigger-3",
+   "scenario": "cleaned-copy-is-not-original",
+   "expected_skill": "read-research",
+   "skill_calls": [
+    "read-research"
+   ],
+   "skills_used": [
+    "read-research"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 8,
+   "cost_usd": 0.09030049999999999,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 17720,
+   "cache_read_input_tokens": 56885,
+   "output_tokens": 1372
+  },
+  {
+   "round": "trigger-near-1",
+   "scenario": "trace-without-lesson",
+   "expected_skill": "trace-code",
+   "skill_calls": [
+    "trace-code"
+   ],
+   "skills_used": [
+    "trace-code"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 7,
+   "cost_usd": 0.09004190000000001,
+   "input_tokens": 8,
+   "cache_creation_input_tokens": 17718,
+   "cache_read_input_tokens": 82539,
+   "output_tokens": 1090
+  },
+  {
+   "round": "trigger-near-1",
+   "scenario": "sql-plan-without-incident",
+   "expected_skill": "review-sql",
+   "skill_calls": [
+    "review-sql"
+   ],
+   "skills_used": [
+    "review-sql"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 7,
+   "cost_usd": 0.09281239999999999,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 17849,
+   "cache_read_input_tokens": 57844,
+   "output_tokens": 1562
+  },
+  {
+   "round": "trigger-near-2",
+   "scenario": "trace-without-lesson",
+   "expected_skill": "trace-code",
+   "skill_calls": [
+    "trace-code"
+   ],
+   "skills_used": [
+    "trace-code"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 6,
+   "cost_usd": 0.0797079,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 16734,
+   "cache_read_input_tokens": 56899,
+   "output_tokens": 707
+  },
+  {
+   "round": "trigger-near-2",
+   "scenario": "sql-plan-without-incident",
+   "expected_skill": "review-sql",
+   "skill_calls": [
+    "review-sql"
+   ],
+   "skills_used": [
+    "review-sql"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 7,
+   "cost_usd": 0.09349650000000001,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 17828,
+   "cache_read_input_tokens": 57825,
+   "output_tokens": 1639
+  }
+ ]
+}

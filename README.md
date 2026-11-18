@@ -94,7 +94,7 @@ MCP 選用由宿主代理讀取規則後，透過其工具探索能力執行。R
 
 資料製成 PDF、HTML、文字、聲音、歌曲與影片時，按需讀[跨格式成果指引](templates/outputs/README.md)：共用確認內容與素材，先驗代表小樣，再依交付格式檢查實際結果。既有工具用時選，不預裝創作平台；這批使用者參考來源的重複、採納與未採納理由見[取捨紀錄](docs/link-study.md)。
 
-額度用完、對話被壓縮或換模型時，continuity hooks 會把 git 狀態、錯誤、AI 最後一則訊息與壓縮摘要寫進 `.agf/checkpoints/latest.md`，下一個 session 開始時提醒先讀交接檔與檢查點；換模型前顯示重新讀入的估計費用。取得與安裝方式見 [CLI 操作](docs/cli.md)。
+額度用完、對話被壓縮或換模型時，continuity hooks 會把 git 狀態、錯誤、AI 最後一則訊息與壓縮摘要寫進 `.agf/checkpoints/latest.md`，下一個 session 開始時提醒先讀交接檔與檢查點；換模型前顯示重新讀入的估計費用。開啟 `save_prompts` 後也留下使用者說過的話（預設關閉）。每個里程碑的短紀錄用 `task checkpoint`。取得與安裝方式見 [CLI 操作](docs/cli.md)。
 `.github/workflows/skill-triggers.yml` 可以在 GitHub Actions 上手動執行 skill 觸發檢查（需要 `ANTHROPIC_API_KEY` secret，每次都會花錢）。
 
 要讓 Claude Code 在任何目錄啟動時都擋下 push 與寫入受保護的目錄，用 guard hook：

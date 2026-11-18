@@ -2,6 +2,27 @@
 
 每一輪寫：改了什麼、為什麼、怎麼驗證、還沒驗證什麼。細節在各 commit 的訊息與 [docs/verification.md](docs/verification.md)。
 
+## 2026-11-18：S12（分支 `s12-framework`，在 clone `../ai-general-framework-s12` 裡做）
+
+依據：使用者「先不用 push，把剩餘的都先做好」，一開始選定的範圍見 [docs/analysis-2026-11.md](docs/analysis-2026-11.md) 的「第三輪」。量測在 [studies/research-2026-11/H-measurement-s12.md](studies/research-2026-11/H-measurement-s12.md)。
+
+| 修改 | 為什麼 | 驗證 |
+|---|---|---|
+| `skills/trace-code`、`guide-learning`、`debug-root-cause`、`review-sql` 的描述 | S11 的觸發量測裡，兩個複合任務（一個請求裡有兩種工作）都選了輔助的 skill。描述寫明兩種工作同時出現時以誰為主 | 觸發量測：那兩個情境 6/6 選對；字面相近、不該換的兩個情境 4/4 沒被搶走 |
+| `skills/read-research` 的描述 | 「核對清理過的規格複本」這個情境在 S8、S11 都沒用到它 | 3/3 |
+| `skills/debug-root-cause` 第 1、5 步 | 先列出並核對調查依賴的前提；說「修好了」要附修正前失敗、修正後通過的輸出 | 文字修改，沒有量測 |
+| `agf project status` 的 `parent_claude_dirs`、`launch_notices` | S8、S10 都從上層目錄啟動，專案的 skill 與 deny 規則沒有載入 | 單元測試；在 Raft 專案上實際列出 `/home/user/src`。無頭探測的結果記在 `adapters/claude.json` 的 `project_launch` |
+| `agf task checkpoint` | 讓每個里程碑都寫得起交接：已完成、進行中、下一步，加上程式收集的 git 狀態，`--append` 接在既有交接檔最後 | 單元測試 2 個 |
+| `agf check --profile periodic`、`templates/quality.example.json` 的三個例子 | 示範腳本、文件命令、乾淨重建，最容易在之後的修改裡悄悄壞掉（Raft 專案 S10 的教訓） | 單元測試 2 個，含「範本三種 profile 都驗證得過」 |
+| 續接 hook 的 `save_prompts` 與 `user-prompt` 子命令 | 使用者在對話裡說的決定，session 一截斷就不見了。預設關閉，因為打進對話的東西可能有密碼或金鑰 | 單元測試；量測：兩個「決定只在對話裡」的任務，框架組 6/6、對照組 0/6 |
+| `evals/host/impact.py` 的 `rules-only`、`skills-only` 組，每段記錄 `first_context_tokens`；`evals/impact/tasks.json` 新增 4 個任務 | 拆開固定成本；找「沒框架容易做錯」的任務 | 單元測試；量測：規則約 1,920 tokens，skill 描述約 720 |
+| `docs/cli.md`、`docs/workflow.md`、`README.md`、`evals/host/README.md` | 上面這些的用法 | — |
+| `docs/analysis-2026-11.md` 第三輪、`studies/research-2026-11/H-measurement-s12.md` 與 `measurement-s12/` | 結果與限制 | — |
+
+**量測花費**：觸發 1.24 美元、成效 1.90 美元、上層目錄的探測 0.01 美元，合計約 3.15 美元，在使用者給的約 4 美元內。
+
+**沒做的事**：教學文件格式的個人化；子命令退場（沒有使用紀錄）；在 GitHub 上跑 CI（使用者這一輪不 push）。
+
 ## 2026-11-18：S11（分支 `s11-framework`）
 
 依據：使用者在 Raft 專案結束後的七點回饋，分析在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md) 的「第二輪」。量測結果在 [studies/research-2026-11/G-measurement-2026-11-18.md](studies/research-2026-11/G-measurement-2026-11-18.md)，外部研究在 [F-hooks-evals-ci.md](studies/research-2026-11/F-hooks-evals-ci.md)。

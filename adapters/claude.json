@@ -56,5 +56,16 @@
     "limits": "parses the command line only: a script or python -c that pushes or writes is not seen; a Git alias for push is not seen",
     "source": "https://code.claude.com/docs/en/hooks",
     "event": "PreToolUse"
+  },
+  "project_launch": {
+    "question": "What a session started in a directory above the project loads from the project",
+    "execution_status": "observed",
+    "observed": [
+      "2026-11-18, Claude Code 2.1.325 on Linux, headless (claude-haiku-5-5), a parent directory holding a child project with .claude/skills/zebra-probe and a .claude/settings.json SessionStart hook",
+      "started in the parent: the child's skill was not in the init skill list and the model did not list it after reading a file in the child; the child's SessionStart hook did not run",
+      "started in the child: the skill was listed and the hook ran",
+      "the same day, an interactive desktop-app session started one level above a project listed that project's skills, marked as applying when working on files under it; so skill discovery from a parent depends on the host surface"
+    ],
+    "framework_check": "agf project status lists parent directories with their own Claude Code files under parent_claude_dirs and launch_notices"
   }
 }

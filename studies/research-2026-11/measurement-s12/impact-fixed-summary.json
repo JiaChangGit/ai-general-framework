@@ -1,0 +1,74 @@
+{
+ "model": "claude-sonnet-5-5",
+ "switch_model": null,
+ "framework_commit": "e063dc84c2273ee913b2a2b83338d425e3b49d11",
+ "spent_usd": 0.372449,
+ "stopped": "impact-fixed: total budget: 0.28 spent, the next session may cost up to 0.2",
+ "groups": {
+  "framework": {
+   "runs": 2,
+   "passed": 2,
+   "cost_usd": 0.1037,
+   "tokens": 44014
+  },
+  "control": {
+   "runs": 2,
+   "passed": 2,
+   "cost_usd": 0.0826,
+   "tokens": 38734
+  },
+  "rules-only": {
+   "runs": 2,
+   "passed": 2,
+   "cost_usd": 0.0979,
+   "tokens": 42573
+  },
+  "skills-only": {
+   "runs": 2,
+   "passed": 2,
+   "cost_usd": 0.0883,
+   "tokens": 40174
+  }
+ },
+ "tasks": {
+  "probe-context": {
+   "framework": {
+    "passed": "2/2",
+    "median_cost_usd": 0.0518,
+    "median_tokens": 22007.0,
+    "median_turns": 1.0,
+    "median_last_part_tokens": 22007.0,
+    "outside_reads": 0,
+    "median_first_context_tokens": 22003.0
+   },
+   "control": {
+    "passed": "2/2",
+    "median_cost_usd": 0.0413,
+    "median_tokens": 19367.0,
+    "median_turns": 1.0,
+    "median_last_part_tokens": 19367.0,
+    "outside_reads": 0,
+    "median_first_context_tokens": 19363.0
+   },
+   "rules-only": {
+    "passed": "2/2",
+    "median_cost_usd": 0.049,
+    "median_tokens": 21286.5,
+    "median_turns": 1.0,
+    "median_last_part_tokens": 21286.5,
+    "outside_reads": 0,
+    "median_first_context_tokens": 21282.5
+   },
+   "skills-only": {
+    "passed": "2/2",
+    "median_cost_usd": 0.0442,
+    "median_tokens": 20087.0,
+    "median_turns": 1.0,
+    "median_last_part_tokens": 20087.0,
+    "outside_reads": 0,
+    "median_first_context_tokens": 20083.0
+   }
+  }
+ },
+ "incomplete_runs": 1
+}
