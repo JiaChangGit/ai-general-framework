@@ -70,9 +70,16 @@ def _release(pid_file: Path) -> None:
 
 
 def measure(summary: dict, expected: str | None) -> dict:
-    calls = [str(call).split(":")[-1] for call in summary["skill_calls"]]  # plugin:skill names count as the skill
+    blocked = list(summary.get("skill_calls_blocked", []))
+    calls = []
+    for call in summary["skill_calls"]:
+        if call in blocked:
+            blocked.remove(call)  # a refused attempt is not a use; counted in skill_calls_blocked instead
+        else:
+            calls.append(str(call).split(":")[-1])  # plugin:skill names count as the skill
     used = sorted(set(calls) | {read["skill"] for read in summary["skill_reads"]})
-    return {"skill_calls": summary["skill_calls"], "skill_reads": summary["skill_reads"], "skills_used": used,
+    return {"skill_calls": summary["skill_calls"], "skill_calls_blocked": summary.get("skill_calls_blocked", []),
+            "skill_reads": summary["skill_reads"], "skills_used": used,
             "hit": expected in used if expected else None,
             "hit_via_skill_tool": expected in calls if expected else None,
             "misfire": bool(used) if expected is None else None,
@@ -186,7 +193,8 @@ def report(args: argparse.Namespace) -> int:
     groups = {}
     for row in data["runs"]:
         group = groups.setdefault(row["group"], {"runs": 0, "should_use": 0, "hits": 0, "hits_via_skill_tool": 0,
-                                                 "should_not_use": 0, "misfires": 0, "outside_paths": 0, "bash_ran": 0, "cost_usd": 0.0, "tokens": 0})
+                                                 "should_not_use": 0, "misfires": 0, "blocked_attempts": 0, "outside_paths": 0, "bash_ran": 0,
+                                                 "cost_usd": 0.0, "tokens": 0})
         group["runs"] += 1
         if row["expected_skill"]:
             group["should_use"] += 1
@@ -195,6 +203,7 @@ def report(args: argparse.Namespace) -> int:
         else:
             group["should_not_use"] += 1
             group["misfires"] += bool(row["misfire"])
+        group["blocked_attempts"] += len(row.get("skill_calls_blocked", []))
         group["outside_paths"] += len(row["outside_paths"])
         group["bash_ran"] += len(row.get("bash_ran", []))
         group["cost_usd"] = round(group["cost_usd"] + (row.get("cost_usd") or 0), 6)

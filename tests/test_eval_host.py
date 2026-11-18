@@ -75,6 +75,25 @@ class RunClaudeTests(unittest.TestCase):
             self.assertEqual(summary["bash_ran"], ["find . -type f"])  # ran although Bash was never allowed
             self.assertEqual((summary["result"]["turns"], summary["result"]["cost_usd"]), (2, 0.5))
 
+    def test_a_skill_call_the_host_refuses_is_an_attempt_not_a_misfire(self):
+        # S14: the model found align-with-me's file and tried it; disable-model-invocation refused the call.
+        with tempfile.TemporaryDirectory() as temp:
+            stream = Path(temp) / "s.jsonl"
+            write_stream(stream, [
+                {"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "a", "name": "Skill", "input": {"skill": "align-with-me"}}]}},
+                {"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": "a", "is_error": True,
+                                                          "content": "cannot be used with Skill tool due to disable-model-invocation"}]}},
+                {"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "b", "name": "Skill", "input": {"skill": "trace-code"}}]}},
+                {"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": "b", "content": "loaded"}]}}])
+            summary = run_claude.summarize(stream)
+            self.assertEqual(summary["skill_calls_blocked"], ["align-with-me"])
+            measured = trigger.measure(summary, None)
+            self.assertEqual(measured["skills_used"], ["trace-code"])
+            self.assertEqual(measured["skill_calls_blocked"], ["align-with-me"])
+            self.assertTrue(measured["misfire"], "trace-code really ran")
+            only_blocked = trigger.measure({**summary, "skill_calls": ["align-with-me"]}, None)
+            self.assertFalse(only_blocked["misfire"], "a refused attempt alone is not a misfire")
+
     def test_first_context_skips_synthetic_messages_and_zero_usage(self):
         with tempfile.TemporaryDirectory() as temp:
             stream = Path(temp) / "s.jsonl"
