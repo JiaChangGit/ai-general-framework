@@ -93,6 +93,11 @@ class RunClaudeTests(unittest.TestCase):
             self.assertTrue(measured["misfire"], "trace-code really ran")
             only_blocked = trigger.measure({**summary, "skill_calls": ["align-with-me"]}, None)
             self.assertFalse(only_blocked["misfire"], "a refused attempt alone is not a misfire")
+            self.assertIn("disable-model-invocation", measured["skill_calls_blocked_errors"][0])
+            # One refused and one accepted call of the same plugin skill: the accepted one counts.
+            twice = {"skill_calls": ["p:trace-code", "p:trace-code"], "skill_calls_blocked": ["p:trace-code"], "skill_reads": []}
+            self.assertEqual(trigger.measure(twice, "trace-code")["skills_used"], ["trace-code"])
+            self.assertFalse(trigger.measure({**twice, "skill_calls_blocked": ["p:trace-code", "p:trace-code"]}, "trace-code")["hit"])
 
     def test_first_context_skips_synthetic_messages_and_zero_usage(self):
         with tempfile.TemporaryDirectory() as temp:

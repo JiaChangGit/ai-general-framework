@@ -8,11 +8,11 @@
 
 | 修改 | 為什麼 | 驗證 |
 |---|---|---|
-| `templates/project-rules.md` 1,073 → 833 字：只留對齊、skill、驗證、授權四段，加一句語言、一句寫作指引 | 常駐的文字每個 session 都要讀 | 固定成本少約 280 tokens；S11 的 8 個任務 8/8 通過，但花費合計和 S13 差不多（0.766 對 0.749），因為模型多半會去讀下面這份 |
-| 新增 `docs/practices.md`（496 字），跟其他指引一起部署 | 放改程式、工具、續接、文字四段；比 13,500 字的 workflow 指引短得多，讀它不會比省下的還貴 | 單元測試（受管理的檔案多一個） |
+| `templates/project-rules.md` 1,073 → 約 860 字：只留對齊、skill、驗證、授權四段，加一句語言、一句寫作指引，以及什麼時候讀 `practices.md` | 常駐的文字每個 session 都要讀 | 固定成本少約 220～280 tokens（最後版本約 220）；S11 的 8 個任務 8/8 通過，但花費合計和 S13 差不多（0.766 對 0.749），因為模型多半會去讀下面這份 |
+| 新增 `docs/practices.md`（約 530 字），跟其他指引一起部署 | 放改程式、工具、續接、文字四段；比 13,500 字的 workflow 指引短得多，讀它不會比省下的還貴 | 單元測試（受管理的檔案多一個） |
 | 寫作指引那一句放回常駐規則 | 只放在 `practices.md` 時，改寫中文的任務沒去讀寫作指引；盲評裡那份忠實度最差，還加了原稿沒有的行為 | 重跑一次：有讀寫作指引、通過檢查 |
 | `evals/impact/tasks.json` 新增 `debug-wrong-premise` | 量「先核對前提」：使用者說是 2.0 的四捨五入造成的，其實回報是 1.9 跑的 | 兩組 3/3 都做對，量不出差別 |
-| `evals/host/run_claude.py`、`trigger.py`：被宿主擋下的 Skill 呼叫另記在 `skill_calls_blocked`，不算使用、也不算誤用；報告多 `blocked_attempts` | 模型看到 `align-with-me` 的檔案就試著叫用，宿主依設定拒絕；使用者決定這種嘗試另外算 | 單元測試 |
+| `evals/host/run_claude.py`、`trigger.py`：被宿主擋下的 Skill 呼叫另記在 `skill_calls_blocked`（原因在 `skill_calls_blocked_errors`），不算使用、也不算誤用；報告多 `blocked_attempts` | 模型看到 `align-with-me` 的檔案就試著叫用，宿主依設定拒絕；使用者決定這種嘗試另外算 | 單元測試 |
 | `studies/research-2026-11/J-s14.md` 與 `measurement-s14/`（含盲評材料） | 結果與限制 | — |
 
 **量測花費**：約 2.91 美元，在使用者給的約 3 美元內。

@@ -60,9 +60,9 @@ python scripts/agf.py project rollback --target ../my-project
 | `read-research` | 判讀論文或規格、聚焦文獻比較；依要求短答或完整帶讀 |
 | `guide-learning` | 學習專案、工具或概念，調整示範與練習深度 |
 | `review-sql` | 分析慢 SQL／計畫、索引或資料庫變更，保留測試、審查與部署界線；普通資料查詢不需要 |
-| `align-with-me` | 只由你叫用（Claude Code 打 `/align-with-me`）：動手前一輪一輪把會改變成果的決定講定，每題附建議；不在模型的 skill 清單裡，不會誤觸 |
+| `align-with-me` | 只由你叫用（Claude Code 打 `/align-with-me`）：動手前一輪一輪把會改變成果的決定講定，每題附建議。模型不能自己叫用它：S14 量測裡模型看到它的檔案、試著叫用一次，Claude Code 照設定擋下 |
 
-一般開發、需求對齊、寫作、多模型合作與工具選擇使用精簡的[工作指引](docs/workflow.md)、[表達與創作指引](docs/writing.md)、[工具指引](docs/tools.md)及[交付指引](docs/delivery.md)。不為 APP、股市程式、kernel、Boost、STM32、小說、作曲或影片各建一套重複技能；領域條件等具體任務出現再查。
+一般開發、需求對齊、寫作、多模型合作與工具選擇使用精簡的[工作指引](docs/workflow.md)、[表達與創作指引](docs/writing.md)、[工具指引](docs/tools.md)及[交付指引](docs/delivery.md)；從常駐規則移出的改程式、工具、續接、文字四段在很短的 [practices](docs/practices.md)。不為 APP、股市程式、kernel、Boost、STM32、小說、作曲或影片各建一套重複技能；領域條件等具體任務出現再查。
 
 預設先利用已有資料對齊想法，只追問會影響結果的未知；理解後直接做。問題中的專有名詞要用白話解釋。你已定的創作設定與工程限制都要尊重，驗收方式則依任務目的選擇。
 

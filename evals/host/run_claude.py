@@ -99,7 +99,8 @@ def outside(paths: list[str], inside: Path) -> list[str]:
 
 def summarize(path: Path, inside: Path | None = None) -> dict:
     summary = {"skills_listed": None, "tools_listed": None, "model": None, "version": None, "cwd": None, "first_context_tokens": None,
-               "tool_uses": [], "skill_calls": [], "skill_calls_blocked": [], "skill_reads": [], "files_read": [], "tool_errors": [],
+               "tool_uses": [], "skill_calls": [], "skill_calls_blocked": [], "skill_calls_blocked_errors": [], "skill_reads": [],
+               "files_read": [], "tool_errors": [],
                "bash_ran": [], "result": None}
     pending, commands, skills = {}, {}, {}
     for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
@@ -144,6 +145,9 @@ def summarize(path: Path, inside: Path | None = None) -> dict:
                 if part.get("type") == "tool_result" and part.get("is_error") and part.get("tool_use_id") in skills:
                     # The host refused the call (for example disable-model-invocation): an attempt, not a use.
                     summary["skill_calls_blocked"].append(skills[part["tool_use_id"]])
+                    reason = part.get("content")
+                    reason = reason if isinstance(reason, str) else json.dumps(reason, ensure_ascii=False)
+                    summary["skill_calls_blocked_errors"].append(reason[:200])
                 if part.get("type") == "tool_result" and part.get("is_error"):
                     text = part.get("content")
                     text = text if isinstance(text, str) else json.dumps(text, ensure_ascii=False)

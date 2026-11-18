@@ -79,6 +79,7 @@ def measure(summary: dict, expected: str | None) -> dict:
             calls.append(str(call).split(":")[-1])  # plugin:skill names count as the skill
     used = sorted(set(calls) | {read["skill"] for read in summary["skill_reads"]})
     return {"skill_calls": summary["skill_calls"], "skill_calls_blocked": summary.get("skill_calls_blocked", []),
+            "skill_calls_blocked_errors": summary.get("skill_calls_blocked_errors", []),
             "skill_reads": summary["skill_reads"], "skills_used": used,
             "hit": expected in used if expected else None,
             "hit_via_skill_tool": expected in calls if expected else None,

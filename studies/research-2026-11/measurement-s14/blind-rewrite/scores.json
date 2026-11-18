@@ -1,0 +1,61 @@
+{
+ "reviewer": "claude-sonnet-5-5, blind (saw only task.md, draft.md and text-A/B/C.md)",
+ "scale": "1-5, 5 = no problem",
+ "criteria": [
+  "1 流暢性陷阱",
+  "2 歐化長句",
+  "3 主題鏈與人稱跳躍",
+  "4 資訊密度／名詞化",
+  "5 死物配活物動作",
+  "6 沒見過的搭配",
+  "7 主詞動詞太遠",
+  "8 忠實度",
+  "9 對新手的用處"
+ ],
+ "scores": {
+  "text-A": [
+   5,
+   5,
+   4,
+   5,
+   5,
+   4,
+   5,
+   4,
+   4
+  ],
+  "text-B": [
+   5,
+   5,
+   4,
+   4,
+   5,
+   4,
+   5,
+   3,
+   4
+  ],
+  "text-C": [
+   4,
+   4,
+   4,
+   4,
+   5,
+   3,
+   4,
+   3,
+   5
+  ]
+ },
+ "ranking_style_and_faithfulness": [
+  "text-A",
+  "text-B",
+  "text-C"
+ ],
+ "ranking_usefulness": [
+  "text-C",
+  "text-A",
+  "text-B"
+ ],
+ "reviewer_note": "A and B are close on AI flavour, within one reader's taste; C's faithfulness drop (added behaviour) is clearer."
+}
