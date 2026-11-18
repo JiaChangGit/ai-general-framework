@@ -147,6 +147,7 @@ class ImpactTests(unittest.TestCase):
         self.assertTrue(all(row["parts"][0]["first_context_tokens"] == 16 for row in data["runs"]))
         summary = impact.summarize_runs(data)
         self.assertEqual(summary["tasks"]["edit"]["skills-only"]["median_first_context_tokens"], 16)
+        self.assertEqual(summary["tasks"]["edit"]["skills-only"]["tools_listed"], [1], "the fake CLI lists one tool")
 
     def test_a_switch_task_needs_the_second_model(self):
         tasks = json.loads(self.tasks.read_text())

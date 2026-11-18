@@ -2,6 +2,21 @@
 
 每一輪寫：改了什麼、為什麼、怎麼驗證、還沒驗證什麼。細節在各 commit 的訊息與 [docs/verification.md](docs/verification.md)。
 
+## 2026-11-18：S13（分支 `s13-rules`，在 clone `../ai-general-framework-s13` 裡做）
+
+依據：S12 量到常駐規則是固定成本的最大一塊（分析報告第三輪的第 1 項）。結果在 [studies/research-2026-11/I-rules-s13.md](studies/research-2026-11/I-rules-s13.md)。
+
+| 修改 | 為什麼 | 驗證 |
+|---|---|---|
+| `templates/project-rules.md` 1,413 → 1,073 字 | 每個 session 都要讀它。刪掉模型不用提醒也會做的說明，以及 skill 描述與指引已經寫了的清單；每條規則的指示都保留 | 另一個模型（claude-sonnet-5-5）逐句對照新舊版，指出 5 處刪得太多，都已補回。固定成本：規則約 1,920 → 1,610 tokens；S11 的 8 個任務用新規則各跑 1 次，8 個都通過，花費合計少 2%（雜訊範圍內） |
+| `agf/manage.py` 附加在安裝檔後面的工具模式說明改寫（長度約不變，249 → 261 字） | 原本寫死 `python3`，Windows 常常只有 `python` 或 `py -3`；copy 模式補上「在專案根目錄執行」。安裝後的整份規則約 1,664 → 1,336 字 | 單元測試；兩種工具模式的安裝結果都看過 |
+| `evals/host/impact.py` 每段記錄 `tools_listed`，報告列出每格看到的工具數 | 量測途中使用者環境多連上一個 MCP 伺服器，工具從 23 個變 31 個，第一次呼叫多了約 1,730 tokens；沒有這個欄位，就分不出是規則還是環境造成的 | 單元測試 |
+| `studies/research-2026-11/I-rules-s13.md` 與 `measurement-s13/` | 結果與限制 | — |
+
+**量測花費**：約 1.06 美元。
+
+**結論**：縮短安全，但每個 session 只省約 310 tokens（花費約 2%）。要再省得多，要把大部分規則改成需要時才讀，或處理行為上的成本（例如寫作指引太長）；這兩條都還沒做。
+
 ## 2026-11-18：S12（分支 `s12-framework`，在 clone `../ai-general-framework-s12` 裡做）
 
 依據：使用者「先不用 push，把剩餘的都先做好」，一開始選定的範圍見 [docs/analysis-2026-11.md](docs/analysis-2026-11.md) 的「第三輪」。量測在 [studies/research-2026-11/H-measurement-s12.md](studies/research-2026-11/H-measurement-s12.md)。

@@ -1,0 +1,66 @@
+{
+ "model": "claude-sonnet-5-5",
+ "switch_model": null,
+ "framework_commit": "da77e2673a6341c064c4e2b4e0e2f7404d9d370c",
+ "spent_usd": 0.306331,
+ "stopped": null,
+ "groups": {
+  "framework": {
+   "runs": 2,
+   "passed": 2,
+   "cost_usd": 0.1011,
+   "tokens": 43377
+  },
+  "rules-only": {
+   "runs": 3,
+   "passed": 3,
+   "cost_usd": 0.157,
+   "tokens": 66394
+  },
+  "control": {
+   "runs": 1,
+   "passed": 1,
+   "cost_usd": 0.0482,
+   "tokens": 21099
+  }
+ },
+ "tasks": {
+  "probe-context": {
+   "framework": {
+    "passed": "2/2",
+    "median_cost_usd": 0.0506,
+    "median_tokens": 21688.5,
+    "median_turns": 1.0,
+    "median_last_part_tokens": 21688.5,
+    "outside_reads": 0,
+    "median_first_context_tokens": 21684.5,
+    "tools_listed": []
+   },
+   "rules-only": {
+    "passed": "3/3",
+    "median_cost_usd": 0.0546,
+    "median_tokens": 22708,
+    "median_turns": 1,
+    "median_last_part_tokens": 22708,
+    "outside_reads": 0,
+    "median_first_context_tokens": 22704,
+    "tools_listed": [
+     31
+    ]
+   },
+   "control": {
+    "passed": "1/1",
+    "median_cost_usd": 0.0482,
+    "median_tokens": 21099,
+    "median_turns": 1,
+    "median_last_part_tokens": 21099,
+    "outside_reads": 0,
+    "median_first_context_tokens": 21095,
+    "tools_listed": [
+     31
+    ]
+   }
+  }
+ },
+ "incomplete_runs": 0
+}

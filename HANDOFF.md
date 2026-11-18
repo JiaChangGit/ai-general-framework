@@ -1,19 +1,19 @@
 # 接手文件
 
-更新日期：2026-11-18（S12 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
+更新日期：2026-11-18（S13 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
 
 ## 一開始先做什麼
 
 ```bash
 git -C <框架目錄> status --short          # 預期：沒有輸出
-git -C <框架目錄> log --oneline -3         # 預期：最上面是 S12 的 commit（見 CHANGELOG），或使用者之後的新 commit
+git -C <框架目錄> log --oneline -3         # 預期：最上面是 S13 的 commit（見 CHANGELOG），或使用者之後的新 commit
 python3 -B <框架目錄>/scripts/agf.py audit --root <框架目錄>      # 預期："errors": []、"warnings": []
 (cd <框架目錄> && python3 -B -m unittest discover -s tests)        # 預期：OK（有幾個依平台略過）
 python3 -B <框架目錄>/scripts/agf.py task checkpoint --help        # 預期：列出 --done、--doing、--next、--repo、--append
 ```
 
-`<框架目錄>` 換成實際的位置。S12 在框架目錄旁的 clone `../ai-general-framework-s12`（分支 `s12-framework`）做，因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以 `git -C <框架目錄> branch --contains <S12 最後一個 commit>` 或 `git -C <框架目錄> log --oneline -5` 為準。
+`<框架目錄>` 換成實際的位置。S12、S13 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`、`../ai-general-framework-s13`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以 `git -C <框架目錄> log --oneline -5` 為準。
 
 ## 目前的位置
 
@@ -28,6 +28,8 @@ S12 的重點：
 - **續接 hook 的 `save_prompts`**（預設關閉）：存下使用者說的話。兩個「決定只在對話裡」的任務，開了它的組 6/6，沒開的 0/6。
 - **固定成本**：每個 session 一開始多讀約 2,640 tokens，規則約 1,920、skill 描述約 720。
 - 量測結果：[H 報告](studies/research-2026-11/H-measurement-s12.md)。
+
+S13：常駐規則從 1,413 字縮到 1,073 字，固定成本少約 310 tokens，S11 的 8 個任務照樣全過（[I 報告](studies/research-2026-11/I-rules-s13.md)）。省得不多；要再省，見分析報告第四輪。
 
 ## 拿框架到別的專案測試
 
@@ -46,10 +48,10 @@ S12 的重點：
 
 ## 還沒做的事
 
-依分析報告第三輪的優先順序：
+依分析報告第三、四輪的優先順序：
 
-1. **使用者**把 `s12-framework` 併進 main：`git -C <框架目錄> pull --ff-only ../ai-general-framework-s12 s12-framework`。
-2. 縮短 `project-rules.md`：它是固定成本的大頭（約 1,920 tokens）。改完用 `probe-context` 量第一次呼叫的 context，再用 S11 的 8 個任務確認沒有退步。
+1. **使用者**把 `s13-rules` 併進 main：`git -C <框架目錄> pull --ff-only ../ai-general-framework-s13 s13-rules`。
+2. 要再降固定成本：把大部分規則改成需要時才讀，或把寫作指引拆成短版與完整版（第四輪）。量法照 S13：`probe-context` 量第一次呼叫的 context，同時跑對照組並看 `tools_listed`，再用 S11 的 8 個任務確認沒有退步。
 3. `save_prompts` 要不要在使用者自己的專案開啟，由使用者決定。
 4. 在 GitHub 上實際跑一次 `skill-triggers.yml`（要先 push，並設定 `ANTHROPIC_API_KEY`，會花錢）。
 5. 其他 7 個觸發情境在新描述下重跑一次。
@@ -66,6 +68,7 @@ S12 的重點：
 - **`cd` 會延續到之後的命令**，宿主還會把主要工作目錄跟著改過去。查看別的目錄時用 `git -C` 或絕對路徑。
 - **`pkill -f` 會連自己的 shell 一起殺掉**；用 PID 停行程。
 - **長時間的命令**用 `setsid nohup` 和 session 分開執行，結果寫進檔案；宿主的背景命令可能有時間上限。
+- **使用者環境的 MCP 伺服器會中途連上。** S13 量測時工具從 23 個變 31 個，第一次呼叫多了約 1,730 tokens。比較固定成本時，同時跑對照組，並確認 `tools_listed` 相同。
 - **`/tmp` 在這台 WSL 上是 4.3 GB 的 tmpfs**，重開就清空，也會吃記憶體；要留的證據不要放那裡。
 - **給使用者的命令不要用 `<名稱>` 這種佔位字。** bash 會把 `<` 當成讀檔，整行命令不會執行；寫出實際的值，或明說要換掉哪一段。
 

@@ -208,6 +208,7 @@ def run_one(args, framework, base, out, cli, env, startup, task, group, repeat, 
             row["parts"].append({"model": model, "exit": code, "subtype": result.get("subtype"), "planned_cut": bool(planned_cut),
                                  "turns": result.get("turns"), "cost_usd": result.get("cost_usd"),
                                  "first_context_tokens": summary.get("first_context_tokens"),
+                                 "tools_listed": summary.get("tools_listed"),
                                  **{key: result.get(key) for key in TOKEN_KEYS},
                                  "skills_used": trigger.measure(summary, None)["skills_used"],
                                  "files_read": [path.replace(str(work), ".") for path in summary["files_read"]],
@@ -237,7 +238,7 @@ def summarize_runs(data: dict) -> dict:
     for row in done:
         cell = table.setdefault(row["task"], {}).setdefault(row["group"], {"runs": 0, "passed": 0, "cost": [], "tokens": [], "turns": [], "last_part_tokens": [],
                                                                             "cuts_planned": 0, "cuts_happened": 0, "outside_reads": 0,
-                                                                            "first_context": []})
+                                                                            "first_context": [], "tools_listed": set()})
         cell["runs"] += 1
         cell["passed"] += bool(row["passed"])
         for part in row["parts"][:-1]:
@@ -245,6 +246,7 @@ def summarize_runs(data: dict) -> dict:
             cell["cuts_planned"] += 1
             cell["cuts_happened"] += bool(part.get("planned_cut"))
         cell["outside_reads"] += sum(len(part.get("outside_paths") or []) for part in row["parts"])
+        cell["tools_listed"].update(part["tools_listed"] for part in row["parts"] if part.get("tools_listed") is not None)
         if row["parts"] and row["parts"][0].get("first_context_tokens") is not None:
             cell["first_context"].append(row["parts"][0]["first_context_tokens"])
         cell["cost"].append(_sum(row, "cost_usd"))
@@ -265,6 +267,9 @@ def summarize_runs(data: dict) -> dict:
                             "median_tokens": median(cell["tokens"]), "median_turns": median(cell["turns"]),
                             "median_last_part_tokens": median(cell["last_part_tokens"]), "outside_reads": cell["outside_reads"],
                             "median_first_context_tokens": median(cell["first_context"]),
+                            # More than one value: a session saw extra tools (say an MCP server that
+                            # connected), which changes the context size; compare such cells with care.
+                            "tools_listed": sorted(cell["tools_listed"]),
                             **({"cuts": f"{cell['cuts_happened']}/{cell['cuts_planned']}"} if cell["cuts_planned"] else {})}
                     for group, cell in cells.items()} for task, cells in table.items()}
     return {"model": data["model"], "switch_model": data.get("switch_model"), "framework_commit": data["framework_commit"],
