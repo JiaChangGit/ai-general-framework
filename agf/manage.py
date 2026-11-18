@@ -283,7 +283,9 @@ def _desired(source: Path, root: Path, hosts: list[str], old: dict | None, selec
     script = str(source / "scripts/agf.py") if tools_mode == "shared" else ".agf/managed/runtime/scripts/agf.py"
     mode_note = "原始框架目錄要保持可用" if tools_mode == "shared" else "離線快照，不需要原始框架目錄"
     instructions = rules.read_text(encoding="utf-8").rstrip() + "\n\n"
-    instructions += f"工具模式：`{tools_mode}`（{mode_note}）。`agf` 用 `python3 -B \"{script}\"` 執行，skill 裡的 `scripts/agf.py` 換成這個路徑。\n"
+    where = "" if tools_mode == "shared" else "在專案根目錄"
+    instructions += (f"工具模式：`{tools_mode}`（{mode_note}）。執行 `agf`：{where}用 Python 跑 `\"{script}\"`（`python3 -B`；沒有 python3 時用 `python` 或 `py -3`）；"
+                     "skill 裡的 `scripts/agf.py` 換成這個路徑，其餘參數不變。\n")
     instructions += "指引在 `.agf/managed/guides/`（workflow、writing、tools、delivery），需要時才讀。\n"
     add(".agf/managed/project-rules.md", instructions.encode("utf-8"), "templates/project-rules.md")
     for name in GUIDES:
