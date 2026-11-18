@@ -6,18 +6,28 @@
 
 依據：使用者在 Raft 專案結束後的七點回饋，分析在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md) 的「第二輪」。量測結果在 [studies/research-2026-11/G-measurement-2026-11-18.md](studies/research-2026-11/G-measurement-2026-11-18.md)，外部研究在 [F-hooks-evals-ci.md](studies/research-2026-11/F-hooks-evals-ci.md)。
 
+名詞：下面的 SessionStart、Stop、StopFailure 等是 Claude Code 的 hook 事件，分別在 session 開始、AI 準備結束一輪回答、因 API 錯誤（例如額度用完）中斷時觸發；PreCompact／PostCompact 在對話壓縮前後，SessionEnd 在 session 結束，PreModelSwitch 在換模型之前。
+
 | 修改 | 為什麼 | 驗證 |
 |---|---|---|
-| `templates/claude-continuity-hook.py`、`templates/claude-continuity-settings.example.json`，登記為 integration template | 撞到用量上限、壓縮、換模型之後，新 session 要從頭重讀；交接檔常忘了更新。hook 在 StopFailure、PreCompact、PostCompact、SessionEnd、PreModelSwitch 寫 checkpoint（`.agf/checkpoints/`），SessionStart 提示先讀交接檔與 checkpoint、回到快取過期的 session 時提示費用，Stop 在這個 session 於交接檔之後又 commit 時提醒一次 | `tests/test_continuity_hook.py` 12 個測試。Claude Code 2.1.325 無頭探測：SessionStart、Stop、SessionEnd 會觸發；量測裡 4 個續接的新 session 都先讀了 checkpoint。PreCompact、PostCompact、StopFailure、PreModelSwitch 沒有在真實 session 觸發過；量測時撞到的那次用量上限，因執行目錄已刪，無法確認 StopFailure 有沒有寫出 checkpoint |
-| `evals/host/impact.py`、`evals/impact/tasks.json`（8 個任務）、`evals/impact/continuity-hooks.json` | 使用者要一個方法，測框架有沒有幫助、會不會多耗 token。有框架與沒框架配對、隱藏檢查、四種 token 分開記、總預算上限；兩個任務模擬「被截斷後新 session 接手」與「換模型接手」 | `tests/test_eval_impact.py` 9 個測試。實際量測一次：27 次完成的執行，兩組都 100% 通過，框架組多花 20%～44%（結果與限制見 G 報告） |
-| `impact.py report` 可以合併多個輸出目錄 | 量測做到一半撞到用量上限；補跑寫到新目錄，再合併成一份報告，不必全部重跑。模型不同的目錄拒絕合併 | 測試 1 個；實際合併了兩次量測 |
-| `templates/claude-guard-hook.py`：引號定界的 heredoc 內容與單引號裡的文字不再檢查 | 已安裝的 guard hook 擋下了一個 Python heredoc，因為裡面的 Markdown 引了 push 的寫法；那些文字 shell 不會執行。沒有引號的 heredoc 與雙引號裡的 `$(...)`、反引號照樣檢查 | `tests/test_guard_hook.py` 共 19 個測試，含被誤擋的那個命令 |
-| `.github/workflows/skill-triggers.yml` | 讓觸發量測能在 GitHub Actions 上跑；只在手動按下時執行，需要 `ANTHROPIC_API_KEY` secret，結果上傳成 artifact，不讓 build 失敗 | 本機沒有辦法驗證；**還沒在 GitHub 上跑過**。actions 的 commit SHA 用 `gh api` 核對過 |
+| `templates/claude-continuity-hook.py`、`templates/claude-continuity-settings.example.json`，登記為 integration template | 撞到用量上限、對話被壓縮或換模型之後，新 session 要從頭重讀，交接檔也常忘了更新。這個 hook 在中斷、壓縮、結束、換模型時，把 git 狀態與最後一則訊息寫進 `.agf/checkpoints/`。新 session 開始時，它提示先讀交接檔與 checkpoint。session 在交接檔之後又 commit 了，它在結束前提醒一次 | `tests/test_continuity_hook.py` 14 個測試。Claude Code 2.1.325 無頭探測：SessionStart、Stop、SessionEnd 會觸發。量測裡 4 個接手的新 session 都先讀了 checkpoint（[逐筆紀錄](studies/research-2026-11/measurement-2026-11-18/continuation-reads.md)）。PreCompact、PostCompact、StopFailure、PreModelSwitch 沒有在真實 session 觸發過；量測時撞到的那次用量上限，執行目錄已刪，無法確認 StopFailure 有沒有寫出 checkpoint。Stop 的提醒模型有沒有照做，沒有實測 |
+| `evals/host/impact.py`、`evals/impact/tasks.json`（8 個任務）、`evals/impact/continuity-hooks.json` | 使用者要一個方法，測框架有沒有幫助、會不會多耗 token。做法：有框架與沒框架兩組配對，用隱藏檢查判成敗，四種 token 分開記，有總預算上限。兩個任務模擬「被截斷後新 session 接手」與「換模型接手」 | `tests/test_eval_impact.py` 10 個測試。實際量測一次：計畫 32 次，完成 27 次，兩組都 100% 通過，框架組多花 20%～45%（結果與限制見 G 報告） |
+| `impact.py report` 可以合併多個輸出目錄，並列出截斷是否真的發生、讀了幾次工作目錄以外的檔 | 量測做到一半撞到用量上限；補跑寫到新目錄，再合併成一份報告，不必全部重跑 | 測試；實際合併了兩次量測：8 次續接的第一段都真的被截斷，受試者沒有讀工作目錄以外的檔 |
+| `templates/claude-guard-hook.py`：heredoc（用 `<<EOF` 接在命令後的多行文字）只有交給 shell 執行時才當命令檢查 | 已安裝的 guard hook 擋下了一個 Python heredoc，因為裡面的 Markdown 寫了 push 的命令，而那段文字 shell 不會執行 | `tests/test_guard_hook.py` 共 20 個測試，含被誤擋的那個命令 |
+| `.github/workflows/skill-triggers.yml` | 讓觸發量測能在 GitHub Actions 上跑。只在手動按下時執行，需要 `ANTHROPIC_API_KEY` secret，結果上傳成 artifact，不讓 build 失敗 | **還沒在 GitHub 上跑過**。三個 action 的 commit SHA 都用 `gh api` 核對過對應的版本 tag |
 | `evals/host/run_claude.py`：`--env NAME` 不帶值時從目前環境複製 | CI 裡傳 API key 不必寫在命令列上 | 測試 1 個 |
 | `evals/scenarios.json` 新增 2 個觸發情境 | 審查一段附了材料的 diff（該用 `review-change`）；「先問我問題」（不該自動叫用只給使用者用的 `align-with-me`） | 觸發量測：兩個都符合預期 |
 | `templates/project-rules.md`、`skills/align-with-me/SKILL.md`、`docs/workflow.md`：一開始就問完；每題寫給沒有背景的人看 | 使用者說中途冒出的問題會打斷他做別的事，問題的描述也常看不懂 | 文字修改，沒有量測；常駐規則 1,316 → 1,413 字 |
 | `docs/cli.md`、`docs/workflow.md`、`evals/host/README.md`、`README.md` | 續接 hook、量測工具、CI workflow 的用法 | — |
 | `docs/analysis-2026-11.md` 第二輪、`studies/research-2026-11/` 的 F、G 與量測資料 | 研究與結果跟著框架 | — |
+
+**審查。** 修改交給沒參與的模型（claude-sonnet-5-5）只讀審查，它找到：
+
+- guard hook 的三種繞過，都是這一輪的 heredoc 修改造成的：heredoc 交給 shell 執行（`bash <<'EOF'`、`cat <<'EOF' | bash`、`eval "$(cat <<'EOF' …)"`）；雙引號裡的撇號（`"it's"`）讓後面的 `$(...)` 被當成引號內的文字；帶 `-` 或 `.` 的定界字（`<<END-OF`）讓後面所有命令都被當成 heredoc 內容。改法：讀 heredoc 的是 shell、`eval`、`source`、`ssh` 時，內容當命令檢查；引號改成逐字掃描；定界字接受更多字元；找不到結束行時，剩下的命令照常檢查。14 個繞過寫成測試。
+- 續接 hook 的三個錯誤：交接檔 commit 之後，Stop 與 SessionStart 仍說它「沒跟上」（改成也看交接檔最後一次 commit 的時間）；恢復超過 7 天的舊 session 時，自己的紀錄檔被當成過期刪掉；設定檔不是 JSON 物件時當掉。另外改成每個 session 各存一份最後的訊息，git 呼叫有總時間上限（換模型時 3 秒，避免 hook 逾時擋下換模型）。
+- 量測工具：合併時沒有檢查 skill、hook、任務檔是否相同，同一個目錄給兩次會重複計算；hook 設定寫著框架的路徑，框架組理論上讀得到隱藏檢查。都已修正；hook 程式改成複製進受試目錄。
+- workflow 把輸入直接貼進 shell 命令；改成經環境變數傳入。
+- 文件：花費的範圍應是 20%～45%；「token 與花費都變多」有一個任務例外；分析報告把「補跑」寫得像全部補完；有幾句太長、名詞沒有解釋。都已修正。
 
 **量測花費**：觸發 1.07 美元、成效 2.34 美元，合計 3.41 美元，在使用者給的 2～4 美元內。
 

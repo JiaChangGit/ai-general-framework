@@ -22,6 +22,13 @@ reason to the model and does not run the tool):
     tar -x -C, curl -o, wget -O/-P, unzip -d, and git subcommands that write when
     the repository (-C, --git-dir, --work-tree or the current directory) is protected.
 
+Text that the shell never runs is not read as commands: words inside single
+quotes, and a heredoc body read by a program that is not a shell (the text
+of `python3 - <<'EOF'` or `cat <<'EOF' > notes.md`). A heredoc read by a shell,
+eval, source or ssh (`bash <<'EOF'`, `cat <<EOF | sh`) is checked like any other
+command line, and so are the $(...) and backticks of an unquoted heredoc. A
+heredoc without its closing line leaves the rest of the command checked.
+
 What it cannot see: anything a program does once it runs (`python3 -c "open(...)"`,
 a script or Makefile that pushes, a Git alias for push), paths held in shell
 variables (`$DIR/file`), and commands built at run time. It is a guard against
@@ -146,33 +153,81 @@ def segments(command: str) -> list[str]:
     return [part for part in parts + [s for body in substitutions(command) for s in segments(body)] if part.strip()]
 
 
-def substitutions(text: str) -> list[str]:
-    """Bodies of $(...) and backticks that the shell would run: not those inside single quotes."""
-    visible = re.sub(r"'[^']*'", lambda m: " " * len(m.group()), text)
-    return re.findall(r"\$\(([^()]*)\)", visible) + re.findall(r"`([^`]*)`", visible)
+def substitutions(text: str, quotes: bool = True) -> list[str]:
+    """Bodies of $(...) and backticks that the shell would run.
+
+    With quotes, text inside single quotes is skipped (it is never expanded) and
+    double quotes are tracked, so the apostrophe in "it's" does not start a quote.
+    A heredoc body is passed with quotes=False: quotes there are ordinary text."""
+    bodies, index, quote = [], 0, None
+    while index < len(text):
+        char = text[index]
+        if quote == "'":
+            quote = None if char == "'" else quote
+            index += 1
+            continue
+        if char == "\\":
+            index += 2
+            continue
+        if quotes and char == "'" and quote is None:
+            quote = "'"
+        elif quotes and char == '"':
+            quote = None if quote == '"' else '"'
+        elif char == "$" and text[index + 1:index + 2] == "(":
+            depth, end = 0, index + 1
+            while end < len(text):
+                depth += {"(": 1, ")": -1}.get(text[end], 0)
+                if depth == 0:
+                    break
+                end += 1
+            bodies.append(text[index + 2:end])
+            index = end
+        elif char == "`":
+            end = text.find("`", index + 1)
+            end = len(text) if end < 0 else end
+            bodies.append(text[index + 1:end])
+            index = end
+        index += 1
+    return bodies
+
+
+HEREDOC = re.compile(r"(?<!<)<<(?!<)(-?)[ \t]*(?:'([^'\n]+)'|\"([^\"\n]+)\"|(\\?)([^\s;&|<>()'\"`]+))")
+# Programs that run what they read on standard input as shell commands.
+SHELL_READERS = SHELLS | {"eval", "source", ".", "ssh", "fish"}
 
 
 def strip_heredocs(command: str) -> tuple[str, list[str]]:
-    """(command without heredoc bodies, bodies whose delimiter was unquoted).
+    """(command without the heredoc bodies that are only data, unquoted bodies).
 
-    A body under a quoted delimiter (<<'EOF', <<"EOF") is data the shell never
-    expands, so it is dropped. An unquoted body is not a command either, but its
-    $(...) and backticks do run, so it is returned for those to be checked."""
+    A heredoc body is text on the program's standard input. When that program is
+    a shell (`bash <<'EOF'`, `cat <<EOF | sh`, `eval "$(cat <<EOF ...)"`), the
+    body is commands and stays in the command. Otherwise a body under a quoted
+    delimiter (<<'EOF', <<"EOF", <<\EOF) is never expanded and is dropped; an
+    unquoted body is dropped too, but returned so that its $(...) and backticks,
+    which do run, are checked. A heredoc without its closing line keeps the rest
+    of the command, so nothing is skipped by mistake."""
     lines, kept, expanded, index = command.split("\n"), [], [], 0
     while index < len(lines):
         line = lines[index]
         kept.append(line)
         index += 1
-        visible = re.sub(r"'[^']*'|\"[^\"]*\"", lambda m: m.group() if re.match(r"['\"][A-Za-z_]\w*['\"]$", m.group()) else " " * len(m.group()), line)
-        for dash, quote, delimiter in re.findall(r"(?<!<)<<(?!<)(-?)\s*(['\"]?)([A-Za-z_]\w*)\2", visible):
-            body = []
+        # Hide quoted text and arithmetic, except a quoted delimiter right after <<.
+        visible = re.sub(r"'[^']*'|\"[^\"]*\"", lambda m: m.group() if re.search(r"(?<!<)<<-?[ \t]*$", line[:m.start()]) else " " * len(m.group()), line)
+        visible = re.sub(r"\$\(\([^)]*\)\)", lambda m: " " * len(m.group()), visible)
+        readers = {os.path.basename(word) for word in re.findall(r"[^\s;&|()<>]+", visible)} & SHELL_READERS
+        for dash, single, double, backslash, bare in HEREDOC.findall(visible):
+            delimiter, quoted = single or double or bare, bool(single or double or backslash)
+            body, closed = [], False
             while index < len(lines):
                 candidate = lines[index].lstrip("\t") if dash else lines[index]
                 index += 1
                 if candidate == delimiter:
+                    closed = True
                     break
                 body.append(lines[index - 1])
-            if not quote:
+            if readers or not closed:
+                kept.extend(body)
+            elif not quoted:
                 expanded.append("\n".join(body))
     return "\n".join(kept), expanded
 
@@ -299,7 +354,7 @@ def check_bash(command: str, cwd: Path, config: dict, depth: int = 0) -> None:
         return
     command, expanded = strip_heredocs(command)
     for body in expanded:
-        for inner in substitutions(body):
+        for inner in substitutions(body, quotes=False):
             check_bash(inner, cwd, config, depth + 1)
     for segment in segments(command):
         # Operators are found where nothing is quoted; the target is then read from

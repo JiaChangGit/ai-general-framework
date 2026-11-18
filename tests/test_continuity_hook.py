@@ -87,8 +87,42 @@ class ContinuityHookTests(unittest.TestCase):
 
     def test_a_message_saved_at_stop_reaches_the_end_of_session_checkpoint(self):
         self.hook("stop", {"session_id": "s", "last_assistant_message": "parse() works; format() still raises"})
-        self.hook("session-end", {"reason": "other"})
-        self.assertIn("format() still raises", (self.root / ".agf/checkpoints/latest.md").read_text())
+        self.hook("stop", {"session_id": "other", "last_assistant_message": "a different session"})
+        self.hook("session-end", {"session_id": "s", "reason": "other"})
+        latest = (self.root / ".agf/checkpoints/latest.md").read_text()
+        self.assertIn("format() still raises", latest)
+        self.assertNotIn("a different session", latest, "each session keeps its own last message")
+        self.hook("stop-failure", {"session_id": "s"})
+        self.assertIn("事件沒有提供", (self.root / ".agf/checkpoints/latest.md").read_text())
+
+    def test_committing_the_hand_off_counts_as_updating_it(self):
+        # Found by the S11 review: the commit that includes the hand-off is newer than the file.
+        handoff = self.root / "HANDOFF.md"
+        self.hook("session-start", {"source": "startup", "session_id": "s2"})
+        time.sleep(1.1)
+        handoff.write_text("updated")
+        old = time.time() - 60
+        os.utime(handoff, (old, old))
+        self.git("add", "HANDOFF.md")
+        self.commit("update the hand-off")
+        self.assertEqual(self.hook("stop", {"session_id": "s2"}).strip(), "")
+        context = json.loads(self.hook("session-start", {"source": "startup", "session_id": "s3"}))["hookSpecificOutput"]["additionalContext"]
+        self.assertNotIn("新 commit", context)
+        time.sleep(1.1)
+        self.commit("more work")
+        self.assertIn("1 個 commit", self.hook("stop", {"session_id": "s2"}))
+
+    def test_a_resumed_old_session_keeps_its_marker(self):
+        (self.root / "HANDOFF.md").write_text("x")
+        folder = self.root / ".agf/checkpoints"
+        self.hook("session-start", {"source": "startup", "session_id": "old"})
+        self.hook("session-start", {"source": "startup", "session_id": "gone"})
+        month = time.time() - 30 * 86400
+        for name in (".session-old", ".session-gone"):
+            os.utime(folder / name, (month, month))
+        self.hook("session-start", {"source": "resume", "session_id": "old"})
+        self.assertTrue((folder / ".session-old").is_file())
+        self.assertFalse((folder / ".session-gone").exists())
 
     def test_only_the_newest_checkpoints_are_kept(self):
         config = self.root.parent / "c.json"
@@ -135,6 +169,13 @@ class ContinuityHookTests(unittest.TestCase):
                             ([sys.executable, str(HOOK), "nonsense"], "{}")]:
             result = subprocess.run(argv, input=stdin, capture_output=True, text=True, env=env, timeout=20)
             self.assertEqual(result.returncode, 0, argv)
+        for content in ["[1, [2]]", '{"keep": 0}', '{"keep": "3"}', '{"handoff_files": "HANDOFF.md"}']:
+            config = self.root.parent / "odd.json"
+            config.write_text(content)
+            result = subprocess.run([sys.executable, str(HOOK), "session-end", str(config)], input="{}", capture_output=True,
+                                    text=True, env=env, timeout=20)
+            self.assertEqual(result.returncode, 0, content)
+            self.assertIn("agf continuity", result.stderr, content)
 
     def test_outside_a_git_repository_checkpoints_still_work(self):
         plain = self.root.parent / "plain"

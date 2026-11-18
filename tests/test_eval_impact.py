@@ -92,6 +92,8 @@ class ImpactTests(unittest.TestCase):
         self.assertEqual(cell["passed"], "1/1")
         self.assertEqual(cell["median_tokens"], 2 * 380)
         self.assertEqual(cell["median_last_part_tokens"], 380)
+        self.assertEqual(cell["cuts"], "1/1", "the first session really was cut off")
+        self.assertEqual(cell["outside_reads"], 0)
         self.assertEqual(set(summary["groups"]), {"framework", "control"})
 
     def test_report_merges_a_run_finished_in_a_second_directory(self):
@@ -112,6 +114,25 @@ class ImpactTests(unittest.TestCase):
         refused = subprocess.run(argv, capture_output=True, text=True, timeout=60)
         self.assertEqual(refused.returncode, 2)
         self.assertIn("model differs", refused.stderr)
+        data["model"], data["skills"] = "fake-model", ["only-one"]
+        (self.temp / "out" / "results.json").write_text(json.dumps(data), encoding="utf-8")
+        refused = subprocess.run(argv, capture_output=True, text=True, timeout=60)
+        self.assertIn("skills differs", refused.stderr)
+        twice = subprocess.run(argv[:4] + [str(self.temp / "first")], capture_output=True, text=True, timeout=60)
+        self.assertEqual(twice.returncode, 2)
+        self.assertIn("twice", twice.stderr)
+
+    def test_hook_scripts_are_copied_so_the_settings_do_not_point_at_the_framework(self):
+        work = self.temp / "work"
+        work.mkdir()
+        hooks = self.temp / "hooks.json"
+        hooks.write_text(json.dumps({"hooks": {"Stop": [{"hooks": [{"type": "command",
+                         "command": "python3 {framework}/templates/claude-continuity-hook.py stop"}]}]}}), encoding="utf-8")
+        impact._install_hooks(ROOT, work, hooks)
+        settings = (work / ".claude" / "settings.json").read_text(encoding="utf-8")
+        self.assertNotIn(str(ROOT), settings)
+        self.assertTrue((work / ".claude" / "agf-hooks" / "claude-continuity-hook.py").is_file())
+        self.assertIn(str(work / ".claude" / "agf-hooks" / "claude-continuity-hook.py"), settings)
 
     def test_a_switch_task_needs_the_second_model(self):
         tasks = json.loads(self.tasks.read_text())

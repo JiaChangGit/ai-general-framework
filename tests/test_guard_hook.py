@@ -184,6 +184,25 @@ class GuardHookTests(unittest.TestCase):
             with self.subTest(command=command):
                 self.assertEqual(self.bash(command).returncode, 2, command)
 
+    def test_heredocs_that_a_shell_runs_or_that_never_close_are_checked(self):
+        # Found by the S11 review: dropping every quoted heredoc body let these through.
+        refused = ["bash <<'EOF'\ngit push\nEOF", "sh <<EOF\ngit push\nEOF", "cat <<'EOF' | bash\ngit push\nEOF",
+                   "bash -s <<'EOF'\ngit push\nEOF", "source /dev/stdin <<'EOF'\ngit push\nEOF",
+                   "eval \"$(cat <<'EOF'\ngit push\nEOF\n)\"", "ssh host <<'EOF'\ngit push\nEOF",
+                   "cat <<END-OF\nx\nEND-OF\ngit push", "cat <<EOF.txt\nx\nEOF.txt\ngit push",
+                   "echo hi # use <<EOF\ngit push", "echo $((1<<N))\ngit push",
+                   "cat <<EOF\n'$(git push)'\nEOF",
+                   "echo \"it's $(git push)\" \"x's\"", "echo \"it's\" `git push` \"x's\""]
+        for command in refused:
+            with self.subTest(command=command):
+                self.assertEqual(self.bash(command).returncode, 2, command)
+        allowed = ["git commit -m \"$(cat <<'EOF'\nwhy we did not git push\nEOF\n)\"",
+                   "cat <<'END-OF' > notes.md\nrun git push later\nEND-OF", "cat <<\\EOF\n$(git push)\nEOF",
+                   "echo \"it's fine\" 'and `git push` is text'"]
+        for command in allowed:
+            with self.subTest(command=command):
+                self.assertEqual(self.bash(command).returncode, 0, command)
+
     def test_unexpected_event_shapes_are_handled_without_crashing(self):
         for event in [{"tool_name": "Bash", "tool_input": "git push", "cwd": str(self.work)},
                       {"tool_name": "Bash", "tool_input": {"command": "ls"}, "cwd": 42},

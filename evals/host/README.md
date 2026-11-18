@@ -56,7 +56,9 @@ python evals/host/impact.py report /tmp/agf-impact-out
 - 有兩個任務先跑一個被 `max_turns` 截斷的 session，再開新的 session 接著做：一個代表「額度用完，新 session 接手」，另一個在第二段換成 `--switch-model`，代表「換模型接手」。
 - `--hooks` 把那份 JSON 合併進框架組的 `.claude/settings.json`；`{framework}` 會換成框架的路徑。不給就只量規則與 skill。
 - `--total-budget` 是整次實驗的上限：下一個 session 可能讓總花費超過它時就停下，已完成的結果保留。`report` 另寫一份 `report.md`。
-- 被用量上限打斷時，用 `--ids` 只補跑缺的任務、寫到新的 `--out`，再用 `impact.py report <目錄一> <目錄二> --md <檔案>` 合併；模型不同的目錄不會合併。受試 session 和你自己的對話用同一個額度。
+- 被用量上限打斷時，用 `--ids` 只補跑缺的任務、寫到新的 `--out`，再用 `impact.py report <目錄一> <目錄二> --md <檔案>` 合併；模型、工具、skill、hook 或任務檔不同的目錄不會合併。受試 session 和你自己的對話用同一個額度。
+- 報告的表格另有兩欄：有計畫截斷的任務，第一段實際被截斷了幾次（沒截斷就沒測到「接手」）；受試者讀了幾次工作目錄以外的檔。
+- `--hooks` 用到的框架檔案會複製進受試目錄，設定檔不寫框架的路徑。但 shared 模式的安裝仍會把框架路徑寫進規則檔（見上面「框架本身的路徑」），所以每次都要看讀取工作目錄以外的次數。
 - 受試者能用 Read、Grep、Glob、Edit、Write、Skill，Bash 整個拿掉；隔離與預檢和 `trigger.py` 相同。
 - `--env NAME` 不帶值時，從目前的環境複製那個變數，例如在 CI 裡傳 API key，不必把它寫在命令列上。
 - 每個條件只跑一兩次時，差異可能是雜訊。要比較時固定模型、任務與 CLI 版本；Claude Code 的快取在訂閱方案內是 1 小時、其他情況 5 分鐘，跑的先後會影響 cache read 的多寡，所以 token 要分開看，不只看總數。

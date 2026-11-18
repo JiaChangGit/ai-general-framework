@@ -28,7 +28,7 @@ has nothing to say prints nothing, so it costs no tokens.
                     finishing (additionalContext, not a hard block).
 
 Checkpoints are Markdown files in checkpoint_dir (default .agf/checkpoints):
-latest.md plus timestamped copies, the newest `keep` of them kept. They hold
+latest.md plus timestamped copies, the newest `keep` (at least 1) of them kept. They hold
 facts a script can collect (time, event, git branch, HEAD, recent commits,
 status, the error, the last assistant message, the compaction summary), not a
 plan; the plan belongs in the hand-off file the model writes.
@@ -47,20 +47,32 @@ from datetime import datetime, timezone
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 DEFAULTS = {"handoff_files": ["HANDOFF.md", ".ai/HANDOFF.md", "docs/HANDOFF.md"], "checkpoint_dir": ".agf/checkpoints",
             "keep": 10, "switch_warn_usd": 0.5, "block_switch": False, "stop_reminder": True}
 LIMIT = 6000  # characters kept from any single field, well under the 10,000-character hook output cap
+# Seconds the git calls of one event may take in total, below the hook timeout in the
+# settings example (10 s). A PreModelSwitch hook that times out blocks the switch, and
+# SessionEnd gets 1.5 s unless the settings give it a timeout.
+GIT_BUDGET = {"pre-model-switch": 3.0, "session-end": 1.0}
+deadline = time.monotonic() + 6.0
 
 
 def load_config(path: str | None) -> dict:
     config = dict(DEFAULTS)
     if path:
         loaded = json.loads(Path(path).expanduser().read_text(encoding="utf-8"))
+        if not isinstance(loaded, dict):
+            raise ValueError("the configuration must be a JSON object")
         unknown = set(loaded) - set(DEFAULTS)
         if unknown:
             raise ValueError(f"unknown keys {sorted(unknown)}")
         config.update(loaded)
+    if isinstance(config["keep"], bool) or not isinstance(config["keep"], int) or config["keep"] < 1:
+        raise ValueError("keep must be a whole number of at least 1")
+    if not isinstance(config["handoff_files"], list) or not all(isinstance(name, str) for name in config["handoff_files"]):
+        raise ValueError("handoff_files must be a list of paths")
     return config
 
 
@@ -70,8 +82,12 @@ def project_dir(event: dict) -> Path:
 
 
 def git(root: Path, *argv: str) -> str:
+    """git's output, or "" on any failure or once this event's time budget is spent."""
+    remaining = deadline - time.monotonic()
+    if remaining < 0.2:
+        return ""
     try:
-        result = subprocess.run(["git", "-C", str(root), *argv], capture_output=True, text=True, timeout=5)
+        result = subprocess.run(["git", "-C", str(root), *argv], capture_output=True, text=True, timeout=min(5.0, remaining))
     except (OSError, subprocess.TimeoutExpired):
         return ""
     return result.stdout.strip() if result.returncode == 0 else ""
@@ -96,14 +112,26 @@ def commits_after(root: Path, moment: float) -> int:
     return sum(1 for value in times if value.isdigit() and int(value) > moment)
 
 
+def handoff_time(root: Path, path: Path) -> float:
+    """When the hand-off was last brought up to date: its file time, or the commit
+    that last changed it, whichever is later. Committing the hand-off is updating it."""
+    committed = git(root, "log", "-1", "--format=%ct", "--", str(path.relative_to(root)))
+    return max(path.stat().st_mtime, float(committed) if committed.isdigit() else 0.0)
+
+
 def session_marker(root: Path, config: dict, event: dict) -> Path:
     return root / config["checkpoint_dir"] / f".session-{event.get('session_id', 'unknown')}"
+
+
+def saved_message(root: Path, config: dict, event: dict) -> Path:
+    """Where `stop` keeps this session's last message (one file per session)."""
+    return session_marker(root, config, event).with_name(f".last-message-{event.get('session_id', 'unknown')}")
 
 
 def last_message(root: Path, config: dict, event: dict) -> str:
     """The last assistant message: from the event, else the transcript, else what `stop` saved."""
     text = event.get("last_assistant_message") or last_assistant_text(event.get("transcript_path"))
-    saved = root / config["checkpoint_dir"] / ".last-message"
+    saved = saved_message(root, config, event)
     if not text and saved.is_file():
         text = saved.read_text(encoding="utf-8")
     return text
@@ -157,27 +185,30 @@ def write_checkpoint(root: Path, config: dict, event_name: str, sections: dict[s
     (folder / f"{stamp}-{event_name}.md").write_text(text, encoding="utf-8")
     (folder / "latest.md").write_text(text, encoding="utf-8")
     copies = sorted(p for p in folder.glob("*-*.md") if p.name != "latest.md")
-    for old in copies[:-int(config["keep"])]:
+    for old in copies[:-config["keep"]]:
         old.unlink(missing_ok=True)
     return folder / "latest.md"
 
 
 def session_start(event: dict, config: dict, root: Path) -> dict | None:
     found = handoffs(root, config)
-    if found and event.get("session_id"):
-        # Remember when this session began, so `stop` reminds only about work done in it.
+    if event.get("session_id"):
+        # Remember when this session began, so `stop` reminds only about work done in it
+        # (also when the hand-off is written later in the session).
         marker = session_marker(root, config, event)
         marker.parent.mkdir(parents=True, exist_ok=True)
-        if not marker.exists():
+        if marker.exists():
+            marker.touch()  # still in use: keep it out of the pruning below
+        else:
             marker.write_text(f"{datetime.now().timestamp()}\n", encoding="utf-8")
         week = datetime.now().timestamp() - 7 * 86400
-        for stale in marker.parent.glob(".session-*"):
-            if stale.stat().st_mtime < week:
+        for stale in [*marker.parent.glob(".session-*"), *marker.parent.glob(".last-message-*")]:
+            if stale != marker and stale.stat().st_mtime < week:
                 stale.unlink(missing_ok=True)
     latest = root / config["checkpoint_dir"] / "latest.md"
     notes = []
     for path in found:
-        after = commits_after(root, path.stat().st_mtime)
+        after = commits_after(root, handoff_time(root, path))
         notes.append(f"{path.relative_to(root)}（{when(path)} 更新" + (f"，之後有 {after} 個新 commit）" if after else "）"))
     if latest.is_file():
         notes.append(f"{latest.relative_to(root)}（{when(latest)}，hook 自動留下的事實）")
@@ -206,11 +237,13 @@ def main() -> int:
         print(__doc__, file=sys.stderr)
         return 0
     name = sys.argv[1]
+    global deadline
+    deadline = time.monotonic() + GIT_BUDGET.get(name, 6.0)
     try:
         config = load_config(sys.argv[2] if len(sys.argv) > 2 else None)
         event = json.load(sys.stdin)
         event = event if isinstance(event, dict) else {}
-    except (OSError, ValueError) as error:
+    except (OSError, ValueError, TypeError) as error:
         print(f"agf continuity: {error}", file=sys.stderr)
         return 0  # a broken helper must not stop the session
     root = project_dir(event)
@@ -226,7 +259,7 @@ def main() -> int:
         elif name == "stop-failure":
             details = event.get("error_details")
             write_checkpoint(root, config, "stop-failure", {
-                "錯誤": f"{event.get('error')}" + (f"\n{json.dumps(details, ensure_ascii=False)[:1000]}" if details else ""),
+                "錯誤": f"{event.get('error') or '（事件沒有提供）'}" + (f"\n{json.dumps(details, ensure_ascii=False)[:1000]}" if details else ""),
                 "最後一則訊息": last_message(root, config, event)})
         elif name == "session-end":
             write_checkpoint(root, config, "session-end", {"結束原因": str(event.get("reason") or ""),
@@ -246,7 +279,7 @@ def main() -> int:
         elif name == "stop":
             # Keep the last message for a later checkpoint: sessions run without a saved transcript.
             if event.get("last_assistant_message"):
-                saved = root / config["checkpoint_dir"] / ".last-message"
+                saved = saved_message(root, config, event)
                 saved.parent.mkdir(parents=True, exist_ok=True)
                 saved.write_text(clip(event["last_assistant_message"]), encoding="utf-8")
             if not config["stop_reminder"] or event.get("stop_hook_active"):
@@ -256,8 +289,8 @@ def main() -> int:
                 return 0  # no record of when this session began: nothing to judge
             began = float(started.read_text(encoding="utf-8").split()[0])
             reminded = started.with_name(started.name + ".reminded")
-            # Commits made in this session after the hand-off was last changed.
-            stale = [(p, commits_after(root, max(began, p.stat().st_mtime))) for p in handoffs(root, config)]
+            # Commits made in this session after the hand-off was last changed or committed.
+            stale = [(p, commits_after(root, max(began, handoff_time(root, p)))) for p in handoffs(root, config)]
             stale = [(p, n) for p, n in stale if n]
             if stale and not reminded.exists():
                 reminded.write_text("reminded\n", encoding="utf-8")

@@ -31,11 +31,16 @@ Write and Skill.
 
 `report` reads one or more output directories, so a run that a usage limit
 stopped can be finished in a second directory and summarised together; it
-refuses directories measured with different models.
+refuses directories measured with different models, tools, skills, hooks or
+task files. A rerun numbers its repeats from 0 again, so the same task and
+repeat number can appear once per directory. The table also shows, for tasks
+with a planned cut-off, how many first sessions really were cut, and how many
+reads went outside the subject's directory.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -91,8 +96,17 @@ def check(task: dict, work: Path, answer: str) -> dict:
 
 
 def _install_hooks(framework: Path, work: Path, hooks: Path) -> None:
-    """Write the hooks file into the subject's .claude/settings.json; {framework} is replaced by its path."""
-    text = hooks.read_text(encoding="utf-8").replace("{framework}", str(framework))
+    """Merge the hooks file into the subject's .claude/settings.json.
+
+    Each `{framework}/<file>` it names is copied into .claude/agf-hooks/ and the
+    command points at the copy, so the settings do not show where the framework
+    (and its hidden checks) live."""
+    text = hooks.read_text(encoding="utf-8")
+    folder = work / ".claude" / "agf-hooks"
+    for relative in sorted(set(re.findall(r"\{framework\}/([^\s\"']+)", text))):
+        folder.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(framework / relative, folder / Path(relative).name)
+        text = text.replace("{framework}/" + relative, str(folder / Path(relative).name))
     target = work / ".claude" / "settings.json"
     target.parent.mkdir(exist_ok=True)
     settings = json.loads(target.read_text(encoding="utf-8")) if target.exists() else {}
@@ -102,7 +116,8 @@ def _install_hooks(framework: Path, work: Path, hooks: Path) -> None:
 
 def run(args: argparse.Namespace) -> int:
     framework, out, base = args.framework.resolve(), args.out.resolve(), args.base.resolve()
-    startup, tasks = load_tasks(args.tasks.resolve() if args.tasks else framework / "evals/impact/tasks.json")
+    task_file = args.tasks.resolve() if args.tasks else framework / "evals/impact/tasks.json"
+    startup, tasks = load_tasks(task_file)
     ids = [value for chunk in (args.ids or [",".join(tasks)]) for value in chunk.split(",") if value]
     unknown = [value for value in ids if value not in tasks]
     if unknown:
@@ -118,6 +133,7 @@ def run(args: argparse.Namespace) -> int:
     cli, env = run_claude.find_cli(args.cli), run_claude._pairs(args.env)
     results = {"framework": str(framework), "framework_commit": trigger._commit(framework), "model": args.model,
                "switch_model": args.switch_model, "tools": TOOLS, "skills": skills, "hooks": str(args.hooks) if args.hooks else None,
+               "tasks_sha256": hashlib.sha256(task_file.read_bytes()).hexdigest(),
                "budget_usd": args.budget, "total_budget_usd": args.total_budget, "spent_usd": 0.0, "runs": [], "stopped": None}
     save = lambda: (out / "results.json").write_text(json.dumps(results, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     pid_file = args.pid_file.resolve() if args.pid_file else None
@@ -209,9 +225,15 @@ def summarize_runs(data: dict) -> dict:
     done = [row for row in data["runs"] if "passed" in row]
     table = {}
     for row in done:
-        cell = table.setdefault(row["task"], {}).setdefault(row["group"], {"runs": 0, "passed": 0, "cost": [], "tokens": [], "turns": [], "last_part_tokens": []})
+        cell = table.setdefault(row["task"], {}).setdefault(row["group"], {"runs": 0, "passed": 0, "cost": [], "tokens": [], "turns": [], "last_part_tokens": [],
+                                                                            "cuts_planned": 0, "cuts_happened": 0, "outside_reads": 0})
         cell["runs"] += 1
         cell["passed"] += bool(row["passed"])
+        for part in row["parts"][:-1]:
+            # Every part before the last is meant to be cut off; one that finished early did not test a hand-over.
+            cell["cuts_planned"] += 1
+            cell["cuts_happened"] += bool(part.get("planned_cut"))
+        cell["outside_reads"] += sum(len(part.get("outside_paths") or []) for part in row["parts"])
         cell["cost"].append(_sum(row, "cost_usd"))
         cell["tokens"].append(sum(_sum(row, key) for key in TOKEN_KEYS))
         cell["turns"].append(_sum(row, "turns"))
@@ -228,40 +250,52 @@ def summarize_runs(data: dict) -> dict:
     median = lambda values: round(statistics.median(values), 4) if values else None
     tasks = {task: {group: {"passed": f"{cell['passed']}/{cell['runs']}", "median_cost_usd": median(cell["cost"]),
                             "median_tokens": median(cell["tokens"]), "median_turns": median(cell["turns"]),
-                            "median_last_part_tokens": median(cell["last_part_tokens"])}
+                            "median_last_part_tokens": median(cell["last_part_tokens"]), "outside_reads": cell["outside_reads"],
+                            **({"cuts": f"{cell['cuts_happened']}/{cell['cuts_planned']}"} if cell["cuts_planned"] else {})}
                     for group, cell in cells.items()} for task, cells in table.items()}
     return {"model": data["model"], "switch_model": data.get("switch_model"), "framework_commit": data["framework_commit"],
             "spent_usd": data["spent_usd"], "stopped": data["stopped"], "groups": groups, "tasks": tasks,
             "incomplete_runs": len(data["runs"]) - len(done)}
 
 
-def combine(datas: list[dict]) -> dict:
-    """Merge results.json files of separate runs (for example one finished after a usage limit)."""
-    first = datas[0]
-    for data in datas[1:]:
-        for key in ("model", "switch_model"):
-            if data.get(key) != first.get(key):
-                raise ValueError(f"{key} differs: {first.get(key)} vs {data.get(key)}")
-    commits = sorted({data["framework_commit"] for data in datas})
-    stopped = [data["stopped"] for data in datas if data.get("stopped")]
-    return {"model": first["model"], "switch_model": first.get("switch_model"),
-            "framework_commit": commits[0] if len(commits) == 1 else ", ".join(commits),
-            "spent_usd": round(sum(data["spent_usd"] for data in datas), 6),
-            "stopped": "; ".join(stopped) or None, "runs": [row for data in datas for row in data["runs"]]}
+SAME_SETUP = ("model", "switch_model", "tools", "skills", "hooks", "tasks_sha256")
+
+
+def combine(named: list[tuple[str, dict]]) -> dict:
+    """Merge results.json files of separate runs (for example one finished after a usage limit).
+
+    The runs must share the models, tools, skills, hooks and task file (when the
+    files record it); framework commits may differ and are all listed."""
+    first_name, first = named[0]
+    for name, data in named[1:]:
+        for key in SAME_SETUP:
+            if key in first and key in data and data[key] != first[key]:
+                raise ValueError(f"{key} differs: {first_name} has {first[key]!r}, {name} has {data[key]!r}")
+    commits = sorted({str(data.get("framework_commit")) for _, data in named})
+    stopped = [f"{name}: {data['stopped']}" for name, data in named if data.get("stopped")]
+    return {"model": first["model"], "switch_model": first.get("switch_model"), "framework_commit": ", ".join(commits),
+            "spent_usd": round(sum(data["spent_usd"] for _, data in named), 6),
+            "stopped": "; ".join(stopped) or None, "runs": [row for _, data in named for row in data["runs"]]}
 
 
 def report(args: argparse.Namespace) -> int:
+    folders = [out.resolve() for out in args.out]
+    if len(set(folders)) != len(folders):
+        print("impact report: the same directory was given twice", file=sys.stderr)
+        return 2
     try:
-        data = combine([json.loads((out / "results.json").read_text(encoding="utf-8")) for out in args.out])
-    except (OSError, ValueError) as error:
+        data = combine([(out.name, json.loads((out / "results.json").read_text(encoding="utf-8"))) for out in folders])
+    except (OSError, ValueError, KeyError, TypeError) as error:
         print(f"impact report: {error}", file=sys.stderr)
         return 2
     summary = summarize_runs(data)
     print(json.dumps(summary, ensure_ascii=False, indent=1))
-    lines = ["| task | group | passed | median cost (USD) | median tokens | median turns | last session tokens |", "|---|---|---|---|---|---|---|"]
+    lines = ["| task | group | passed | median cost (USD) | median tokens | median turns | last session tokens | cut as planned | reads outside |",
+             "|---|---|---|---|---|---|---|---|---|"]
     for task, cells in summary["tasks"].items():
         for group, cell in sorted(cells.items()):
-            lines.append(f"| {task} | {group} | {cell['passed']} | {cell['median_cost_usd']} | {cell['median_tokens']} | {cell['median_turns']} | {cell['median_last_part_tokens']} |")
+            lines.append(f"| {task} | {group} | {cell['passed']} | {cell['median_cost_usd']} | {cell['median_tokens']} | {cell['median_turns']} "
+                         f"| {cell['median_last_part_tokens']} | {cell.get('cuts', '—')} | {cell['outside_reads']} |")
     target = args.md or (args.out[0] / "report.md" if len(args.out) == 1 else None)
     if target:
         target.write_text("\n".join(lines) + "\n", encoding="utf-8")

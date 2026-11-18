@@ -2,7 +2,7 @@
 
 使用者問了兩件事：框架到底有沒有幫助專案開發？會不會讓 token 消耗變多？這份紀錄回答第二題，第一題只回答了一部分，原因在「結論」一節。
 
-原始資料：[measurement-2026-11-18/](measurement-2026-11-18/)（成效的表格與彙總、觸發的逐筆結果）。量測工具：[evals/host/impact.py](../../evals/host/impact.py)、[evals/host/trigger.py](../../evals/host/trigger.py)，用法見 [evals/host/README.md](../../evals/host/README.md)。
+原始資料：[measurement-2026-11-18/](measurement-2026-11-18/)（成效的表格與彙總、續接任務每一段讀的檔、觸發的逐筆結果）。每個 session 的事件串流（stream-json）沒有放進來。量測工具：[evals/host/impact.py](../../evals/host/impact.py)、[evals/host/trigger.py](../../evals/host/trigger.py)，用法見 [evals/host/README.md](../../evals/host/README.md)。
 
 ## 條件
 
@@ -11,7 +11,7 @@
 | 日期 | 2026-11-18 |
 | 宿主 | Claude Code 2.1.325，Linux（WSL2），無頭模式 `claude -p` |
 | 模型 | 受試 session 用 `claude-sonnet-5-5`；「換模型接手」的第二段用 `claude-haiku-5-5` |
-| 框架版本 | 分支 `s11-framework` 的 `dd19158`（觸發、成效第一次）與 `96af87e`（成效補跑）。兩者之間只改了 guard hook、CI workflow、量測工具與文件，受試者看得到的規則、skill、續接 hook 沒有變 |
+| 框架版本 | 分支 `s11-framework` 的 `dd19158`（觸發、成效第一次）與 `96af87e`（成效補跑）。兩者之間改的是 guard hook、CI workflow、量測工具與文件。受試者看得到的規則、skill、續接 hook 都沒變；`docs/workflow.md` 多了一行，受試者沒有讀到 |
 | 受試者能用的工具 | Read、Grep、Glob、Edit、Write、Skill；Bash 整個拿掉（模型有試著叫用 Bash，都被拒絕） |
 | 兩組 | **框架組**：`project install --host claude` 裝規則與 7 個 skill，加上續接 hook（[evals/impact/continuity-hooks.json](../../evals/impact/continuity-hooks.json)）。**對照組**：只有任務檔 |
 | 兩組相同的東西 | 使用者層級的設定照樣載入：全域 `CLAUDE.md`、使用者層級的 skill（受試 session 的清單裡共 37 個 skill，其中 7 個來自框架）、使用者層級的 hook |
@@ -47,22 +47,22 @@
 
 ## 二、成效：有框架和沒框架，結果與花費差多少
 
-8 個任務，兩組各跑，組別順序每個任務交替。第一次在第 24 次執行時撞到 5 小時用量上限停下（受試 session 和主對話共用同一個額度），第二輪只完成 4 個任務。額度恢復後，只補跑兩個續接任務的第二輪。完成的執行共 27 次，花 2.34 美元。
+8 個任務，兩組各跑 2 次，組別順序每個任務交替，計畫 32 次。第一次量測在第 24 次執行時撞到 5 小時用量上限停下：受試 session 和主對話用的是同一個額度。停下時，第二次只跑完 3 個任務，第 4 個（review-withdraw）跑完對照組、框架組剛開始。額度恢復後，只補跑兩個續接任務的第二次。完成 27 次，花 2.34 美元；沒有補的 5 次是 rewrite-zh、simple-edit 兩組各 1 次，以及 review-withdraw 框架組 1 次。
 
-| 任務 | 內容 | 對照組（通過，花費中位數） | 框架組（通過，花費中位數） | 差 |
+| 任務 | 內容 | 對照組（通過，花費） | 框架組（通過，花費） | 差 |
 |---|---|---|---|---|
 | fix-admitter | 修一個邏輯錯誤 | 2/2，0.072 | 2/2，0.087 | +21% |
 | fix-pager | 修分頁的邊界錯誤 | 2/2，0.068 | 2/2，0.081 | +20% |
 | trace-customer-id | 追一個 ID 在哪一步被轉壞 | 2/2，0.058 | 2/2，0.070 | +21% |
 | review-withdraw | 審查一段提款程式的修改 | 2/2，0.060 | 1/1，0.073 | +22% |
-| rewrite-zh | 把一段生硬的中文改通順 | 1/1，0.075 | 1/1，0.108 | +44% |
+| rewrite-zh | 把一段生硬的中文改通順 | 1/1，0.075 | 1/1，0.108 | +45% |
 | simple-edit | 改一個常數 | 1/1，0.059 | 1/1，0.071 | +21% |
 | continue-after-limit | 第一段被截斷，新 session 接手 | 2/2，0.135 | 2/2，0.180 | +33% |
 | switch-model | 第一段被截斷，換 Haiku 接手 | 2/2，0.073 | 2/2，0.092 | +25% |
 
-花費單位是美元，加總一個任務的所有 session。review-withdraw 的框架組只有 1 次，因為第二次正好在用量上限時開始，沒有完成。各格的 token 數在 [impact-report.md](measurement-2026-11-18/impact-report.md)。
+花費單位是美元，加總一個任務的所有 session；跑了 2 次的取中位數，也就是兩次的平均。review-withdraw 的框架組只有 1 次，拿它和對照組的 2 次比，不是成對的比較。各格的 token 數在 [impact-report.md](measurement-2026-11-18/impact-report.md)。
 
-**通過率兩組都是 100%**（框架組 13/13，對照組 14/14）。框架組在每個任務都比較貴。
+**通過率兩組都是 100%**（框架組 13/13，對照組 14/14）。框架組在每個任務都比較貴。token 總數也幾乎都比較多，只有 review-withdraw 例外：框架組 47,178、對照組 62,675，但框架組的 cache creation 與輸出比較多，所以還是比較貴。
 
 ### 多出來的花費從哪裡來
 
@@ -75,13 +75,13 @@
 | output tokens | 1,250 | 1,704 | +36% |
 | 花費（美元） | 0.059 | 0.075 | +27% |
 
-- **固定成本約 2,400 tokens。** 每個 session 第一次呼叫模型時的 context，對照組中位數 19,338 tokens，框架組 21,745 tokens。多出來的是規則檔、`CLAUDE.md` 的匯入、7 個 skill 的描述。這部分每個 session 都要付，而且之後每一輪都要再讀一次。
+- **固定成本約 2,400 tokens。** 每個 session 第一次呼叫模型時的 context（取自事件串流），對照組中位數 19,338 tokens，框架組 21,745 tokens。多出來的是規則檔、`CLAUDE.md` 的匯入、7 個 skill 的描述。這部分每個 session 都要付，而且之後每一輪都要再讀一次。
 - **其餘來自行為。** 叫用 skill 會把整份 `SKILL.md` 讀進來；續接任務裡，框架組多讀了 checkpoint 與安裝紀錄；輸出也比較長。以上沒有拆開量。
-- `rewrite-zh` 差最多（+44%）：框架組的 cache creation 多了約 7,300 tokens，比固定成本多出很多；它應該是讀了寫作指引，但這次沒有逐檔核對。
+- `rewrite-zh` 差最多（+45%）：框架組讀了 `.agf/managed/guides/writing.md`（規則要它寫文件前先讀寫作指引），cache creation 因此多了約 7,300 tokens。對照組只讀了草稿。這一次的成果都通過了隱藏檢查，讀指引有沒有讓文字更好，這次沒有評。
 
 ### 續接 hook 實際做了什麼
 
-兩個續接任務的第二段（新 session），框架組 4 次都先讀了 `.agf/checkpoints/latest.md`，那是 SessionStart hook 提示它讀的；hook 的運作符合設計。
+兩個續接任務的第二段（新 session），框架組 4 次都先讀了 `.agf/checkpoints/latest.md`，那是 SessionStart hook 提示它讀的；hook 的運作符合設計。8 次的第一段都真的被截斷了（`error_max_turns`）。每一段讀的檔與花費在 [continuation-reads.md](measurement-2026-11-18/continuation-reads.md)。
 
 但對照組也全部完成。被截斷的工作留在檔案裡（寫了一半的 `durations.py`），新 session 打開檔案就知道做到哪裡。框架組多讀了 checkpoint 和安裝紀錄（`.agf/history/*.json`），第二段反而比較貴（0.095、0.104 美元，對照組 0.065、0.073 美元）。
 
@@ -91,13 +91,15 @@
 
 ## 結論
 
-1. **會，框架讓 token 與花費變多**：這 8 個任務多 20%～44%，每個 session 平均多 27%。這和 ETH 對 AGENTS.md 類 context 檔的研究方向一致（成本多約兩成，見 [F-hooks-evals-ci.md](F-hooks-evals-ci.md) 的 2d）。
+1. **會，框架讓花費變多**：這 8 個任務多 20%～45%，每個 session 平均多 27%；token 總數只有一個任務例外。這和 ETH 對 AGENTS.md 類 context 檔的研究方向一致（成本多約兩成，見 [F-hooks-evals-ci.md](F-hooks-evals-ci.md) 的 2d）。
 2. **「有沒有幫助」這次量不出來。** 兩組都 100% 通過，代表任務太簡單。兩組都過的檢查分不出差別，agentskills.io 的評測指引建議把這種檢查拿掉、換成會失敗的。
 3. **續接 hook 在「狀態都在檔案裡」的情況沒有好處。** 它真正該發揮的時候，是重要的資訊只存在對話裡：使用者做過的決定、問過的問題、試過但失敗的做法。這次的任務沒有測到這種情況。
 
 ## 限制
 
 - 每個條件只跑 1～2 次，差異可能有一部分是雜訊。不過 8 個任務的方向都一樣，而且固定成本的差距在每個 session 都穩定。
+- 計畫的 32 次只完成 27 次；沒補的 5 次見上面。
+- 受試者讀工作目錄以外的檔：觸發量測有 1 次（框架的 `templates/presentations/README.md`），成效量測 0 次。框架組裝的是 shared 模式，規則檔裡寫著框架的路徑，理論上讀得到框架裡的隱藏檢查；這次沒有發生。這次量測之後，量測工具改成把 hook 程式複製進受試目錄，設定檔不再指向框架。
 - 只有一個宿主、一種主要模型、一台機器。
 - 任務是為了這次量測寫的小任務，不是真實專案的工作。
 - 使用者層級的設定在兩組都載入，會稀釋或放大差異；兩組相同，但不是乾淨的環境。

@@ -22,7 +22,7 @@ python3 -B <框架目錄>/scripts/agf.py integration list | grep -E 'claude-(gua
 S11 的重點：
 
 - **續接 hook**（`templates/claude-continuity-hook.py`）：額度用完、壓縮、session 結束、換模型時寫 checkpoint；新 session 開始時提示先讀交接檔。設定範例在 `templates/claude-continuity-settings.example.json`，用法在 [docs/cli.md](docs/cli.md)。
-- **成效量測**（`evals/host/impact.py`）：有框架與沒框架配對比較。第一次的結果：兩組都全過，框架組多花 20%～44%（[G 報告](studies/research-2026-11/G-measurement-2026-11-18.md)）。
+- **成效量測**（`evals/host/impact.py`）：有框架與沒框架配對比較。第一次的結果：計畫 32 次完成 27 次，兩組都全過，框架組多花 20%～45%（[G 報告](studies/research-2026-11/G-measurement-2026-11-18.md)）。
 - **觸發量測的 CI**（`.github/workflows/skill-triggers.yml`）：只能手動執行，還沒在 GitHub 上跑過。
 - **問問題的規則**：一開始就問完，每題寫給沒有背景的人看。
 
@@ -45,7 +45,7 @@ S11 的重點：
 
 依分析報告第二輪的優先順序：
 
-1. **使用者**把 `s11-framework` 快轉併進 main（`git -C <框架目錄> merge --ff-only s11-framework`）。工作區上一層裝的 guard hook 讀的是主目錄的檔案，併進去之後才會換成不誤擋 heredoc 的版本。
+1. **使用者**把 `s11-framework` 快轉併進 main（`git -C <框架目錄> merge --ff-only s11-framework`）。工作區上一層裝的 guard hook 讀的是主目錄的檔案，併進去之後才會換成新版（不誤擋只是資料的 heredoc，也補上審查找到的繞過）。
 2. 成效量測加 2～3 個「沒框架容易做錯」的任務，特別是重要資訊只在第一段對話裡的續接任務。
 3. 拆開量固定成本：只裝規則、只裝 skill、全部都裝。
 4. 複合任務的 skill 描述各加一句「以誰為主」，再跑觸發量測。
