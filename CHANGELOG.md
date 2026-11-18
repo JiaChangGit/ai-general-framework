@@ -12,7 +12,7 @@
 | `skills/read-research` 的描述 | 「核對清理過的規格複本」這個情境在 S8、S11 都沒用到它 | 3/3 |
 | `skills/debug-root-cause` 第 1、5 步 | 先列出並核對調查依賴的前提；說「修好了」要附修正前失敗、修正後通過的輸出 | 文字修改，沒有量測 |
 | `agf project status` 的 `parent_claude_dirs`、`launch_notices` | S8、S10 都從上層目錄啟動，專案的 skill 與 deny 規則沒有載入 | 單元測試；在 Raft 專案上實際列出 `/home/user/src`。無頭探測的結果記在 `adapters/claude.json` 的 `project_launch` |
-| `agf task checkpoint` | 讓每個里程碑都寫得起交接：已完成、進行中、下一步，加上程式收集的 git 狀態，`--append` 接在既有交接檔最後 | 單元測試 2 個 |
+| `agf task checkpoint` | 讓每個里程碑都寫得起交接：已完成、進行中、下一步，加上程式收集的 git 狀態，`--append` 接在既有交接檔最後 | 單元測試 3 個 |
 | `agf check --profile periodic`、`templates/quality.example.json` 的三個例子 | 示範腳本、文件命令、乾淨重建，最容易在之後的修改裡悄悄壞掉（Raft 專案 S10 的教訓） | 單元測試 2 個，含「範本三種 profile 都驗證得過」 |
 | 續接 hook 的 `save_prompts` 與 `user-prompt` 子命令 | 使用者在對話裡說的決定，session 一截斷就不見了。預設關閉，因為打進對話的東西可能有密碼或金鑰 | 單元測試；量測：兩個「決定只在對話裡」的任務，框架組 6/6、對照組 0/6 |
 | `evals/host/impact.py` 的 `rules-only`、`skills-only` 組，每段記錄 `first_context_tokens`；`evals/impact/tasks.json` 新增 4 個任務 | 拆開固定成本；找「沒框架容易做錯」的任務 | 單元測試；量測：規則約 1,920 tokens，skill 描述約 720 |
@@ -20,6 +20,13 @@
 | `docs/analysis-2026-11.md` 第三輪、`studies/research-2026-11/H-measurement-s12.md` 與 `measurement-s12/` | 結果與限制 | — |
 
 **量測花費**：觸發 1.24 美元、成效 1.90 美元、上層目錄的探測 0.01 美元，合計約 3.15 美元，在使用者給的約 4 美元內。
+
+**審查。** 交給沒參與的模型（claude-sonnet-5-5）只讀審查；它做到一半撞到 5 小時上限，額度恢復後接著做完。找到並已修正：
+
+- 續接 hook：5 則長訊息會把最新的一則擠出檢查點（那一段只保留開頭），改成先捨掉較舊的；訊息裡的 U+2028 這類字元會把存檔的一行拆成兩行、整則遺失，改成只在 `\n` 分行；恢復超過 7 天的舊 session 時，自己的訊息檔與最後訊息檔會被當成過期刪掉，改成按檔名保護。各加了測試。
+- 量測工具：第一則 assistant 訊息若是合成的（例如額度用完的通知）或 usage 全是 0，`first_context_tokens` 會記成 0；改成跳過並記為不知道，加了測試。
+- `task checkpoint`：值裡的換行會打亂清單，改成合併成一行；接在 CRLF 檔案後面時保留原本的換行字元。加了測試。
+- 文件：觸發量測裡 review-sql 是直接讀 `SKILL.md`，不是經 Skill 工具，先後順序也沒有紀錄（`trigger-results.json` 現在保留 `skill_reads`）；接手的 session 有 2 次先讀 `AGENTS.md`、再讀檢查點；桌面版列出子專案 skill 只看過一次；`save_prompts` 補上「太長先捨掉舊的」與「檔案保留 7 天」；品質範本的例子標明是範例路徑。
 
 **沒做的事**：教學文件格式的個人化；子命令退場（沒有使用紀錄）；在 GitHub 上跑 CI（使用者這一輪不 push）。
 

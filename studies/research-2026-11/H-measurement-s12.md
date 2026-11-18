@@ -40,7 +40,7 @@
 花費是美元、一個任務所有 session 的總和、3 次的中位數。對照組的文件任務原本只跑了 2 次：第 3 次因為量測工具的預算保護（每個 session 先預留 0.4 美元）沒有開始，之後另外補跑，結果也是通過（[impact-new-rerun-report.md](measurement-s12/impact-new-rerun-report.md)）。12 次續接的第一段都真的被截斷了，受試者都沒有讀工作目錄以外的檔。
 
 - **對照組 6 次全錯，錯法都一樣**：照 README 做成 `1:02:03` 與 `[33, 33, 34]`。新的 session 只看得到檔案，看不到上一段的對話。
-- **框架組 6 次全對。** 接手的 session 都先讀了 `.agf/checkpoints/latest.md`，裡面有上一段使用者說的話（[continuation-reads.md](measurement-s12/continuation-reads.md)）。換成 Haiku 接手也一樣。
+- **框架組 6 次全對。** 接手的 session 都讀了 `.agf/checkpoints/latest.md`，裡面有上一段使用者說的話：4 次是第一個讀的檔，另外 2 次先讀了 `AGENTS.md`（[continuation-reads.md](measurement-s12/continuation-reads.md)）。換成 Haiku 接手也一樣。
 - **這兩個任務是和 `save_prompts` 一起設計的。** 對照組根本無從得知那個決定，所以 0/6 對 6/6 證明的是「這個機制有作用」，不是「一般工作會變好這麼多」。實際工作裡，決定也常寫在檔案或 commit 訊息裡，那時對照組也做得到。
 - **文件任務兩組都會順手改 README**，量不出差別。這是又一個兩組都過的檢查，下次換掉。
 - **框架組照樣比較貴**，多 24%～30%。
@@ -66,7 +66,7 @@
 | 情境 | 該用的 skill | 上一輪（S11） | 這一輪 |
 |---|---|---|---|
 | learning-with-trace | guide-learning | 選了 trace-code | 3/3，經 Skill 工具 |
-| failure-with-sql-review | debug-root-cause | 選了 review-sql | 3/3，先 debug-root-cause、再接 review-sql |
+| failure-with-sql-review | debug-root-cause | 選了 review-sql | 3/3，debug-root-cause 經 Skill 工具叫用；review-sql 也有用到，但是直接讀它的 `SKILL.md`，先後順序沒有記錄 |
 | cleaned-copy-is-not-original | read-research | 沒用（S8 也沒用） | 3/3，經 Skill 工具 |
 | trace-without-lesson（不該換） | trace-code | 命中 | 2/2，沒有被 guide-learning 搶走 |
 | sql-plan-without-incident（不該換） | review-sql | 命中 | 2/2，沒有被 debug-root-cause 搶走 |
@@ -89,7 +89,7 @@
 
 ## 花費
 
-觸發 1.24 美元，成效 1.90 美元（含補跑 0.16），上層目錄啟動的探測 0.01 美元，合計約 3.15 美元，在使用者給的約 4 美元內。
+觸發 1.24 美元，成效 1.90 美元（其中補跑的 3 次共 0.16），上層目錄啟動的探測 0.01 美元，合計約 3.15 美元，在使用者給的約 4 美元內。
 
 ## 重跑
 

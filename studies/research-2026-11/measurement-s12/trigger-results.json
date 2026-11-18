@@ -34,7 +34,8 @@
    "input_tokens": 6,
    "cache_creation_input_tokens": 16887,
    "cache_read_input_tokens": 57057,
-   "output_tokens": 1804
+   "output_tokens": 1804,
+   "skill_reads": []
   },
   {
    "round": "trigger-1",
@@ -58,7 +59,13 @@
    "input_tokens": 6,
    "cache_creation_input_tokens": 19513,
    "cache_read_input_tokens": 57211,
-   "output_tokens": 2603
+   "output_tokens": 2603,
+   "skill_reads": [
+    {
+     "skill": "review-sql",
+     "copy": ".claude/skills"
+    }
+   ]
   },
   {
    "round": "trigger-1",
@@ -79,7 +86,8 @@
    "input_tokens": 6,
    "cache_creation_input_tokens": 17711,
    "cache_read_input_tokens": 56875,
-   "output_tokens": 1379
+   "output_tokens": 1379,
+   "skill_reads": []
   },
   {
    "round": "trigger-2",
@@ -100,7 +108,8 @@
    "input_tokens": 6,
    "cache_creation_input_tokens": 16856,
    "cache_read_input_tokens": 57030,
-   "output_tokens": 1598
+   "output_tokens": 1598,
+   "skill_reads": []
   },
   {
    "round": "trigger-2",
@@ -124,7 +133,13 @@
    "input_tokens": 6,
    "cache_creation_input_tokens": 19501,
    "cache_read_input_tokens": 57202,
-   "output_tokens": 2919
+   "output_tokens": 2919,
+   "skill_reads": [
+    {
+     "skill": "review-sql",
+     "copy": ".claude/skills"
+    }
+   ]
   },
   {
    "round": "trigger-2",
@@ -145,7 +160,8 @@
    "input_tokens": 8,
    "cache_creation_input_tokens": 17761,
    "cache_read_input_tokens": 82324,
-   "output_tokens": 1341
+   "output_tokens": 1341,
+   "skill_reads": []
   },
   {
    "round": "trigger-3",
@@ -166,7 +182,8 @@
    "input_tokens": 6,
    "cache_creation_input_tokens": 18770,
    "cache_read_input_tokens": 57053,
-   "output_tokens": 1873
+   "output_tokens": 1873,
+   "skill_reads": []
   },
   {
    "round": "trigger-3",
@@ -190,7 +207,13 @@
    "input_tokens": 6,
    "cache_creation_input_tokens": 19619,
    "cache_read_input_tokens": 57317,
-   "output_tokens": 2481
+   "output_tokens": 2481,
+   "skill_reads": [
+    {
+     "skill": "review-sql",
+     "copy": ".claude/skills"
+    }
+   ]
   },
   {
    "round": "trigger-3",
@@ -211,7 +234,8 @@
    "input_tokens": 6,
    "cache_creation_input_tokens": 17720,
    "cache_read_input_tokens": 56885,
-   "output_tokens": 1372
+   "output_tokens": 1372,
+   "skill_reads": []
   },
   {
    "round": "trigger-near-1",
@@ -232,7 +256,8 @@
    "input_tokens": 8,
    "cache_creation_input_tokens": 17718,
    "cache_read_input_tokens": 82539,
-   "output_tokens": 1090
+   "output_tokens": 1090,
+   "skill_reads": []
   },
   {
    "round": "trigger-near-1",
@@ -253,7 +278,8 @@
    "input_tokens": 6,
    "cache_creation_input_tokens": 17849,
    "cache_read_input_tokens": 57844,
-   "output_tokens": 1562
+   "output_tokens": 1562,
+   "skill_reads": []
   },
   {
    "round": "trigger-near-2",
@@ -274,7 +300,8 @@
    "input_tokens": 6,
    "cache_creation_input_tokens": 16734,
    "cache_read_input_tokens": 56899,
-   "output_tokens": 707
+   "output_tokens": 707,
+   "skill_reads": []
   },
   {
    "round": "trigger-near-2",
@@ -295,7 +322,8 @@
    "input_tokens": 6,
    "cache_creation_input_tokens": 17828,
    "cache_read_input_tokens": 57825,
-   "output_tokens": 1639
+   "output_tokens": 1639,
+   "skill_reads": []
   }
  ]
 }

@@ -111,11 +111,13 @@ def summarize(path: Path, inside: Path | None = None) -> dict:
             summary.update(skills_listed=event.get("skills"), tools_listed=len(event.get("tools") or []),
                            model=event.get("model"), version=event.get("claude_code_version"), cwd=event.get("cwd"))
         elif kind == "assistant":
-            usage = event.get("message", {}).get("usage")
-            if summary["first_context_tokens"] is None and isinstance(usage, dict):
+            message = event.get("message", {})
+            usage = message.get("usage")
+            if summary["first_context_tokens"] is None and isinstance(usage, dict) and message.get("model") != "<synthetic>":
                 # What the first model call read: system prompt, tools, rules, skill list, prompt.
-                summary["first_context_tokens"] = sum(usage.get(key) or 0 for key in
-                                                      ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
+                # A synthetic message (for example a usage-limit notice) has no real call behind it.
+                total = sum(usage.get(key) or 0 for key in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
+                summary["first_context_tokens"] = total or None
             for part in event.get("message", {}).get("content", []):
                 if part.get("type") != "tool_use":
                     continue

@@ -181,6 +181,34 @@ class ContinuityHookTests(unittest.TestCase):
         self.assertNotIn("message 2", latest, "only the newest five are shown")
         self.assertNotIn("from another session", latest)
 
+    def test_the_newest_prompt_survives_long_prompts_and_unusual_line_breaks(self):
+        # Found by the S12 review: five long prompts pushed the newest out of the clipped section,
+        # and U+2028 inside a prompt split its JSON line in two.
+        config = self.root.parent / "prompts.json"
+        config.write_text(json.dumps({"save_prompts": True}))
+        for index in range(5):
+            self.hook("user-prompt", {"session_id": "long", "prompt": f"MSG{index} " + "x" * 1900}, config)
+        self.hook("user-prompt", {"session_id": "long", "prompt": "decision a\u2028b: use 1h02m03s"}, config)
+        self.hook("session-end", {"session_id": "long", "reason": "other"}, config)
+        latest = (self.root / ".agf/checkpoints/latest.md").read_text(encoding="utf-8")
+        self.assertIn("decision a\u2028b: use 1h02m03s", latest)
+        self.assertIn("MSG4", latest)
+        self.assertNotIn("MSG1", latest, "the oldest are dropped first")
+
+    def test_a_resumed_old_session_keeps_its_saved_prompts(self):
+        config = self.root.parent / "prompts.json"
+        config.write_text(json.dumps({"save_prompts": True}))
+        self.hook("session-start", {"source": "startup", "session_id": "old"}, config)
+        self.hook("user-prompt", {"session_id": "old", "prompt": "keep this"}, config)
+        self.hook("stop", {"session_id": "old", "last_assistant_message": "done so far"}, config)
+        folder = self.root / ".agf/checkpoints"
+        month = time.time() - 30 * 86400
+        for path in folder.glob(".*old*"):
+            os.utime(path, (month, month))
+        self.hook("session-start", {"source": "resume", "session_id": "old"}, config)
+        self.assertTrue((folder / ".prompts-old.jsonl").is_file())
+        self.assertTrue((folder / ".last-message-old").is_file())
+
     def test_broken_input_or_configuration_never_stops_the_session(self):
         env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.root))
         for argv, stdin in [([sys.executable, str(HOOK), "stop"], "not json"),

@@ -75,6 +75,17 @@ class RunClaudeTests(unittest.TestCase):
             self.assertEqual(summary["bash_ran"], ["find . -type f"])  # ran although Bash was never allowed
             self.assertEqual((summary["result"]["turns"], summary["result"]["cost_usd"]), (2, 0.5))
 
+    def test_first_context_skips_synthetic_messages_and_zero_usage(self):
+        with tempfile.TemporaryDirectory() as temp:
+            stream = Path(temp) / "s.jsonl"
+            write_stream(stream, [
+                {"type": "assistant", "message": {"model": "<synthetic>", "content": [], "usage": {"input_tokens": 0}}},
+                {"type": "assistant", "message": {"model": "m", "content": [], "usage": {"input_tokens": 2, "cache_creation_input_tokens": 10, "cache_read_input_tokens": 5}}},
+                {"type": "assistant", "message": {"model": "m", "content": [], "usage": {"input_tokens": 99}}}])
+            self.assertEqual(run_claude.summarize(stream)["first_context_tokens"], 17)
+            write_stream(stream, [{"type": "assistant", "message": {"model": "m", "content": [], "usage": {"input_tokens": 0}}}])
+            self.assertIsNone(run_claude.summarize(stream)["first_context_tokens"], "zero usage means unknown, not 0")
+
     def test_a_bare_env_name_copies_the_value_without_putting_it_on_the_command_line(self):
         with patch.dict(os.environ, {"AGF_TEST_SECRET": "s3cret"}):
             self.assertEqual(run_claude._pairs(["AGF_TEST_SECRET", "A=1"]), {"AGF_TEST_SECRET": "s3cret", "A": "1"})

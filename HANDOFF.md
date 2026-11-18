@@ -22,7 +22,7 @@ python3 -B <框架目錄>/scripts/agf.py task checkpoint --help        # 預期�
 S12 的重點：
 
 - **skill 描述寫明主次**：一個請求裡有兩種工作時以誰為主。上一輪選錯的兩個情境 6/6 選對；`read-research` 也第一次被用到（3/3）。
-- **`project status` 提醒從上層目錄啟動的風險**（`launch_notices`）。實測：無頭 session 從上層啟動時，子專案的 skill 與 `.claude/settings.json` 都沒有載入；桌面版 app 會列出子專案的 skill。
+- **`project status` 提醒從上層目錄啟動的風險**（`launch_notices`）。實測（Claude Code 2.1.325，各一次）：無頭 session 從上層啟動時，子專案的 skill 與 `.claude/settings.json` 都沒有載入。同一天一個從上層啟動的桌面版 session 有列出子專案的 skill，只看過這一次。
 - **`task checkpoint`**：里程碑的短紀錄，可接在既有交接檔最後。
 - **`check --profile periodic`**：示範、文件命令、乾淨重建這類只跑過一次的檢查。
 - **續接 hook 的 `save_prompts`**（預設關閉）：存下使用者說的話。兩個「決定只在對話裡」的任務，開了它的組 6/6，沒開的 0/6。

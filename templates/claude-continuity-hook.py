@@ -140,7 +140,7 @@ def save_prompt(root: Path, config: dict, event: dict) -> None:
         return
     path = prompts_file(root, config, event)
     path.parent.mkdir(parents=True, exist_ok=True)
-    lines = path.read_text(encoding="utf-8").splitlines() if path.is_file() else []
+    lines = [line for line in path.read_text(encoding="utf-8").split("\n") if line] if path.is_file() else []
     lines.append(json.dumps({"time": datetime.now().astimezone().strftime("%H:%M"), "prompt": clip(prompt, PROMPT_LIMIT)}, ensure_ascii=False))
     path.write_text("\n".join(lines[-PROMPTS_KEPT:]) + "\n", encoding="utf-8")
 
@@ -150,14 +150,19 @@ def recent_prompts(root: Path, config: dict, event: dict) -> str:
     path = prompts_file(root, config, event)
     if not config["save_prompts"] or not path.is_file():
         return ""
-    entries = []
-    for line in path.read_text(encoding="utf-8").splitlines()[-PROMPTS_SHOWN:]:
+    entries, used = [], 0
+    lines = [line for line in path.read_text(encoding="utf-8").split("\n") if line][-PROMPTS_SHOWN:]
+    for line in reversed(lines):  # newest first, so the newest always fits
         try:
             entry = json.loads(line)
-            entries.append(f"- {entry['time']}：{entry['prompt']}")
+            text = f"- {entry['time']}：{entry['prompt']}"
         except (ValueError, KeyError, TypeError):
             continue
-    return "\n".join(entries)
+        if entries and used + len(text) + 1 > LIMIT - 200:
+            break  # write_checkpoint clips a section at LIMIT, keeping its start
+        entries.append(text)
+        used += len(text) + 1
+    return "\n".join(reversed(entries))
 
 
 def saved_message(root: Path, config: dict, event: dict) -> Path:
@@ -239,8 +244,12 @@ def session_start(event: dict, config: dict, root: Path) -> dict | None:
         else:
             marker.write_text(f"{datetime.now().timestamp()}\n", encoding="utf-8")
         week = datetime.now().timestamp() - 7 * 86400
+        sid = event["session_id"]
+        mine = {marker.name, f"{marker.name}.reminded", f".last-message-{sid}", f".prompts-{sid}.jsonl"}
         for stale in [*marker.parent.glob(".session-*"), *marker.parent.glob(".last-message-*"), *marker.parent.glob(".prompts-*")]:
-            if stale != marker and stale.stat().st_mtime < week:
+            if stale.name in mine:
+                continue
+            if stale.stat().st_mtime < week:
                 stale.unlink(missing_ok=True)
     latest = root / config["checkpoint_dir"] / "latest.md"
     notes = []

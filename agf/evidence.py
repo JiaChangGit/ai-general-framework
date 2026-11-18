@@ -126,7 +126,9 @@ def checkpoint(done=(), doing=(), next_steps=(), repo=None, append=None):
 
     Cheap enough to write at every milestone. With --append, the Markdown block is
     added to the end of an existing hand-off file; nothing else in it changes."""
-    lists = {"done": list(done or []), "in_progress": list(doing or []), "next_steps": list(next_steps or [])}
+    # One item per list entry: a line break inside a value would break the Markdown list.
+    lists = {key: [" ".join(str(value).split()) for value in values or []]
+             for key, values in (("done", done), ("in_progress", doing), ("next_steps", next_steps))}
     for key, values in lists.items():
         if not all(isinstance(value, str) and value.strip() for value in values):
             raise AgfError(f"{key} entries must be nonempty strings.")
@@ -154,11 +156,16 @@ def checkpoint(done=(), doing=(), next_steps=(), repo=None, append=None):
         target = Path(append)
         if not target.is_file():
             raise AgfError(f"--append needs an existing file: {target}")
-        current = target.read_text(encoding="utf-8")
-        separator = "" if not current or current.endswith("\n\n") else ("\n" if current.endswith("\n") else "\n\n")
+        with target.open(encoding="utf-8", newline="") as stream:
+            current = stream.read()
+        separator = "" if not current or current.endswith("\n\n") or current.endswith("\r\n\r\n") else (
+            "\n" if current.endswith("\n") else "\n\n")
+        text = separator + result["markdown"]
+        if "\r\n" in current:  # keep the file's own line endings
+            text = text.replace("\n", "\r\n")
         try:
-            with target.open("a", encoding="utf-8", newline="\n") as stream:
-                stream.write(separator + result["markdown"])
+            with target.open("a", encoding="utf-8", newline="") as stream:
+                stream.write(text)
         except OSError as exc:
             raise AgfError(f"Cannot append to {target}: {exc}") from exc
         result["appended_to"] = str(target)

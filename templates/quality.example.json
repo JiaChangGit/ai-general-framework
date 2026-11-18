@@ -22,7 +22,7 @@
     },
     {
       "name": "demo-runs-to-the-end",
-      "note": "文件教讀者執行的示範；只在寫文件時跑過一次的命令，最容易在之後的修改裡壞掉",
+      "note": "範例路徑，換成專案真的有的腳本：文件教讀者執行的示範；只在寫文件時跑過一次的命令，最容易在之後的修改裡壞掉",
       "argv": [
         "{python}",
         "examples/demo.py"
@@ -36,7 +36,7 @@
     },
     {
       "name": "documented-commands",
-      "note": "把 README 或教學裡的命令寫成一支腳本，逐一執行並比對文件寫的結果",
+      "note": "範例路徑，換成專案真的有的腳本：把 README 或教學裡的命令寫成一支腳本，逐一執行並比對文件寫的結果",
       "argv": [
         "{python}",
         "scripts/check_documented_commands.py"
@@ -50,7 +50,7 @@
     },
     {
       "name": "clean-rebuild",
-      "note": "在新的目錄 clone 一份、從頭安裝與建置、跑全部測試；抓得到只在全新環境才出現的問題",
+      "note": "範例路徑，換成專案真的有的腳本：在新的目錄 clone 一份、從頭安裝與建置、跑全部測試；抓得到只在全新環境才出現的問題",
       "argv": [
         "{python}",
         "scripts/clean_rebuild.py"

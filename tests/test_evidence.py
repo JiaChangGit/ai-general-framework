@@ -157,6 +157,16 @@ class CheckpointTests(unittest.TestCase):
             self.assertIn("`format.py`", text)
             self.assertEqual(result["repository"]["changed_paths"], ["HANDOFF.md", "format.py"])
 
+    def test_line_breaks_in_a_value_and_crlf_files_are_handled(self):
+        with tempfile.TemporaryDirectory() as temp:
+            handoff_file = Path(temp) / "HANDOFF.md"
+            handoff_file.write_bytes("# 交接\r\n".encode("utf-8"))
+            result = checkpoint(["first line\nsecond line"], append=handoff_file)
+            self.assertIn("- 已完成：first line second line", result["markdown"])
+            data = handoff_file.read_bytes()
+            self.assertNotIn(b"\n", data.replace(b"\r\n", b""), "only CRLF line endings")
+            self.assertIn("已完成：first line second line".encode("utf-8"), data)
+
     def test_an_empty_checkpoint_or_a_missing_file_is_refused(self):
         with tempfile.TemporaryDirectory() as temp:
             with self.assertRaises(AgfError):
