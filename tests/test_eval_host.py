@@ -171,7 +171,7 @@ class TriggerTests(unittest.TestCase):
         (framework / "templates").mkdir()
         shutil.copy(ROOT / "templates/project-rules.md", framework / "templates/project-rules.md")
         (framework / "docs").mkdir()
-        for name in ("workflow.md", "writing.md", "tools.md", "delivery.md"):
+        for name in ("workflow.md", "writing.md", "tools.md", "delivery.md", "practices.md"):
             shutil.copy(ROOT / "docs" / name, framework / "docs" / name)
         (framework / "evals/paired").mkdir(parents=True)
         (framework / "evals/paired/tasks.json").write_text(json.dumps({"startup": "Work here."}), encoding="utf-8")

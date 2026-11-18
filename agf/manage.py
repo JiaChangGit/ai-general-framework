@@ -23,7 +23,7 @@ HOSTS = ("codex", "claude", "gemini", "opencode")
 SOURCE = Path(__file__).resolve().parent.parent
 MANIFEST = ".agf/manifest.json"
 SCHEMA = 1
-GUIDES = ("workflow.md", "writing.md", "tools.md", "delivery.md")
+GUIDES = ("workflow.md", "writing.md", "tools.md", "delivery.md", "practices.md")
 RULES = ".agf/managed/project-rules.md"
 # Claude Code and Gemini CLI load these files and follow their @-imports.
 # Codex and OpenCode read AGENTS.md, which can only point to the rules.
@@ -286,7 +286,7 @@ def _desired(source: Path, root: Path, hosts: list[str], old: dict | None, selec
     where = "" if tools_mode == "shared" else "在專案根目錄"
     instructions += (f"工具模式：`{tools_mode}`（{mode_note}）。執行 `agf`：{where}用 Python 跑 `\"{script}\"`（`python3 -B`；沒有 python3 時用 `python` 或 `py -3`）；"
                      "skill 裡的 `scripts/agf.py` 換成這個路徑，其餘參數不變。\n")
-    instructions += "指引在 `.agf/managed/guides/`（workflow、writing、tools、delivery），需要時才讀。\n"
+    instructions += "其他指引在 `.agf/managed/guides/`（workflow、writing、tools、delivery），需要時才讀。\n"
     add(".agf/managed/project-rules.md", instructions.encode("utf-8"), "templates/project-rules.md")
     for name in GUIDES:
         file = source / "docs" / name

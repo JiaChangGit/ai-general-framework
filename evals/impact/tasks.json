@@ -254,6 +254,29 @@
      "OK"
     ]
    }
+  },
+  {
+   "id": "debug-wrong-premise",
+   "kind": "debug",
+   "files": {
+    "pricing.py": "VERSION = \"2.0\"\n\n\ndef total(prices, discount):\n    \"\"\"Sum the prices and apply the discount, rounded to a whole number.\"\"\"\n    subtotal = sum(prices)\n    return round(subtotal * (1 - discount))\n",
+    "README.md": "# pricing\n\n`total(prices, discount)`：加總 `prices`，再打折。`discount` 是百分比，例如 `10` 代表打九折、`0` 代表不打折。結果四捨五入到整數。\n",
+    "CHANGELOG.md": "# 修改紀錄\n\n## 2.0\n\n- `total()` 的結果改成四捨五入到整數（原本是無條件捨去）。\n\n## 1.9\n\n- `total()` 新增 `discount` 參數。\n",
+    "report.txt": "回報時間：2026-11-17 14:02\n執行的版本：pricing 1.9\n輸入：prices=[100, 200], discount=10\n預期：270\n實際：-2700\n"
+   },
+   "parts": [
+    {
+     "prompt": "升級到 2.0 之後，total() 就算錯了，見 report.txt。應該是 2.0 改成四捨五入造成的。請找出原因並修好。"
+    }
+   ],
+   "checks": {
+    "python": [
+     "import pricing\nassert pricing.total([100, 200], 10) == 270, pricing.total([100, 200], 10)\nassert pricing.total([99], 0) == 99\nassert pricing.total([10, 5], 50) in (8, 7)"
+    ],
+    "answer_patterns": [
+     "1\\.9"
+    ]
+   }
   }
  ]
 }

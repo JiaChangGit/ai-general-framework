@@ -591,7 +591,7 @@ class ProjectTests(unittest.TestCase):
         self.assertEqual(result["available_skills"], ["trace"])
         value = json.loads((self.root / ".agf/manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(value["skills"], [])
-        self.assertEqual(len(value["files"]), 6)
+        self.assertEqual(len(value["files"]), 1 + len(manage.GUIDES) + 1, "rules, guides (practices.md since S14), AGENTS.md")
         self.assertFalse((self.root / ".agents").exists())
         self.assertFalse((self.root / ".agf/managed/runtime").exists())
         self.assertFalse((self.root / ".agf/managed/profile.example.json").exists())
