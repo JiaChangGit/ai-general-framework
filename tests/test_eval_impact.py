@@ -94,6 +94,25 @@ class ImpactTests(unittest.TestCase):
         self.assertEqual(cell["median_last_part_tokens"], 380)
         self.assertEqual(set(summary["groups"]), {"framework", "control"})
 
+    def test_report_merges_a_run_finished_in_a_second_directory(self):
+        self.run_impact("--ids", "edit", "--runs", "1", "--group", "control")
+        (self.temp / "out").rename(self.temp / "first")
+        self.run_impact("--ids", "edit", "--runs", "1", "--group", "control", base_name="base2")
+        md = self.temp / "both.md"
+        argv = [sys.executable, str(ROOT / "evals/host/impact.py"), "report", str(self.temp / "first"), str(self.temp / "out"), "--md", str(md)]
+        result = subprocess.run(argv, capture_output=True, text=True, timeout=60)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        summary = json.loads(result.stdout)
+        self.assertEqual(summary["tasks"]["edit"]["control"]["passed"], "2/2")
+        self.assertAlmostEqual(summary["spent_usd"], 0.04)
+        self.assertIn("| edit | control | 2/2 |", md.read_text(encoding="utf-8"))
+        data = json.loads((self.temp / "out" / "results.json").read_text(encoding="utf-8"))
+        data["model"] = "another-model"
+        (self.temp / "out" / "results.json").write_text(json.dumps(data), encoding="utf-8")
+        refused = subprocess.run(argv, capture_output=True, text=True, timeout=60)
+        self.assertEqual(refused.returncode, 2)
+        self.assertIn("model differs", refused.stderr)
+
     def test_a_switch_task_needs_the_second_model(self):
         tasks = json.loads(self.tasks.read_text())
         tasks["tasks"][1]["parts"][1]["model"] = "switch"

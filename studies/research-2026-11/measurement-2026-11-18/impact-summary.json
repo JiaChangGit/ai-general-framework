@@ -1,0 +1,152 @@
+{
+ "model": "claude-sonnet-5-5",
+ "switch_model": "claude-haiku-5-5",
+ "framework_commit": "96af87e65ca368b3e45084c681ea6556435a622c, dd191587aabee07d7b235f1d0ee7adad475543ff",
+ "spent_usd": 2.33925,
+ "stopped": "review-withdraw-framework part 1: exit 1, You've hit your 5-hour limit · resets 5:10am (Asia/Taipei)",
+ "groups": {
+  "framework": {
+   "runs": 13,
+   "passed": 13,
+   "cost_usd": 1.2734,
+   "tokens": 1457013
+  },
+  "control": {
+   "runs": 14,
+   "passed": 14,
+   "cost_usd": 1.066,
+   "tokens": 1322520
+  }
+ },
+ "tasks": {
+  "fix-admitter": {
+   "framework": {
+    "passed": "2/2",
+    "median_cost_usd": 0.087,
+    "median_tokens": 98911.5,
+    "median_turns": 8.0,
+    "median_last_part_tokens": 98911.5
+   },
+   "control": {
+    "passed": "2/2",
+    "median_cost_usd": 0.0719,
+    "median_tokens": 86241.0,
+    "median_turns": 6.0,
+    "median_last_part_tokens": 86241.0
+   }
+  },
+  "fix-pager": {
+   "control": {
+    "passed": "2/2",
+    "median_cost_usd": 0.068,
+    "median_tokens": 85427.5,
+    "median_turns": 6.0,
+    "median_last_part_tokens": 85427.5
+   },
+   "framework": {
+    "passed": "2/2",
+    "median_cost_usd": 0.0813,
+    "median_tokens": 96457.0,
+    "median_turns": 6.0,
+    "median_last_part_tokens": 96457.0
+   }
+  },
+  "trace-customer-id": {
+   "framework": {
+    "passed": "2/2",
+    "median_cost_usd": 0.0703,
+    "median_tokens": 46832.5,
+    "median_turns": 3.0,
+    "median_last_part_tokens": 46832.5
+   },
+   "control": {
+    "passed": "2/2",
+    "median_cost_usd": 0.0579,
+    "median_tokens": 41551.5,
+    "median_turns": 3.0,
+    "median_last_part_tokens": 41551.5
+   }
+  },
+  "review-withdraw": {
+   "control": {
+    "passed": "2/2",
+    "median_cost_usd": 0.0602,
+    "median_tokens": 62675.0,
+    "median_turns": 3.0,
+    "median_last_part_tokens": 62675.0
+   },
+   "framework": {
+    "passed": "1/1",
+    "median_cost_usd": 0.0734,
+    "median_tokens": 47178,
+    "median_turns": 4,
+    "median_last_part_tokens": 47178
+   }
+  },
+  "rewrite-zh": {
+   "framework": {
+    "passed": "1/1",
+    "median_cost_usd": 0.1084,
+    "median_tokens": 106594,
+    "median_turns": 5,
+    "median_last_part_tokens": 106594
+   },
+   "control": {
+    "passed": "1/1",
+    "median_cost_usd": 0.075,
+    "median_tokens": 86407,
+    "median_turns": 4,
+    "median_last_part_tokens": 86407
+   }
+  },
+  "simple-edit": {
+   "control": {
+    "passed": "1/1",
+    "median_cost_usd": 0.0588,
+    "median_tokens": 62798,
+    "median_turns": 4,
+    "median_last_part_tokens": 62798
+   },
+   "framework": {
+    "passed": "1/1",
+    "median_cost_usd": 0.0712,
+    "median_tokens": 70454,
+    "median_turns": 4,
+    "median_last_part_tokens": 70454
+   }
+  },
+  "continue-after-limit": {
+   "framework": {
+    "passed": "2/2",
+    "median_cost_usd": 0.1795,
+    "median_tokens": 166718.5,
+    "median_turns": 10.5,
+    "median_last_part_tokens": 93825.0
+   },
+   "control": {
+    "passed": "2/2",
+    "median_cost_usd": 0.1346,
+    "median_tokens": 151070.5,
+    "median_turns": 9.5,
+    "median_last_part_tokens": 87647.0
+   }
+  },
+  "switch-model": {
+   "control": {
+    "passed": "2/2",
+    "median_cost_usd": 0.0734,
+    "median_tokens": 159692.0,
+    "median_turns": 10.5,
+    "median_last_part_tokens": 95818.0
+   },
+   "framework": {
+    "passed": "2/2",
+    "median_cost_usd": 0.092,
+    "median_tokens": 207474.0,
+    "median_turns": 13.0,
+    "median_last_part_tokens": 134298.0
+   }
+  }
+ },
+ "incomplete_runs": 1
+}

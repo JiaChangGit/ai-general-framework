@@ -5,7 +5,7 @@
         [--switch-model MODEL] [--ids ID,...] [--runs 2] [--group framework] [--group control]
         [--skill NAME ...] [--hooks SETTINGS_JSON] [--budget USD] [--total-budget USD]
         [--pid-file FILE] [--cli PATH] [--env NAME=VALUE ...] [--allow-env NAME ...] [--forbid PATH ...]
-    python evals/host/impact.py report OUT_DIR
+    python evals/host/impact.py report OUT_DIR [OUT_DIR ...] [--md FILE]
 
 Each task in evals/impact/tasks.json is run --runs times in each group. The
 framework group gets `project install --host claude` with the chosen skills,
@@ -28,6 +28,10 @@ more. Group order alternates from task to task. Every run gets a private parent
 directory under --base, removed afterwards, and must pass preflight.py first.
 Bash is removed (see trigger.py for why); subjects use Read, Grep, Glob, Edit,
 Write and Skill.
+
+`report` reads one or more output directories, so a run that a usage limit
+stopped can be finished in a second directory and summarised together; it
+refuses directories measured with different models.
 """
 from __future__ import annotations
 
@@ -231,14 +235,36 @@ def summarize_runs(data: dict) -> dict:
             "incomplete_runs": len(data["runs"]) - len(done)}
 
 
+def combine(datas: list[dict]) -> dict:
+    """Merge results.json files of separate runs (for example one finished after a usage limit)."""
+    first = datas[0]
+    for data in datas[1:]:
+        for key in ("model", "switch_model"):
+            if data.get(key) != first.get(key):
+                raise ValueError(f"{key} differs: {first.get(key)} vs {data.get(key)}")
+    commits = sorted({data["framework_commit"] for data in datas})
+    stopped = [data["stopped"] for data in datas if data.get("stopped")]
+    return {"model": first["model"], "switch_model": first.get("switch_model"),
+            "framework_commit": commits[0] if len(commits) == 1 else ", ".join(commits),
+            "spent_usd": round(sum(data["spent_usd"] for data in datas), 6),
+            "stopped": "; ".join(stopped) or None, "runs": [row for data in datas for row in data["runs"]]}
+
+
 def report(args: argparse.Namespace) -> int:
-    summary = summarize_runs(json.loads((args.out / "results.json").read_text(encoding="utf-8")))
+    try:
+        data = combine([json.loads((out / "results.json").read_text(encoding="utf-8")) for out in args.out])
+    except (OSError, ValueError) as error:
+        print(f"impact report: {error}", file=sys.stderr)
+        return 2
+    summary = summarize_runs(data)
     print(json.dumps(summary, ensure_ascii=False, indent=1))
     lines = ["| task | group | passed | median cost (USD) | median tokens | median turns | last session tokens |", "|---|---|---|---|---|---|---|"]
     for task, cells in summary["tasks"].items():
         for group, cell in sorted(cells.items()):
             lines.append(f"| {task} | {group} | {cell['passed']} | {cell['median_cost_usd']} | {cell['median_tokens']} | {cell['median_turns']} | {cell['median_last_part_tokens']} |")
-    (args.out / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    target = args.md or (args.out[0] / "report.md" if len(args.out) == 1 else None)
+    if target:
+        target.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return 0
 
 
@@ -267,7 +293,8 @@ def main() -> int:
     one.add_argument("--forbid", action="append", default=[], help="a path the subject's files must not mention (repeatable)")
     one.set_defaults(func=run)
     two = sub.add_parser("report")
-    two.add_argument("out", type=Path)
+    two.add_argument("out", type=Path, nargs="+", help="one or more --out directories of the same models")
+    two.add_argument("--md", type=Path, help="where to write the Markdown table (default: OUT_DIR/report.md for one directory)")
     two.set_defaults(func=report)
     args = parser.parse_args()
     return args.func(args)

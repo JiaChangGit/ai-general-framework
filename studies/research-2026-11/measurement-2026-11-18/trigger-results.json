@@ -1,0 +1,254 @@
+{
+ "framework_commit": "dd191587aabee07d7b235f1d0ee7adad475543ff",
+ "model": "claude-sonnet-5-5",
+ "tools": "Read Grep Glob Skill",
+ "skills": [
+  "align-with-me",
+  "debug-root-cause",
+  "guide-learning",
+  "read-research",
+  "review-change",
+  "review-sql",
+  "trace-code"
+ ],
+ "budget_usd": 0.3,
+ "bash_removed": true,
+ "stopped": false,
+ "outside_reads": 1,
+ "runs": [
+  {
+   "scenario": "learning-with-trace",
+   "group": "framework",
+   "expected_skill": "guide-learning",
+   "skill_calls": [
+    "trace-code"
+   ],
+   "skills_used": [
+    "trace-code"
+   ],
+   "hit": false,
+   "hit_via_skill_tool": false,
+   "misfire": null,
+   "other_skills": [
+    "trace-code"
+   ],
+   "turns": 6,
+   "cost_usd": 0.0907666,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 16640,
+   "cache_read_input_tokens": 56546,
+   "output_tokens": 1854
+  },
+  {
+   "scenario": "trace-without-lesson",
+   "group": "framework",
+   "expected_skill": "trace-code",
+   "skill_calls": [
+    "trace-code"
+   ],
+   "skills_used": [
+    "trace-code"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 7,
+   "cost_usd": 0.08353740000000001,
+   "input_tokens": 8,
+   "cache_creation_input_tokens": 16560,
+   "cache_read_input_tokens": 80814,
+   "output_tokens": 920
+  },
+  {
+   "scenario": "failure-with-sql-review",
+   "group": "framework",
+   "expected_skill": "debug-root-cause",
+   "skill_calls": [
+    "review-sql"
+   ],
+   "skills_used": [
+    "review-sql"
+   ],
+   "hit": false,
+   "hit_via_skill_tool": false,
+   "misfire": null,
+   "other_skills": [
+    "review-sql"
+   ],
+   "turns": 8,
+   "cost_usd": 0.09796479999999999,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 17888,
+   "cache_read_input_tokens": 57208,
+   "output_tokens": 2068
+  },
+  {
+   "scenario": "sql-plan-without-incident",
+   "group": "framework",
+   "expected_skill": "review-sql",
+   "skill_calls": [
+    "review-sql"
+   ],
+   "skills_used": [
+    "review-sql"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 7,
+   "cost_usd": 0.093226,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 17522,
+   "cache_read_input_tokens": 57260,
+   "output_tokens": 1740
+  },
+  {
+   "scenario": "trace-lossy-id-conversion",
+   "group": "framework",
+   "expected_skill": "trace-code",
+   "skill_calls": [
+    "trace-code"
+   ],
+   "skills_used": [
+    "trace-code"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 6,
+   "cost_usd": 0.0815526,
+   "input_tokens": 8,
+   "cache_creation_input_tokens": 15722,
+   "cache_read_input_tokens": 79886,
+   "output_tokens": 1066
+  },
+  {
+   "scenario": "object-authorization-and-model-output",
+   "group": "framework",
+   "expected_skill": null,
+   "skill_calls": [],
+   "skills_used": [],
+   "hit": null,
+   "hit_via_skill_tool": null,
+   "misfire": false,
+   "other_skills": [],
+   "turns": 5,
+   "cost_usd": 0.08835480000000001,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 15924,
+   "cache_read_input_tokens": 55868,
+   "output_tokens": 1906
+  },
+  {
+   "scenario": "cleaned-copy-is-not-original",
+   "group": "framework",
+   "expected_skill": "read-research",
+   "skill_calls": [],
+   "skills_used": [],
+   "hit": false,
+   "hit_via_skill_tool": false,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 6,
+   "cost_usd": 0.08643679999999998,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 16606,
+   "cache_read_input_tokens": 55508,
+   "output_tokens": 1445
+  },
+  {
+   "scenario": "flaky-repeat-evidence",
+   "group": "framework",
+   "expected_skill": "debug-root-cause",
+   "skill_calls": [],
+   "skills_used": [
+    "debug-root-cause"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": false,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 4,
+   "cost_usd": 0.083274,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 16536,
+   "cache_read_input_tokens": 55580,
+   "output_tokens": 1156
+  },
+  {
+   "scenario": "presentation-priority-and-decision",
+   "group": "framework",
+   "expected_skill": null,
+   "skill_calls": [],
+   "skills_used": [],
+   "hit": null,
+   "hit_via_skill_tool": null,
+   "misfire": false,
+   "other_skills": [],
+   "turns": 7,
+   "cost_usd": 0.131731,
+   "input_tokens": 8,
+   "cache_creation_input_tokens": 25182,
+   "cache_read_input_tokens": 85470,
+   "output_tokens": 2244
+  },
+  {
+   "scenario": "media-style-continuity-scope",
+   "group": "framework",
+   "expected_skill": null,
+   "skill_calls": [],
+   "skills_used": [],
+   "hit": null,
+   "hit_via_skill_tool": null,
+   "misfire": false,
+   "other_skills": [],
+   "turns": 4,
+   "cost_usd": 0.0762535,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 15670,
+   "cache_read_input_tokens": 55515,
+   "output_tokens": 801
+  },
+  {
+   "scenario": "review-diff-with-materials",
+   "group": "framework",
+   "expected_skill": "review-change",
+   "skill_calls": [
+    "review-change"
+   ],
+   "skills_used": [
+    "review-change"
+   ],
+   "hit": true,
+   "hit_via_skill_tool": true,
+   "misfire": null,
+   "other_skills": [],
+   "turns": 4,
+   "cost_usd": 0.0723628,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 15173,
+   "cache_read_input_tokens": 55188,
+   "output_tokens": 614
+  },
+  {
+   "scenario": "ask-me-first-without-invocation",
+   "group": "framework",
+   "expected_skill": null,
+   "skill_calls": [],
+   "skills_used": [],
+   "hit": null,
+   "hit_via_skill_tool": null,
+   "misfire": false,
+   "other_skills": [],
+   "turns": 4,
+   "cost_usd": 0.0816472,
+   "input_tokens": 6,
+   "cache_creation_input_tokens": 15520,
+   "cache_read_input_tokens": 55652,
+   "output_tokens": 1399
+  }
+ ]
+}

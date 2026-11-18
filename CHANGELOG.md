@@ -2,6 +2,27 @@
 
 每一輪寫：改了什麼、為什麼、怎麼驗證、還沒驗證什麼。細節在各 commit 的訊息與 [docs/verification.md](docs/verification.md)。
 
+## 2026-11-18：S11（分支 `s11-framework`）
+
+依據：使用者在 Raft 專案結束後的七點回饋，分析在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md) 的「第二輪」。量測結果在 [studies/research-2026-11/G-measurement-2026-11-18.md](studies/research-2026-11/G-measurement-2026-11-18.md)，外部研究在 [F-hooks-evals-ci.md](studies/research-2026-11/F-hooks-evals-ci.md)。
+
+| 修改 | 為什麼 | 驗證 |
+|---|---|---|
+| `templates/claude-continuity-hook.py`、`templates/claude-continuity-settings.example.json`，登記為 integration template | 撞到用量上限、壓縮、換模型之後，新 session 要從頭重讀；交接檔常忘了更新。hook 在 StopFailure、PreCompact、PostCompact、SessionEnd、PreModelSwitch 寫 checkpoint（`.agf/checkpoints/`），SessionStart 提示先讀交接檔與 checkpoint、回到快取過期的 session 時提示費用，Stop 在這個 session 於交接檔之後又 commit 時提醒一次 | `tests/test_continuity_hook.py` 12 個測試。Claude Code 2.1.325 無頭探測：SessionStart、Stop、SessionEnd 會觸發；量測裡 4 個續接的新 session 都先讀了 checkpoint。PreCompact、PostCompact、StopFailure、PreModelSwitch 沒有在真實 session 觸發過；量測時撞到的那次用量上限，因執行目錄已刪，無法確認 StopFailure 有沒有寫出 checkpoint |
+| `evals/host/impact.py`、`evals/impact/tasks.json`（8 個任務）、`evals/impact/continuity-hooks.json` | 使用者要一個方法，測框架有沒有幫助、會不會多耗 token。有框架與沒框架配對、隱藏檢查、四種 token 分開記、總預算上限；兩個任務模擬「被截斷後新 session 接手」與「換模型接手」 | `tests/test_eval_impact.py` 9 個測試。實際量測一次：27 次完成的執行，兩組都 100% 通過，框架組多花 20%～44%（結果與限制見 G 報告） |
+| `impact.py report` 可以合併多個輸出目錄 | 量測做到一半撞到用量上限；補跑寫到新目錄，再合併成一份報告，不必全部重跑。模型不同的目錄拒絕合併 | 測試 1 個；實際合併了兩次量測 |
+| `templates/claude-guard-hook.py`：引號定界的 heredoc 內容與單引號裡的文字不再檢查 | 已安裝的 guard hook 擋下了一個 Python heredoc，因為裡面的 Markdown 引了 push 的寫法；那些文字 shell 不會執行。沒有引號的 heredoc 與雙引號裡的 `$(...)`、反引號照樣檢查 | `tests/test_guard_hook.py` 共 19 個測試，含被誤擋的那個命令 |
+| `.github/workflows/skill-triggers.yml` | 讓觸發量測能在 GitHub Actions 上跑；只在手動按下時執行，需要 `ANTHROPIC_API_KEY` secret，結果上傳成 artifact，不讓 build 失敗 | 本機沒有辦法驗證；**還沒在 GitHub 上跑過**。actions 的 commit SHA 用 `gh api` 核對過 |
+| `evals/host/run_claude.py`：`--env NAME` 不帶值時從目前環境複製 | CI 裡傳 API key 不必寫在命令列上 | 測試 1 個 |
+| `evals/scenarios.json` 新增 2 個觸發情境 | 審查一段附了材料的 diff（該用 `review-change`）；「先問我問題」（不該自動叫用只給使用者用的 `align-with-me`） | 觸發量測：兩個都符合預期 |
+| `templates/project-rules.md`、`skills/align-with-me/SKILL.md`、`docs/workflow.md`：一開始就問完；每題寫給沒有背景的人看 | 使用者說中途冒出的問題會打斷他做別的事，問題的描述也常看不懂 | 文字修改，沒有量測；常駐規則 1,316 → 1,413 字 |
+| `docs/cli.md`、`docs/workflow.md`、`evals/host/README.md`、`README.md` | 續接 hook、量測工具、CI workflow 的用法 | — |
+| `docs/analysis-2026-11.md` 第二輪、`studies/research-2026-11/` 的 F、G 與量測資料 | 研究與結果跟著框架 | — |
+
+**量測花費**：觸發 1.07 美元、成效 2.34 美元，合計 3.41 美元，在使用者給的 2～4 美元內。
+
+**沒做的事**：教學文件格式的個人化（只寫建議，見分析報告）；把 guard hook 裝到使用者層級（這一輪裝在工作區上一層，保護框架主目錄）。
+
 ## 2026-11-17：S10（分支 `s10-framework`）
 
 依據：[分析報告](docs/analysis-2026-11.md)。這一輪是在 Raft KV store 專案做最後一次複查時，邊用框架邊找到的問題，加上外部研究（[studies/](studies/README.md)）。
