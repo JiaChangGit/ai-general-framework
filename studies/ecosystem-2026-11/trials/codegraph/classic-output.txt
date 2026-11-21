@@ -1,0 +1,56 @@
+### versions
+Universal Ctags 5.9.0, Copyright (C) 2015 Universal Ctags Team
+cscope: version 15.9
+global (GNU Global) 6.6.13
+cflow (GNU cflow) 1.7
+Debian clang version 19.1.7 (3+b1)
+### ctags: is handle_uart defined (Q5)?
+fast_submit      function      3 src/submit.c     int fast_submit(struct device *dev)
+slow_submit      function      9 src/submit.c     int slow_submit(struct device *dev)
+submit           function     18 src/main.c       static int submit(struct device *dev)
+submit           function     23 src/main.c       static int submit(struct device *dev)
+### cscope
+-- Q1 functions calling dev_open
+src/main.c DEFINE_HANDLER 6 return dev_open(dev); \
+-- Q2 functions called by dev_open
+src/dev.c open 5 return dev->ops->open(dev);
+-- Q3 functions called by timer_fire
+src/timer.c cb 11 t->cb(t->arg);
+-- Q4 functions called by submit
+src/main.c fast_submit 20 return fast_submit(dev);
+src/main.c slow_submit 25 return slow_submit(dev);
+-- Q5 definition of handle_uart
+### GNU Global
+-- Q5 definition of handle_uart
+-- Q1 references to dev_open
+dev_open           16 include/dev.h    int dev_open(struct device *dev);
+dev_open            6 src/main.c       		return dev_open(dev);                \
+### cflow with the preprocessor
+-- Q1 reverse tree for dev_open
+dev_open() <int dev_open (struct device *dev) at src/dev.c:3>:
+    handle_uart() <int handle_uart (struct device *dev) at src/main.c:9>:
+        main() <int main (void) at src/main.c:29>
+    handle_spi() <int handle_spi (struct device *dev) at src/main.c:10>:
+-- Q2-Q4 forward tree from main
+main() <int main (void) at src/main.c:29>:
+    handle_uart() <int handle_uart (struct device *dev) at src/main.c:9>:
+        dev_open() <int dev_open (struct device *dev) at src/dev.c:3>
+    handle_spi() <int handle_spi (struct device *dev) at src/main.c:10>:
+        dev_open() <int dev_open (struct device *dev) at src/dev.c:3>
+    timer_setup() <void timer_setup (struct timer *t, timer_cb cb, void *arg) at src/timer.c:3>
+    heartbeat() <void heartbeat (void *arg) at src/main.c:12>:
+        dev_close() <void dev_close (struct device *dev) at src/dev.c:8>
+    timer_fire() <void timer_fire (struct timer *t) at src/timer.c:9>
+    submit() <int submit (struct device *dev) at src/main.c:23>:
+        slow_submit() <int slow_submit (struct device *dev) at src/submit.c:9>
+### clang call graph dump
+  Function: dev_close calls: 
+  Function: dev_open calls: 
+  Function: main calls: handle_uart handle_spi timer_setup timer_fire submit 
+  Function: timer_fire calls: 
+  Function: submit calls: slow_submit 
+  Function: dev_close calls: 
+  Function: handle_spi calls: dev_open 
+  Function: handle_uart calls: dev_open 
+  Function: dev_open calls: 
+  Function: timer_fire calls: 

@@ -1,0 +1,2830 @@
+[
+  {
+    "id": "pstack-cursor",
+    "name": "pstack（上游，cursor/plugins/pstack）",
+    "category": "agent-workflows",
+    "also": [
+      "agent-skills"
+    ],
+    "type": "skill-collection",
+    "urls": {
+      "source": "https://github.com/cursor/plugins/tree/main/pstack",
+      "official": null,
+      "docs": "https://github.com/cursor/plugins/tree/main/pstack/docs/guide"
+    },
+    "read_at": "cursor/plugins 792440e（2026-11-21），pstack 0.15.46",
+    "summary": "Lauren Tan（poteto）為 Cursor 寫的工程 skill 組，是所有 pstack 版本的上游。入口是 poteto-mode：依任務選 22 個 playbook（舊版 README 寫 23 個，後來刪了 orchestrate），再叫用 how、why、architect、arena、interrogate、tdd 等 skill 與 24 條 principle-* 原則。",
+    "architecture": "58 個 skill 目錄、515 個檔案，SKILL.md 合計約 2.9 萬英文字；除 setup-pstack 外都設 disable-model-invocation，只能由 /指令或 poteto-mode 叫用。poteto-mode 的 SKILL.md 約 1,700 字，加上 playbooks/、worker.md（每個子代理第一行要先讀）與 scripts/（watch-pr、worktree-audit 等 TypeScript／shell）。statechart skill 附一個 TypeScript 的 TLA+ 編譯管線。模型分工寫在使用者的 ~/.cursor/rules/pstack-models.mdc，依角色（code、judgment、swarm workers、arena runners、cross-judge）給模型與 reasoning 等級。Claude Code 支援靠 docs/harness/claude-code.md：要模型每個 session 讀一次對照表，執行時自己把 Task、AskQuestion、Cursor 模型名換成 Claude Code 的寫法。",
+    "integration": [
+      "skill"
+    ],
+    "hosts": {
+      "claude_code": "partial",
+      "others": "Cursor 為主；Claude Code 靠執行時對照表；其他宿主用移植版"
+    },
+    "runs": "local",
+    "privacy": "skill 本身不送資料；recall、automate-me、session-pickup 會讀本機對話紀錄（明文限制只讀目前 workspace）。arena／interrogate 會把任務交給其他廠商的模型（預設含 Gemini）。",
+    "security": "poteto-mode 的 Autonomy 段寫「Just do it. Use any MCP tool」，團隊聊天、更新 ticket、開 eval 等外部動作不先問；shipping、autopilot、maintain-verification-skill 會自己開 PR 與合併。只有 force-push、deploy、刪資料、對客戶發訊息才停。這和使用者「不 push、不開 PR」的規則衝突，要用 guard hook 擋。沒有看到下載後執行的指令。",
+    "resources": "純文字 skill；多模型 panel 需要 Cursor 或對應宿主的多家模型額度。arena 預設開 3 個 runner 加 1 個 judge，token 成本是單次的數倍。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "pstack/LICENSE 與 plugin.json（792440e），Copyright 2026 Lauren Tan；cursor/plugins 根目錄沒有 LICENSE，GitHub 顯示 none",
+      "label": "usable",
+      "notes": "授權只看 pstack 子目錄；cursor/plugins 其他 plugin 各自另有條款。"
+    },
+    "weaknesses": "版本變動快（10 月到 11 月從 0.15.9 到 0.15.46），skill 內容與模型預設常改；11 月中大幅縮短 skill 文字。預設模型與 Cursor slug 綁很深，其他宿主要翻譯。多數 skill 預設會開背景子代理，成本高。",
+    "alternatives": [
+      "pstack-backnotprop",
+      "pstack-michael-denyer",
+      "pstack-pickleboxer",
+      "superpowers-obra",
+      "mattpocock-skills"
+    ],
+    "learning_value": "(1) correct：重複錯誤先用架構消除，再用型別、lint（錯誤訊息要寫出正確做法）、測試，最後才寫文件；每個新檢查要在真實舊錯誤上證明會失敗；維護「規則—由什麼強制」對照表。(2) reflect：從對話挖出半年後仍成立的教訓，只改既有 skill，可由 lint 強制的放 backlog，不寫成文字。(3) why：只從 commit、PR 討論回答設計理由，推論要標推論、說出紀錄沒回答的部分。(4) teach＝how＋why，依讀者目的挑重點、圖一張張疊加。(5) arena：同一 prompt 給 N 個模型，先定 3～6 條 rubric，跨廠商 judge，選 base 再手工 graft。(6) principle-fix-root-causes：先判斷觸發狀態是否合法，再決定在哪修。(7) 子代理預設用新的、模型依角色升降一級、驗證固定用便宜模型。",
+    "integration_value": "框架已有 debug-root-cause、review-change、trace-code；可借 correct 的「強制層級」與「規則—強制對照表」改進 maintenance 指引，借 why 的「只從紀錄答」補 read-research／trace-code。不建議整包安裝：自主開 PR／合併與使用者規則衝突，58 個 skill 也違反「少而專」。",
+    "tier": 1,
+    "use": [
+      "learn",
+      "borrow"
+    ],
+    "evidence": "source",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/cursor/plugins/tree/792440e/pstack",
+        "level": "CLONED",
+        "note": "sparse clone，讀 plugin.json、LICENSE、how/why/architect/teach/arena/correct/reflect/recall、poteto-mode 的 Non-negotiables／Autonomy／Subagents 與 bug-fix、session-pickup、pause-safely playbook、docs/harness/claude-code.md"
+      },
+      {
+        "url": "https://ginseng.dnplus.dev/blog/ep091",
+        "level": "READ",
+        "note": "使用者提供的文章，示範每講一個資安名詞就跑一次 teach，用自己的專案當例子"
+      }
+    ]
+  },
+  {
+    "id": "pstack-backnotprop",
+    "name": "pstack（backnotprop 鏡像）",
+    "category": "agent-workflows",
+    "also": [
+      "agent-skills"
+    ],
+    "type": "skill-collection",
+    "urls": {
+      "source": "https://github.com/backnotprop/pstack",
+      "official": "https://github.com/cursor/plugins/tree/main/pstack",
+      "docs": null
+    },
+    "read_at": "c3464c1（2026-11-20），同步到上游 0.15.46 @ 0b46ec3",
+    "summary": "上游 pstack 的鏡像，不是另一份實作：upstream 分支放 Cursor 原檔，main 分支加上「各宿主都能讀」的改寫與少數社群修正。框架 11-09 讀的 a6342de 就是這份。",
+    "architecture": "和上游逐檔 diff：只多 MIRROR.md、SYNC-LOG.md、mirror-assets/ 與 no-comments/references/；有改的 skill 約 20 個，改法都是把 `.cursor/skills`、`Task`、`AskQuestion`、`~/.cursor/rules/pstack-models.mdc` 換成「Cursor 用 X、Claude Code 用 Y、OpenCode 用 Z」的說明。SYNC-LOG 每天記一次同步結果；只收 bug fix，改 skill 行為的 PR 請送上游。58 個 SKILL.md 中 43 個與上游逐字相同、15 個是改寫。",
+    "integration": [
+      "skill"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "Cursor、Codex、OpenCode、Pi（靠 skill 內的對照說明）"
+    },
+    "runs": "local",
+    "privacy": "同上游。",
+    "security": "同上游（自主開 PR、外部動作不先問）。MIRROR.md 的 `git push origin main upstream` 是給維護者的同步步驟，不是給 agent 的指令。",
+    "resources": "同上游。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "根目錄 LICENSE（c3464c1），Copyright 2026 Lauren Tan，與上游同一份",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "落後上游最多約一天；社群修正（#24 watch-pr）是未併入上游的 PR，之後可能衝突。",
+    "alternatives": [
+      "pstack-cursor",
+      "pstack-michael-denyer"
+    ],
+    "learning_value": "鏡像維護法值得學：上游原檔與本地改寫分兩個 branch，用 merge 讓 git 只套用上游變動；每次同步（含無變動）都記一列；收 PR 的範圍寫明。對框架維護「上游—本地 drift」有參考價值。",
+    "integration_value": "要在 Claude Code 讀 pstack 原文時，這份比上游少一層執行時翻譯。框架只借設計，不安裝。",
+    "tier": 2,
+    "use": [
+      "learn"
+    ],
+    "evidence": "source",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/backnotprop/pstack/tree/c3464c1",
+        "level": "CLONED",
+        "note": "讀 MIRROR.md、SYNC-LOG.md，並與 cursor/plugins@792440e 的 pstack 逐檔 diff"
+      },
+      {
+        "url": "/home/user/src/ai-general-framework-s16/docs/link-study.md",
+        "level": "READ",
+        "note": "框架 11-09 讀過 a6342de 的 correct skill"
+      }
+    ]
+  },
+  {
+    "id": "pstack-michael-denyer",
+    "name": "pstack-claude（michael-denyer 移植版）",
+    "category": "agent-workflows",
+    "also": [
+      "agent-skills"
+    ],
+    "type": "skill-collection",
+    "urls": {
+      "source": "https://github.com/michael-denyer/pstack-claude",
+      "official": null,
+      "docs": "https://github.com/michael-denyer/pstack-claude/blob/main/docs/reference.md"
+    },
+    "read_at": "97d2ba2（2026-11-21），port 版本 0.9.146，追蹤上游 sha 0b46ec3",
+    "summary": "把上游 pstack 在安裝前就翻成 Claude Code、Codex、Pi、Copilot、Muse、Kimi 等宿主的版本，另外併入 Cursor 的 cursor-team-kit（deslop、fix-ci 等）與 thermos，並帶 55 個自己的 policy fork。",
+    "architecture": "tools/upstream.json 記三個上游元件與固定 sha；tools/generate.mjs、sync.mjs 依 substitutions.json 產生各宿主的 plugin；tools/forks.json 逐檔宣告 55 個分歧（50 個 policy、5 個 port-feature，全部 upstream: not-proposed），每個寫 why 與 since。plugins/pstack/hooks/ 有 SessionStart hook（startup|resume|clear|compact 都觸發），注入一段 `<EXTREMELY_IMPORTANT>` 包住的路由說明：改超過一個檔、架構選擇、原因不明的 bug 就叫 poteto-mode。Copilot 另有 PreToolUse awk 腳本，只自動核准讀自己 plugin 檔與固定形式的 vendored script，並拒絕用未儲存的模型派子代理。tla/ 有 PiScheduler 的 TLA+ 模型與 mutation 測試；tests/ 約 60 個測試檔。新增 create-formal-verification-skill（TLA+、Lean、Kani）。和上游同名的 57 個 SKILL.md 沒有一個逐字相同。最大的行為差異：generate.mjs 遇到 disable-model-invocation: true 會直接報錯（CHANGES 0.9.8），67 個 skill 全部可由模型自動叫用，principle-* 則設 user-invocable: false（只給模型用），和上游「全部只能由使用者叫用」相反。",
+    "integration": [
+      "skill",
+      "hook"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "Codex、Pi、GitHub Copilot、Muse、Kimi、OpenCode、Grok、Antigravity"
+    },
+    "runs": "local",
+    "privacy": "同上游；SessionStart hook 只印文字，沒看到網路呼叫。",
+    "security": "SessionStart 每次（含 compact 後）都注入強制路由文字，會和其他常駐規則搶優先；它自己寫明 CLAUDE.md 與使用者指示優先。其餘同上游（自主開 PR）。",
+    "resources": "同上游；Claude Code 2.1.292 以上。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "根目錄 LICENSE（97d2ba2）：Lauren Tan 與 Michael Denyer；另附 LICENSE-cursor-team-kit、LICENSE-thermos 與 NOTICE.md 逐目錄標示來源",
+      "label": "usable",
+      "notes": "併入的 cursor-team-kit、thermos 為 Cursor 的 MIT。"
+    },
+    "weaknesses": "55 個 policy fork 都沒送上游，行為和上游會越差越遠；所有 skill 描述都進模型的 skill 清單，常駐成本與誤觸機率比上游高（推論，未量）；skill 數比上游還多（plugins/pstack/skills 有 67 個目錄，上游 58 個）。版本號與上游不同（0.9.x），對照時要看 upstream.json 的 sha。",
+    "alternatives": [
+      "pstack-cursor",
+      "pstack-backnotprop",
+      "pstack-pickleboxer"
+    ],
+    "learning_value": "(1) forks.json：每個與上游不同的檔案都宣告種類、理由、起始版本與是否送上游，是管理本地 drift 的好格式。(2) 安裝前翻譯而不是讓模型執行時翻譯，省 token 也少一層出錯。(3) 對重要排程邏輯寫 TLA+ 並做 mutation 檢查。",
+    "integration_value": "框架 adapters 若要支援多宿主，可參考「固定上游 sha＋替換表＋產生器＋分歧清單」這套流程。不安裝 plugin。",
+    "tier": 2,
+    "use": [
+      "learn"
+    ],
+    "evidence": "source",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/michael-denyer/pstack-claude/tree/97d2ba2",
+        "level": "CLONED",
+        "note": "讀 README、NOTICE.md、tools/upstream.json、tools/forks.json（統計種類）、plugins/pstack/hooks/hooks.json、session-start-context.md、pre-tool-use.sh"
+      }
+    ]
+  },
+  {
+    "id": "pstack-pickleboxer",
+    "name": "pstack for Claude Code（PickleBoxer 移植版）",
+    "category": "agent-workflows",
+    "also": [
+      "agent-skills"
+    ],
+    "type": "skill-collection",
+    "urls": {
+      "source": "https://github.com/PickleBoxer/pstack",
+      "official": null,
+      "docs": "https://github.com/PickleBoxer/pstack/blob/main/.github/README.md"
+    },
+    "read_at": "01a3029（2026-10-08），plugin 版本 0.15.15+claude.7",
+    "summary": "把上游 pstack 包成 Claude Code plugin 的另一個移植，盡量少改上游檔，Claude Code 專屬的東西放在新檔：一個 TypeScript mod 在執行時把 Task、AskQuestion、Grok 模型名換成 Claude Code 的。",
+    "architecture": "upstream 用 `git subtree split --prefix=pstack` 追；唯一常駐改動是把 principle skill 的 disable-model-invocation 拿掉，讓 Claude 用 Skill 工具載入，CI 會擋回來的 merge。hooks/hooks.json 只載入 register.tsx（約 330 行），用 'claude-code' 模組的 atom／store／ui API 做 /poteto 開關、/pstack 面板、prompt.submit 時注入說明。plugin.json 的 userConfig 讓使用者選 search／code／judgment 三個角色的模型（預設 haiku／sonnet／opus）。和上游目前 58 個 SKILL.md 比，3 個相同、46 個不同（多是版本落差）、9 個上游新 skill 沒有。",
+    "integration": [
+      "skill",
+      "hook"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "npx skills 可裝純 skill，但保留 Cursor 用語"
+    },
+    "runs": "local",
+    "privacy": "同上游。",
+    "security": "register.tsx 註解寫「組織的安全 plugin 可能略過使用者層的 skill.prompt hook，所以改走 prompt.submit 與 Read」，也就是刻意換一條注入路徑；不算惡意，但安裝前要知道它在每次送出 prompt 時加文字。其餘同上游。",
+    "resources": "依賴 Claude Code 的 mod API（'claude-code' 模組），版本限制沒寫明。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "根目錄 LICENSE（01a3029），Copyright 2026 Lauren Tan",
+      "label": "usable",
+      "notes": "移植者的修改沒有另列版權行。"
+    },
+    "weaknesses": "2026-10-08 之後沒有更新，停在上游 0.15.15，上游已到 0.15.46；5 顆星。用到的 mod API 沒有看到官方文件，無法確認穩定性。",
+    "alternatives": [
+      "pstack-michael-denyer",
+      "pstack-backnotprop"
+    ],
+    "learning_value": "「上游檔不動、宿主差異放新檔、CI 擋住會讓 skill 消失的上游旗標」是低 drift 的移植法。",
+    "integration_value": "落後上游一個多月，不建議使用；只記錄存在與差異。",
+    "tier": 4,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "source",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/PickleBoxer/pstack/tree/01a3029",
+        "level": "CLONED",
+        "note": "讀 README、.github/README.md、.claude-plugin/plugin.json、hooks/hooks.json、hooks/register.tsx 前 60 行、scripts/sync-upstream.sh"
+      }
+    ]
+  },
+  {
+    "id": "ponytail-dietrichgebert",
+    "name": "Ponytail",
+    "category": "agent-workflows",
+    "also": [
+      "agent-skills"
+    ],
+    "type": "skill-collection",
+    "urls": {
+      "source": "https://github.com/DietrichGebert/ponytail",
+      "official": null,
+      "docs": null
+    },
+    "read_at": "96608e0（2026-10-29），與框架 11-09 讀的同一 commit",
+    "summary": "「懶惰的資深工程師」規則：動手前依序問需不需要、codebase 有沒有、標準庫或平台有沒有、已裝套件有沒有、一行能不能解決，最後才寫最少程式；同時列出絕不省略的驗證、安全與資料保護。",
+    "architecture": "核心是 skills/ponytail/SKILL.md（約 590 英文字）與 AGENTS.md；外面包各宿主 adapter、hooks（activate、mode-tracker、subagent 等 JS）、指令（/ponytail-review、-audit、-debt）與 benchmarks。詳見 studies/research-2026-11/A-projects.md。",
+    "integration": [
+      "skill",
+      "hook",
+      "cli"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "Codex、Cursor、Copilot、Gemini、Windsurf、Cline、Kiro、OpenCode 等"
+    },
+    "runs": "local",
+    "privacy": "band 資料存在 ~/.config/ponytail/；沒有查到 telemetry。",
+    "security": "hooks 每個 session 注入規則；沒有看到下載後執行的指令。",
+    "resources": "純文字與小 hook；常駐約 800～900 token（A-projects 估計）。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "根目錄 LICENSE（96608e0）",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "作者自報程式少 53%、成本少 26%；Scott Logic 發現一句「Follow YAGNI principles, and one-liner solutions」在原 benchmark 就贏過它。10-29 之後沒有新 commit。",
+    "alternatives": [
+      "ponytail-pdscomp",
+      "pstack-cursor"
+    ],
+    "learning_value": "階梯加上「絕不省略」清單；`shortcut: <限制>, <何時升級>` 註解加 /debt 收集；每次回覆結尾一兩行列出跳過與沒驗的部分。",
+    "integration_value": "框架已把階梯寫成一句常駐規則（S10），不需再裝。這輪沒有新資訊。",
+    "tier": 2,
+    "use": [
+      "learn"
+    ],
+    "evidence": "source",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/DietrichGebert/ponytail/tree/96608e0",
+        "level": "CLONED",
+        "note": "確認 HEAD 與 11-09 相同；gh api：196,019 stars、pushed 2026-10-29"
+      },
+      {
+        "url": "/home/user/src/ai-general-framework-s16/studies/research-2026-11/A-projects.md",
+        "level": "READ",
+        "note": "既有詳細紀錄（階梯、benchmark、批評）"
+      }
+    ]
+  },
+  {
+    "id": "ponytail-pdscomp",
+    "name": "Ponytail — Hermes edition",
+    "category": "agent-workflows",
+    "also": [
+      "agent-skills"
+    ],
+    "type": "skill",
+    "urls": {
+      "source": "https://github.com/pdscomp/Ponytail",
+      "official": "https://github.com/DietrichGebert/ponytail",
+      "docs": null
+    },
+    "read_at": "35bc9fa（2026-10-23）",
+    "summary": "Ponytail 的改寫版，給 Hermes Agent 的 skill 系統用；作者說約 9% 字句與上游相同，其餘重寫。分叉自上游 b6c0448（2026-07-10）。",
+    "architecture": "只有 4 個檔：SKILL.md（約 800 字）、README、LICENSE、references/stateful-preflight-audits.md（約 1,600 字）。新增「工具紀律」：同一個失敗呼叫不重試第二次、已讀過的圖片不再分析、迴圈警告時換工具；preflight 清單針對 live backend 切換、持久化工作、telemetry 政策、需確認的 UI 做唯讀稽核。",
+    "integration": [
+      "skill"
+    ],
+    "hosts": {
+      "claude_code": "partial",
+      "others": "Hermes 為主；作者說也可當 Codex、Claude Code 的 system prompt 片段"
+    },
+    "runs": "local",
+    "privacy": "純文字。",
+    "security": "沒有腳本或 hook。",
+    "resources": "純文字。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "LICENSE（35bc9fa）：上游 MIT 全文後面加一行修改版權（Paul Swenson），GitHub 因此顯示 NOASSERTION",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "1 顆星，個人用版本；作者自己建議非 Hermes 使用者用上游。",
+    "alternatives": [
+      "ponytail-dietrichgebert"
+    ],
+    "learning_value": "「工具紀律」幾條是長時間 agent 真實會撞到的迴圈（重試同一個失敗呼叫、重讀已讀的內容），比再加一條極簡規則更具體。",
+    "integration_value": "工具紀律可對照框架的 debug／續接指引，看有沒有缺；不需安裝。",
+    "tier": 3,
+    "use": [
+      "learn"
+    ],
+    "evidence": "source",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/pdscomp/Ponytail/tree/35bc9fa",
+        "level": "CLONED",
+        "note": "讀 README、SKILL.md 標題與工具紀律段、LICENSE、references 標題"
+      }
+    ]
+  },
+  {
+    "id": "spec-kit-github",
+    "name": "Spec Kit",
+    "category": "agent-workflows",
+    "also": [
+      "agent-skills",
+      "mcp-cli-api"
+    ],
+    "type": "cli",
+    "urls": {
+      "source": "https://github.com/github/spec-kit",
+      "official": null,
+      "docs": "https://github.com/github/spec-kit/blob/main/spec-driven.md"
+    },
+    "read_at": "a4d5712（2026-11-20），1.4.3（2026-11-19）",
+    "summary": "GitHub 的規格驅動開發工具：`specify` CLI 在專案建 `.specify/`，再用 constitution、specify、clarify、plan、tasks、analyze、implement、converge 等指令依序從規格走到實作。",
+    "architecture": "Python CLI（src/specify_cli）。templates/commands/ 的 9 個指令模板合計約 130 KB（specify 18.5 KB、checklist 21.8 KB），每個模板 frontmatter 指定 sh／ps／py 三種前置腳本。plan-template 有「Constitution Check」閘門，違反要在表格裡逐條辯護。converge 比對程式與 spec／plan／tasks，把沒做完的補成新 task。新的 events 子系統（約 2,600 行）會在安裝 integration 時把事件寫進各宿主的 hook 設定，並分層解析 CLI 旗標、YAML、extension 宣告與內建事件。extensions／presets／workflows 各有官方與社群 catalog，社群 extension 有 204 個。",
+    "integration": [
+      "cli",
+      "skill",
+      "hook"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "README 列多個 agent；integrations 由 catalog 安裝"
+    },
+    "runs": "local",
+    "privacy": "CLI 本身沒有查到預設 telemetry；events 註解提到 telemetry 類 handler，是否預設啟用沒查到。",
+    "security": "extensions/README 明寫社群 extension「維護者只檢查格式，不審查、不背書程式碼」，要自己讀原始碼再裝。events 會改寫宿主的 hook 設定檔，安裝前要看它寫了什麼。",
+    "resources": "uv 安裝的 Python CLI；指令模板很長，每跑一個指令就載入 10～20 KB 文字。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "根目錄 LICENSE（a4d5712）",
+      "label": "usable",
+      "notes": "社群 extension 各自授權。"
+    },
+    "weaknesses": "流程重，小改動也走完整階段成本高；constitution 怎麼強制只靠 plan 模板的人工辯護表。發版很快（11 月有 1.3.3～1.4.3 五版）。",
+    "alternatives": [
+      "openspec-fission-ai",
+      "bmad-method",
+      "superpowers-obra"
+    ],
+    "learning_value": "(1) converge：用程式現況反推「還沒做完的 task」，而不是相信 tasks.md 的勾選。(2) Constitution Check 要求違反原則時逐條寫理由。(3) bug、assess extension 用固定判決詞（verified／partial／failed；go／needs-clarification／kill）。",
+    "integration_value": "框架的 align-with-me 與 task 紀錄已涵蓋規格對齊；可借 converge 的「從程式反查完成度」補 review-change 或 task checkpoint。不安裝，避免它改寫 hook 設定。",
+    "tier": 2,
+    "use": [
+      "learn",
+      "borrow"
+    ],
+    "evidence": "source",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/github/spec-kit/tree/a4d5712",
+        "level": "CLONED",
+        "note": "讀目錄結構、templates/commands 大小、converge.md frontmatter、plan-template 的 Constitution Check、extensions/README 的審查聲明、events/__init__.py 開頭、CHANGELOG 版本"
+      },
+      {
+        "url": "/home/user/src/ai-general-framework-s16/studies/research-2026-11/A-projects.md",
+        "level": "READ",
+        "note": "既有紀錄 2.4 節"
+      }
+    ]
+  },
+  {
+    "id": "mattpocock-skills",
+    "name": "mattpocock/skills",
+    "category": "agent-skills",
+    "also": [
+      "agent-workflows"
+    ],
+    "type": "skill-collection",
+    "urls": {
+      "source": "https://github.com/mattpocock/skills",
+      "official": "https://www.aihero.dev",
+      "docs": null
+    },
+    "read_at": "abeeaf9（2026-11-19），plugin 1.3.2",
+    "summary": "Matt Pocock 的工程 skill：grilling、to-spec、to-tickets、tdd、diagnosing-bugs、handoff、teach 等；把只能由使用者叫用的流程 skill 和模型自動叫用的能力 skill 分開。",
+    "architecture": "39 個 SKILL.md，其中 27 個設 disable-model-invocation。分 engineering、productivity、misc、in-progress、deprecated。11-17 之後新看到：in-progress/claude-handoff（寫交接摘要到 OS 暫存目錄，再用 `claude --bg --name ... -- \"$(cat 檔)\"` 開背景 agent 接手）、in-progress/software-factory（設計自動化工廠的術語表）、misc/git-guardrails-claude-code（PreToolUse hook 擋 git push、reset --hard、clean -f、branch -D）。teach 是有狀態的教學工作區：MISSION.md、reference/*.html、learning-records/。",
+    "integration": [
+      "skill",
+      "hook"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "每個 skill 帶 agents/ 子目錄給其他宿主"
+    },
+    "runs": "local",
+    "privacy": "handoff／claude-handoff 要求先遮蔽 secret 與個資；diagnosing-bugs 要求輸出前把憑證換成 <REDACTED>。",
+    "security": "git-guardrails 用 hook 擋破壞性 git 指令，方向與框架 guard hook 相同。claude-handoff 把摘要當新 agent 的 prompt，作者特別用檔案傳遞避免 shell 展開 `$` 與反引號。",
+    "resources": "純文字。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "根目錄 LICENSE（abeeaf9）",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "沒有公布量測；in-progress 目錄的 skill 尚未穩定。",
+    "alternatives": [
+      "superpowers-obra",
+      "pstack-cursor"
+    ],
+    "learning_value": "(1) 流程 skill 只能使用者叫用，降低誤觸與常駐成本（框架 align-with-me 已採用）。(2) handoff 只連結既有產物、不複製；寫明下一個 agent 該叫哪些 skill。(3) teach 用 MISSION.md 讓多次教學有共同目標，和 pstack 的單次 teach 是兩種不同做法。",
+    "integration_value": "已採用 disable-model-invocation。可比較 claude-handoff 與框架 task checkpoint＋續接 hook：前者在額度用完前要 agent 主動寫，後者靠 hook 自動寫，兩者互補。guide-learning 可參考 teach 的 MISSION／learning-records 做跨 session 學習。",
+    "tier": 2,
+    "use": [
+      "learn",
+      "borrow"
+    ],
+    "evidence": "source",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/mattpocock/skills/tree/abeeaf9",
+        "level": "CLONED",
+        "note": "讀目錄、plugin.json、claude-handoff、git-guardrails-claude-code、teach、software-factory、diagnosing-bugs 開頭"
+      },
+      {
+        "url": "/home/user/src/ai-general-framework-s16/studies/research-2026-11/A-projects.md",
+        "level": "READ",
+        "note": "既有紀錄 2.1 節"
+      }
+    ]
+  },
+  {
+    "id": "claude-mem-thedotmack",
+    "name": "claude-mem",
+    "category": "memory-context",
+    "also": [
+      "agent-workflows",
+      "mcp-cli-api"
+    ],
+    "type": "project",
+    "urls": {
+      "source": "https://github.com/thedotmack/claude-mem",
+      "official": "https://docs.claude-mem.ai",
+      "docs": "https://docs.claude-mem.ai/architecture/database"
+    },
+    "read_at": "f1bb834（2026-11-20），16.0.2",
+    "summary": "用 hook 收集每次工具呼叫，交給另一個模型（observer）寫成 observation 與 session 摘要，存進本機 SQLite＋Chroma；下一個 session 開頭注入精簡索引，需要時再用 MCP 分三步取細節。",
+    "architecture": "Claude Code 掛 11 個 hook：Setup、SessionStart（三組）、UserPromptSubmit、PreToolUse（Read、Bash、Grep、Glob 與 memory 工具）、PostToolUse、PostToolUseFailure、Stop、SubagentStop、SessionEnd，都呼叫 `claude-mem hook claude-code <event>`。本機 Bun worker（HTTP）收事件、跑 observer、提供 viewer 與搜尋。observer 有多個 provider：Claude（用使用者的方案）、Codex、Gemini、OpenRouter、OpenAI 相容端點（可設 CLAUDE_MEM_OPENAI_COMPAT_BASE_URL 指到 Ollama／LM Studio）。儲存在 ~/.claude-mem/claude-mem.db（SQLite＋FTS5），Chroma 加語意搜尋。src/services/context 依 ContextBudget 組 session 開頭的區塊；PreToolUse 在讀檔前用 src/cli/handlers/file-context.ts 注入與該檔有關的過去 observation 時間線（有同 session 去重）。新增 reinforcement 模組：每筆 observation 記最近 10 次被再確認的日期，用 ACT-R 冪律衰減（age^-0.5）算強度排序，不需 embedding。`<private>` 包住的內容不存。",
+    "integration": [
+      "hook",
+      "mcp",
+      "cli",
+      "skill",
+      "service"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "Codex、Cursor、Gemini、OpenCode、Pi、Grok 等；Copilot CLI、Goose、Roo、Warp、Zed 只能搜尋"
+    },
+    "runs": "hybrid",
+    "privacy": "工具呼叫的輸入輸出會送給 observer 模型壓縮：預設是 Anthropic 方案、claude-mem 付費 observer（第三方雲端）或使用者的 OpenRouter／Gemini key；只有設 OpenAI 相容端點到本機模型才全在本機。存下的內容在之後的 session 開頭會再注入模型，依使用者定義屬於上雲端。匿名使用統計預設開啟（`npx claude-mem telemetry disable` 關閉）；雲端同步需自行開啟。",
+    "security": "常駐本機 HTTP worker 與子程序。MCP 設定在沒有 CLAUDE_PLUGIN_ROOT 時，會依序從目前目錄的 plugin/、目前目錄本身找 scripts/mcp-server.cjs 並 require；若在不信任的 repo 裡啟動，理論上可能載入該 repo 的同名檔（推論，未實測）。README 推廣第三方發行、作者「官方擁抱」的加密代幣 CMEM。",
+    "resources": "Node／Bun、SQLite、Chroma sidecar；observer 每次工具呼叫都多一次模型呼叫，README 自己說付費 observer 可讓方案「多出最多 100%」用量，等於預設會吃掉方案額度。",
+    "license": {
+      "spdx": "Apache-2.0",
+      "basis": "根目錄 LICENSE 與 NOTICE（f1bb834），package.json 同",
+      "label": "usable",
+      "notes": "付費 observer 是另一份服務條款。"
+    },
+    "weaknesses": "2,528 個 issue。使用者回報：在專案子目錄到處建 CLAUDE.md（#609、#641，已關）、token 用量太大（#618）、發版打包缺依賴或版本不符導致 hook 每次殺掉 worker（#2407、#3857）。作者自己開了二十多個 plan issue 處理 worker 存活、子程序、SQLite schema 演進等結構問題（#3602～#3610）。三層索引「約十分之一大小」作者自己說不是量過的端到端節省。",
+    "alternatives": [
+      "memory-os-bmaltais",
+      "dejavu-hmakt99",
+      "mem0",
+      "letta-code"
+    ],
+    "learning_value": "(1) 三層檢索：index（每筆約 50～100 token）→ timeline → get_observations，只付開啟的細節。(2) ACT-R 強度：用「被再確認的日期列表」算衰減，不靠 embedding 也能讓常被用到的記憶排前面。(3) `<private>` 標記在寫入前過濾。",
+    "integration_value": "框架現有做法（宿主記憶＋profile＋checkpoint＋續接 hook）不送額外模型呼叫，比較符合使用者的隱私決定。可借三層檢索與強度排序的想法；不安裝，因為 observer 會把工具輸出送模型、telemetry 預設開。",
+    "tier": 2,
+    "use": [
+      "learn"
+    ],
+    "evidence": "source",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/thedotmack/claude-mem/tree/f1bb834",
+        "level": "CLONED",
+        "note": "讀 README、plugin/hooks/hooks.json、plugin/.mcp.json、src/services/worker 目錄、OpenAICompatProvider.ts、reinforcement/strength.ts、context 目錄"
+      },
+      {
+        "url": "https://github.com/thedotmack/claude-mem/issues?q=is%3Aissue",
+        "level": "READ",
+        "note": "gh search：#609、#641、#618、#2407、#3857、plan-14～22 的標題與留言數"
+      },
+      {
+        "url": "/home/user/src/ai-general-framework-s16/studies/research-2026-11/A-projects.md",
+        "level": "READ",
+        "note": "既有紀錄 2.13 節"
+      }
+    ]
+  },
+  {
+    "id": "dejavu-hmakt99",
+    "name": "DejaVu（HMAKT99，npm dejavu-dev）",
+    "category": "memory-context",
+    "also": [
+      "code-understanding",
+      "security-devops"
+    ],
+    "type": "cli",
+    "urls": {
+      "source": "https://github.com/HMAKT99/Dejavu",
+      "official": "https://www.npmjs.com/package/dejavu-dev",
+      "docs": "https://github.com/HMAKT99/Dejavu/blob/main/docs/mcp.md"
+    },
+    "read_at": "4549458（2026-10-18）",
+    "summary": "專案層的「決策記憶」：從 Claude Code／OpenClaw 對話紀錄用規則挖出決策候選，人工審核後寫進 DECISIONS.md，投影到 CLAUDE.md、AGENTS.md、.cursorrules，再用 `dejavu check` 找違反決策或重寫已存在函式的程式。",
+    "architecture": "TypeScript CLI（src/adapters、core、enforce、mining、mcp、io）。決策格式是 Markdown：id、date、source、status、context、rule、applies_to（glob）、detect（regex）、supersedes；改變主意就新增 supersedes 舊條的決策，不改舊的。.dejavu/index.json 只是可重建的快取。mine 用 heuristic，不呼叫 LLM；每個候選進審核佇列。duplication 用正規化 token shingle＋倒排索引，作者說 5 萬行專案 1 秒內。個人偏好放 ~/.dejavu/，有測試確認不會被 commit。MCP 提供 search_decisions、get_decision、check_against_decisions。可當 pre-commit、GitHub Action 或 PostToolUse hook。",
+    "integration": [
+      "cli",
+      "mcp",
+      "hook"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "Cursor、AGENTS.md 系工具、OpenClaw、任何 MCP client"
+    },
+    "runs": "local",
+    "privacy": "README 宣稱沒有雲端、帳號、telemetry、embedding；mine 讀 ~/.claude/projects 的本機對話紀錄。投影進 CLAUDE.md 的決策之後會送進模型。",
+    "security": "repo 根目錄有一個 scbee-verify.txt，內容只是一串驗證碼，用途沒寫（推測是某目錄網站的擁有權驗證）。沒有看到下載後執行。",
+    "resources": "Node 或單檔執行檔；不需 GPU、資料庫。",
+    "license": {
+      "spdx": "Apache-2.0",
+      "basis": "根目錄 LICENSE（4549458）",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "1 顆星，v0.1，單一作者。函式抽取只支援 JS/TS 與 Python（src/enforce/functions.ts 寫明），C/C++/Rust 不會做重複偵測。README 的「AI 程式重複率高 8 倍」「第 3 個月 Spaghetti Point」沒附來源。",
+    "alternatives": [
+      "claude-mem-thedotmack",
+      "spec-kit-github"
+    ],
+    "learning_value": "(1) 決策用 supersedes 追加、不覆寫，歷史本身就是價值。(2) 每條決策帶 applies_to 與 detect，讓文字規則變成可檢查的規則，與 pstack correct「規則要有強制者」同方向。(3) 挖出的候選一律人工審核才生效。(4) repo 層（commit 進 git）與個人層（不 commit）分開，且有測試保證。",
+    "integration_value": "框架可借「決策＋applies_to＋detect＋supersedes」格式記錄專案的設計決定，讓 review-change 能查；對 C/C++ 專案要自己寫 detect regex，重複偵測用不到。",
+    "tier": 2,
+    "use": [
+      "learn",
+      "borrow"
+    ],
+    "evidence": "source",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/HMAKT99/Dejavu/tree/4549458",
+        "level": "CLONED",
+        "note": "讀 README 全文、src 目錄、src/enforce/functions.ts 開頭、scbee-verify.txt"
+      }
+    ]
+  },
+  {
+    "id": "memory-os-bmaltais",
+    "name": "memory-os（bmaltais）",
+    "category": "memory-context",
+    "also": [],
+    "type": "project",
+    "urls": {
+      "source": "https://github.com/bmaltais/memory-os",
+      "official": null,
+      "docs": null
+    },
+    "read_at": "0b4e819（2026-06-27）",
+    "summary": "給 Claude Code、Grok、Pi 的多 agent 記憶：SessionStart 注入最多 32 KB 的「凍結快照」，Stop hook 把每輪對話寫成 Markdown log 與 SQLite，`memory-os recall` 用 FTS5＋向量混合搜尋並附出處。",
+    "architecture": "TypeScript（src/capture、snapshot、retrieve、backfill、hooks、agents）。三層：快照（soul、user、短期事實、今日 log）、各 agent 的短期檔（最多 50 條）、長期搜尋（500 token chunk、50 重疊、top 10、門檻 0.72）。向量是 src/embed/hash.ts 的 feature hashing：把字詞雜湊進 384 維再正規化，不是語意模型。--synthesize 只是格式化成帶出處的答案，沒有呼叫模型。repo 本身就是範本：clone 下來當專案，.claude/settings.json 已掛好 SessionStart 與 Stop hook。",
+    "integration": [
+      "hook",
+      "cli",
+      "skill"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "Grok（hook）、Pi（extension）"
+    },
+    "runs": "local",
+    "privacy": "儲存與搜尋都在本機，沒有網路呼叫；快照每個 session 都注入模型，存下的對話因此會再送給模型服務。",
+    "security": "clone 後在 repo 內啟動 Claude Code 會跑它的專案 hook（需信任）。Grok 部分要把專案加進 ~/.grok/trusted-hook-projects。",
+    "resources": "Node 22＋（node:sqlite 實驗功能）；很輕。",
+    "license": {
+      "spdx": null,
+      "basis": "clone 下的根目錄沒有 LICENSE 檔，GitHub 顯示 none（0b4e819）",
+      "label": "needs-review",
+      "notes": "沒有授權等於預設保留所有權利。"
+    },
+    "weaknesses": "0 顆星，6 月後沒有更新。README 說用不同說法提問也能找到答案，但 hash embedding 只比對字詞，換說法就找不到。repo 內 commit 的 .pi/memory/logs/2026-06-28.md 是同一句使用者訊息被重複記錄十多次、助手回覆是空的，顯示擷取有重複與漏抓問題。",
+    "alternatives": [
+      "memory-os-claudiodrews",
+      "claude-mem-thedotmack"
+    ],
+    "learning_value": "「找不到就回 confidence: none，不要編」與「答案帶檔案、行號、session、日期」是值得要求的記憶輸出契約。",
+    "integration_value": "沒有授權、功能與宣傳不符，不建議使用；記錄以免與 ClaudioDrews 版混淆。",
+    "tier": 4,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "source",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/bmaltais/memory-os/tree/0b4e819",
+        "level": "CLONED",
+        "note": "讀 README、memory.config.json、.claude/settings.json、hooks、skills/memory/SKILL.md、src/embed/hash.ts、src/cli.ts recall 段、.pi/memory/logs 開頭"
+      }
+    ]
+  },
+  {
+    "id": "memory-os-claudiodrews",
+    "name": "Memory OS（ClaudioDrews，Hermes Agent 用）",
+    "category": "memory-context",
+    "also": [],
+    "type": "project",
+    "urls": {
+      "source": "https://github.com/ClaudioDrews/memory-os",
+      "official": null,
+      "docs": "https://github.com/ClaudioDrews/memory-os/tree/main/layers"
+    },
+    "read_at": "e03db1f（2026-06-10）；pushed_at 2026-09-20",
+    "summary": "Hermes Agent 的七層記憶：工作區檔案、session 全文搜尋、結構化事實、跨 session fabric、Qdrant 向量庫、自動整理的 wiki，以及要求 agent 把注入內容當權威的「Ground Truth」層。vocus 文章談的 memory-os 是這一份，不是 bmaltais 版。",
+    "architecture": "Python＋Docker Compose（Qdrant、Redis、ARQ worker）。第 1 層 MEMORY.md／USER.md／CREATIVE.md 每輪注入 system prompt；第 2 層 SQLite＋FTS5；第 3 層 SQLite＋HRR＋信任分數；第 4 層改過的 Icarus plugin，用 LLM 抽取 session 內容，16 個工具；第 5 層 Qdrant 4096 維 cosine＋BM25 sparse，四級 fallback（hybrid → dense → lexical → SQLite），每週 decay 掃描、cosine>0.92 合併；第 6 層 concepts／entities／comparisons wiki；第 7 層 SOUL.md、rulebook.md。pre_llm_call 從四個來源撈、依門檻過濾、同 session 不重複注入。",
+    "integration": [
+      "service",
+      "library"
+    ],
+    "hosts": {
+      "claude_code": "no",
+      "others": "只支援 Hermes Agent"
+    },
+    "runs": "hybrid",
+    "privacy": "README 說記憶基礎設施全在本機，但 setup.sh 要求「可做 embedding 的 API key（OpenRouter 或相容）」，預設 EMBEDDING_MODEL=qwen/qwen3-embedding-8b；fabric 抽取也用 LLM。所以預設會把記憶內容送到 OpenRouter，要改成本機模型才算全本機。",
+    "security": "安裝方式是 `curl ... setup.sh | bash`；pip 失敗時改用 `--break-system-packages`；Qdrant API key 留空時，腳本把 docker-compose 的 key 那行註解掉（等於關認證）。",
+    "resources": "Docker（Qdrant＋Redis＋worker），4096 維向量的記憶體與磁碟不小；WSL 8 GB 可能吃緊（文章也提醒）。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "gh api license 欄位（2026-11-21）；未 clone 檢查",
+      "label": "usable",
+      "notes": "附帶的 Icarus fork 是 esaradev/icarus-plugin 的修改版，其授權沒查。"
+    },
+    "weaknesses": "綁 Hermes；Icarus fork 與上游不相容；作者自述 v0.2.0 有 20 多個修正；1,398 顆星（2026-11-21）。vocus 作者也說沒有自己部署測試。",
+    "alternatives": [
+      "memory-os-bmaltais",
+      "mem0",
+      "letta-code"
+    ],
+    "learning_value": "(1) 把「遺忘」拆成不同問題：偏好、近期、事實、決策、相似歷史、整理後知識。(2) 第 7 層指出真實失敗：注入了記憶，agent 仍去重查一次，浪費 token；解法是明說注入內容是權威。(3) 去重門檻、週期 decay 只降權不刪。",
+    "integration_value": "框架不用 Hermes，不能直接用；「注入後 agent 仍重查」可當續接 hook 的量測點（新 session 有沒有重讀已在檢查點裡的內容）。",
+    "tier": 3,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://raw.githubusercontent.com/ClaudioDrews/memory-os/HEAD/README.md",
+        "level": "READ",
+        "note": "README 全文（e03db1f）"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/ClaudioDrews/memory-os/HEAD/setup.sh",
+        "level": "READ",
+        "note": "grep curl、pip、docker、EMBEDDING_MODEL、Qdrant key 段"
+      },
+      {
+        "url": "https://vocus.cc/article/6a37e0c6fd8978000159fc90",
+        "level": "READ",
+        "note": "使用者提供的文章：七層表、0.92 去重、Decay Scanner、847 星（2026-06-05 快照）"
+      }
+    ]
+  },
+  {
+    "id": "dejavu-jsingletonai",
+    "name": "dejavu（jsingletonai，pip dejavu-memory）",
+    "category": "memory-context",
+    "also": [],
+    "type": "project",
+    "urls": {
+      "source": "https://github.com/jsingletonai/dejavu",
+      "official": null,
+      "docs": null
+    },
+    "read_at": "2026-11-21（repo 與 PyPI JSON 都回 404）",
+    "summary": "vocus〈本地記憶層的四個開源答案〉的第一個專案：`pip install dejavu-memory`，記使用者習慣與偏好，存在 ~/.dejavu/ 的 SQLite，提供 Python、CLI、REST、MCP 四種介面。和 HMAKT99/Dejavu（專案決策）是不同專案。",
+    "architecture": null,
+    "integration": [
+      "cli",
+      "mcp",
+      "api",
+      "library"
+    ],
+    "hosts": {
+      "claude_code": "unknown",
+      "others": "搜尋摘要說 Claude Desktop、Cursor 等 MCP client"
+    },
+    "runs": "hybrid",
+    "privacy": "搜尋摘要：除 LLM 呼叫外都在本機，LLM 呼叫走 Venice，需要 VENICE_API_KEY；telemetry 預設關。未讀原文。",
+    "security": null,
+    "resources": null,
+    "license": {
+      "spdx": "Apache-2.0",
+      "basis": "只有 vocus 文章說 Apache-2.0；repo 已 404，無法核對",
+      "label": "needs-review",
+      "notes": null
+    },
+    "weaknesses": "2026-11-21 時 GitHub repo 與 PyPI JSON API 都回 404，可能已刪除或改名；文章 6 月時約 32 星且下降中。",
+    "alternatives": [
+      "dejavu-hmakt99",
+      "mem0"
+    ],
+    "learning_value": null,
+    "integration_value": "來源已消失，暫不建議；列入待確認。",
+    "tier": 4,
+    "use": [
+      "needs-review"
+    ],
+    "evidence": "search",
+    "confidence": "low",
+    "references": [
+      {
+        "url": "https://vocus.cc/article/6a48c442fd89780001ba1661",
+        "level": "READ",
+        "note": "文章對 dejavu 的描述"
+      },
+      {
+        "url": "https://dev.to/jsingleton/i-built-a-local-memory-layer-so-my-ai-tools-stop-forgetting-me-2o7o",
+        "level": "SEARCH-ONLY",
+        "note": "WebFetch 回 404，只有搜尋摘要"
+      },
+      {
+        "url": "https://pypi.org/pypi/dejavu-memory/json",
+        "level": "READ",
+        "note": "回 {\"message\": \"Not Found\"}"
+      }
+    ]
+  },
+  {
+    "id": "mem0",
+    "name": "Mem0",
+    "category": "memory-context",
+    "also": [
+      "mcp-cli-api"
+    ],
+    "type": "library",
+    "urls": {
+      "source": "https://github.com/mem0ai/mem0",
+      "official": "https://mem0.ai",
+      "docs": "https://docs.mem0.ai"
+    },
+    "read_at": "fff8a64（2026-11-18）",
+    "summary": "給 AI 應用的記憶層：每次對話後用 LLM 抽出記憶，存進向量庫，之後用語意、BM25、實體三路檢索。有 library、self-hosted server、雲端 Platform 三種用法，另有 CLI、MCP（OpenMemory）與 agent skills。",
+    "architecture": null,
+    "integration": [
+      "library",
+      "api",
+      "cli",
+      "mcp",
+      "skill",
+      "service"
+    ],
+    "hosts": {
+      "claude_code": "partial",
+      "others": "透過 MCP、skills 或 SDK 接任何 agent"
+    },
+    "runs": "hybrid",
+    "privacy": "預設 LLM 是 OpenAI gpt-5-mini、embedding 是 OpenAI text-embedding-3-small，所以預設會把對話送 OpenAI；可換本機模型。mem0/memory/telemetry.py 預設 MEM0_TELEMETRY=True，送 PostHog（us.i.posthog.com）。README 鼓勵 agent 自己 `mem0 init --agent` 註冊雲端帳號拿 API key，人類之後再認領。",
+    "security": "「agent 自己註冊雲端帳號」繞過使用者同意，框架若用要明文禁止。self-hosted server 預設開認證，可設 AUTH_DISABLED=true（README 說只限本機開發）。",
+    "resources": "library 需要 LLM 與 embedding（雲端或本機）；self-hosted 用 Docker Compose。",
+    "license": {
+      "spdx": "Apache-2.0",
+      "basis": "gh api license 欄位（2026-11-21）；未 clone",
+      "label": "usable",
+      "notes": "雲端 Platform 另有服務條款。"
+    },
+    "weaknesses": "README 的新演算法分數（LoCoMo 92.5、LongMemEval 94.4、BEAM 1M 64.1）是作者自報，而且明說是雲端 Platform 含「不在開源 SDK 的專有最佳化」，開源版只能期待「方向類似」。新演算法改成只新增（ADD-only），不更新、不刪除，衝突與過期靠檢索時的時間排序處理。HN〈Mem0 stores memories, but doesn't learn user patterns〉有使用者質疑只存事實。",
+    "alternatives": [
+      "letta-code",
+      "claude-mem-thedotmack",
+      "memory-os-claudiodrews"
+    ],
+    "learning_value": "(1) ADD-only＋時間感知檢索：不在寫入時判斷衝突，而在讀取時挑「目前狀態」的那筆，避免 LLM 誤刪。(2) 語意、關鍵字、實體三路分數融合。(3) 評測框架開源（mem0ai/memory-benchmarks），可檢查自報數字。",
+    "integration_value": "與框架原則（不加外部記憶引擎、不送額外資料）衝突；只學設計。",
+    "tier": 3,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/mem0ai/mem0/blob/fff8a64/README.md",
+        "level": "READ",
+        "note": "README 全文（benchmark 表、ADD-only、agent signup、預設模型）"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/mem0ai/mem0/HEAD/mem0/memory/telemetry.py",
+        "level": "READ",
+        "note": "MEM0_TELEMETRY 預設 True、PostHog host"
+      },
+      {
+        "url": "https://news.ycombinator.com/item?id=46891715",
+        "level": "SEARCH-ONLY",
+        "note": "HN 標題，未讀留言"
+      }
+    ]
+  },
+  {
+    "id": "letta-code",
+    "name": "Letta（原 MemGPT，現為 Letta Code）",
+    "category": "memory-context",
+    "also": [
+      "agent-workflows"
+    ],
+    "type": "app",
+    "urls": {
+      "source": "https://github.com/letta-ai/letta-code",
+      "official": "https://www.letta.com",
+      "docs": "https://docs.letta.com"
+    },
+    "read_at": "letta-ai/letta 8816d3a（2026-10-18，只剩轉址 README）；letta-code README（2026-11-21）",
+    "summary": "Letta 的開發已移到 letta-code：一個有記憶、身分與「做夢」（背景整理記憶）的 agent harness，有 CLI、桌面／網頁、Slack／Telegram 等頻道。原 letta repo 只剩轉址，舊 V1 API server 放在 archive branch。",
+    "architecture": null,
+    "integration": [
+      "cli",
+      "sdk",
+      "service",
+      "skill"
+    ],
+    "hosts": {
+      "claude_code": "no",
+      "others": "本身就是 harness；可接 OpenAI、Anthropic 等 API key"
+    },
+    "runs": "hybrid",
+    "privacy": "首次啟動預設 Letta Cloud（可選本機）；Cloud 保存 agent 記憶、身分與對話。MemFS 把所有 context（含記憶區塊）用 git 追蹤，可同步到自訂 GitHub repo。",
+    "security": "README 鼓勵「想設定 skills、hooks、權限就請 agent 自己改」，代表 agent 可改自己的權限設定。`letta skills install` 可從 GitHub、ClawHub、Hermes Skills Hub 裝外部 skill。",
+    "resources": "npm 全域安裝；本機 server 模式。",
+    "license": {
+      "spdx": "Apache-2.0",
+      "basis": "gh api：letta-ai/letta 與 letta-ai/letta-code 都是 Apache-2.0（2026-11-21）",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "產品方向從 memory server 轉成整套 harness，舊 API 已退休；原生 Windows 預設關閉自動做夢。",
+    "alternatives": [
+      "mem0",
+      "openhuman-tinyhumans"
+    ],
+    "learning_value": "(1) agent 可改寫自己的記憶區塊與 system prompt（self-improvement）。(2) sleep-time compute（做夢）：在使用者不在時整理記憶，把成本移出互動時間。(3) MemFS：記憶放進 git，可 diff、可回復。",
+    "integration_value": "框架用 git 管 profile／checkpoint 的方向和 MemFS 相同；不引入 harness。",
+    "tier": 3,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/letta-ai/letta/blob/8816d3a/README.md",
+        "level": "READ",
+        "note": "轉址說明"
+      },
+      {
+        "url": "https://github.com/letta-ai/letta-code/blob/main/README.md",
+        "level": "READ",
+        "note": "功能表、Cloud 預設、MemFS、skills install"
+      },
+      {
+        "url": "https://arxiv.org/abs/2504.13171",
+        "level": "SEARCH-ONLY",
+        "note": "sleep-time compute 論文，README 引用，未讀"
+      }
+    ]
+  },
+  {
+    "id": "mem-agent-firstbatch",
+    "name": "mem-agent（Dria／firstbatch）",
+    "category": "memory-context",
+    "also": [],
+    "type": "project",
+    "urls": {
+      "source": "https://github.com/firstbatchxyz/mem-agent",
+      "official": "https://huggingface.co/driaforall/mem-agent",
+      "docs": "https://huggingface.co/blog/driaforall/mem-agent"
+    },
+    "read_at": "mem-agent 215e6ae（2025-10-09）；mem-agent-mcp pushed 2025-11-17",
+    "summary": "用強化學習把「管理 Markdown 記憶」訓進 Qwen3-4B-Thinking 的 4B 模型；記憶是 Obsidian 風格的 user.md＋entities/ 資料夾，透過 mem-agent-mcp 讓其他模型在背景呼叫它讀寫記憶。",
+    "architecture": null,
+    "integration": [
+      "mcp"
+    ],
+    "hosts": {
+      "claude_code": "partial",
+      "others": "MCP server，README 提 Claude Desktop、LM Studio；平台列 macOS Metal"
+    },
+    "runs": "local",
+    "privacy": "模型可本機跑（vLLM、LM Studio、GGUF）；訓練與 eval 腳本預設用 OpenAI 與 OpenRouter。",
+    "security": null,
+    "resources": "4B 模型；vocus 文章引官方說 4-bit 約需 2 GB 顯存。WSL 沒 GPU 時要用 CPU 推論，速度沒查。",
+    "license": {
+      "spdx": null,
+      "basis": "mem-agent repo 沒有 license（gh api none）；mem-agent-mcp 為 Apache-2.0；HF 模型卡 API 的 license 欄為空，vocus 文章說 HF 標 MIT",
+      "label": "needs-review",
+      "notes": "模型權重授權要回模型卡核對。"
+    },
+    "weaknesses": "研究 repo，2025-10 之後沒更新；md-memory-bench 是作者自己的 benchmark，以 o3 當 judge；搜尋摘要顯示總分 0.75，對 qwen3-235b 的 0.7857，Clarification 項只有 0.36。",
+    "alternatives": [
+      "mem0",
+      "letta-code"
+    ],
+    "learning_value": "「記憶操作交給小型專用模型」是和 RAG、規則式記憶不同的方向；Markdown＋連結讓人能直接讀與改。",
+    "integration_value": "需要 GPU 與授權不清，暫不建議；只記錄方向。",
+    "tier": 4,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "search",
+    "confidence": "low",
+    "references": [
+      {
+        "url": "https://github.com/firstbatchxyz/mem-agent/blob/215e6ae/README.md",
+        "level": "READ",
+        "note": "只有訓練／eval 說明"
+      },
+      {
+        "url": "https://huggingface.co/driaforall/mem-agent",
+        "level": "SEARCH-ONLY",
+        "note": "模型卡分數、記憶格式來自搜尋摘要"
+      },
+      {
+        "url": "https://vocus.cc/article/6a48c442fd89780001ba1661",
+        "level": "READ",
+        "note": "文章：2 GB 顯存、授權不一致、88 星"
+      }
+    ]
+  },
+  {
+    "id": "openhuman-tinyhumans",
+    "name": "OpenHuman",
+    "category": "memory-context",
+    "also": [
+      "agent-workflows"
+    ],
+    "type": "app",
+    "urls": {
+      "source": "https://github.com/tinyhumansai/openhuman",
+      "official": "https://tinyhumans.ai/openhuman",
+      "docs": "https://tinyhumans.gitbook.io/openhuman"
+    },
+    "read_at": "7c3ae31（2026-11-20）",
+    "summary": "vocus 文章介紹它時是「桌面記憶全家桶」（Memory Tree、118 個 OAuth 服務、TokenJuice 壓縮）；現在 README 改稱 Rust 寫的 agent harness，記憶是內建功能之一：每輪前在 token 預算內挑記憶並附出處。",
+    "architecture": null,
+    "integration": [
+      "app",
+      "library",
+      "mcp",
+      "skill"
+    ],
+    "hosts": {
+      "claude_code": "no",
+      "others": "本身是 harness；BYOK 26 家與本機模型（Ollama、LM Studio、MLX）"
+    },
+    "runs": "hybrid",
+    "privacy": "119 個 app 透過 Composio 做 OAuth 整合，資料流經第三方；有 Privacy Mode（本機）選項，細節未讀。",
+    "security": "安裝用 `curl ... install.sh | bash` 或 `irm ... | iex`；README 說腳本會核對 checksum，並提供 --dry-run。有 approval gate 與 OS jail／Docker sandbox（未核對）。",
+    "resources": "作者自報峰值 68 MB、500 個 agent 可跑在 10 美元 VPS。",
+    "license": {
+      "spdx": "GPL-3.0",
+      "basis": "gh api license 欄位（2026-11-21）；未 clone",
+      "label": "conditional",
+      "notes": "GPL-3.0：散布衍生作品要同授權；只讀設計或本機使用沒問題，不能把程式碼併進 MIT 框架。"
+    },
+    "weaknesses": "README 標 early beta；benchmark（SWE-bench 10 題、token 少 2.6 倍）是作者自己跑的；42,784 顆星不代表品質。",
+    "alternatives": [
+      "letta-code",
+      "mem0"
+    ],
+    "learning_value": "RLM（Recursive Language Models）式壓縮：大型工具輸出先壓，太大時給模型一個可搜尋的 handle，不整份讀進來。",
+    "integration_value": "產品太大且 GPL；「大輸出給 handle 而非全文」與框架 agf run／context 的有界輸出同方向。",
+    "tier": 3,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/tinyhumansai/openhuman/blob/7c3ae31/README.md",
+        "level": "READ",
+        "note": "README（安裝、memory、RLM 壓縮、benchmark、比較表）"
+      },
+      {
+        "url": "https://vocus.cc/article/6a48c442fd89780001ba1661",
+        "level": "READ",
+        "note": "文章描述 Memory Tree、TokenJuice 最多壓 80%、GPL-3.0"
+      }
+    ]
+  },
+  {
+    "id": "promptfoo",
+    "name": "Promptfoo",
+    "category": "benchmark-evaluation",
+    "also": [
+      "security-devops"
+    ],
+    "type": "cli",
+    "urls": {
+      "source": "https://github.com/promptfoo/promptfoo",
+      "official": "https://www.promptfoo.dev",
+      "docs": "https://www.promptfoo.dev/docs/intro/"
+    },
+    "read_at": "65fd489（2026-11-21），0.126.0",
+    "summary": "用 YAML 寫測試案例與斷言，對 prompt、模型、RAG 與 agent 跑評測和紅隊測試的 CLI；2026-03-09 宣布被 OpenAI 收購，官方說會維持開源並繼續支援多家模型。",
+    "architecture": "TypeScript／Node CLI。src/providers 有 126 個 provider，包含 anthropic、claude-agent-sdk、ollama、scriptBasedProvider（自訂 provider 可跑本機程式）。src/assertions 有 60 多種斷言：確定性（contains、regex、json、sql、levenshtein、cost、latency）、模型評分（llm-rubric、g-eval、factuality、context-faithfulness）、agent 用（trajectory、toolCallF1、traceSpanCount、traceErrorSpans），以及 skill.ts：從 provider 回應的 metadata.skillCalls 數 skill 被叫用幾次，可設 min／max／name／pattern。結果存本機 SQLite（drizzle）。",
+    "integration": [
+      "cli",
+      "library"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "claude-agent-sdk、OpenAI、Codex 等 provider"
+    },
+    "runs": "hybrid",
+    "privacy": "telemetry 預設開（PostHog，`PROMPTFOO_DISABLE_TELEMETRY=1` 關）；紅隊測試的攻擊生成預設走 promptfoo 遠端服務（`PROMPTFOO_DISABLE_REMOTE_GENERATION` 關）；也有 share 功能可上傳結果。評測時測試內容會送到所選模型。",
+    "security": "自訂 provider、javascript／python 斷言會執行本機程式（框架 memory-prompt-study 已記）。收購後的治理改變：維護者變成 OpenAI，長期中立性要觀察。",
+    "resources": "Node 22 以上；本機即可跑，費用來自被測模型與 judge 模型。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "根目錄 LICENSE 與 package.json（65fd489）",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "Scott Logic 用 promptfoo 重跑 Ponytail 的原始 benchmark，指出只有 5 題單輪、LOC 算法偏差；工具本身沒錯，但容易做出看似有力的小樣本評測。HN 有人指出它不測 MCP 傳輸層與 tool poisoning。",
+    "alternatives": [
+      "deepeval",
+      "ragas",
+      "langfuse",
+      "arize-phoenix"
+    ],
+    "learning_value": "斷言分層：先確定性、再 trace／trajectory、最後才是模型評分；skill 叫用次數本身可以是斷言。",
+    "integration_value": "框架 evals/ 已有觸發與行為案例；promptfoo 的 claude-agent-sdk provider＋skill 斷言可以把「skill 該不該觸發」自動化，是 Tier 1 試跑候選（主 session 在 Docker 裡試，要先關 telemetry 與遠端生成）。",
+    "tier": 1,
+    "use": [
+      "integrate",
+      "learn"
+    ],
+    "evidence": "source",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/promptfoo/promptfoo/tree/65fd489",
+        "level": "CLONED",
+        "note": "讀 package.json、src/telemetry.ts、src/redteam/remoteGeneration.ts、src/assertions 列表與 skill.ts、src/providers 列表"
+      },
+      {
+        "url": "https://www.promptfoo.dev/blog/promptfoo-joining-openai/",
+        "level": "READ",
+        "note": "2026-03-09 收購公告：會維持開源、支援多家模型；未談授權變更"
+      },
+      {
+        "url": "https://news.ycombinator.com/item?id=47412524",
+        "level": "READ",
+        "note": "HN 問 MCP 測試替代品（MCP 傳輸層、tool poisoning 不涵蓋）"
+      },
+      {
+        "url": "https://blog.scottlogic.com/2026/06/16/ponytail-yagni-and-the-problem-with-prompt-benchmarks.html",
+        "level": "READ",
+        "note": "沿用 A-projects 的紀錄"
+      }
+    ]
+  },
+  {
+    "id": "deepeval",
+    "name": "DeepEval",
+    "category": "benchmark-evaluation",
+    "also": [],
+    "type": "library",
+    "urls": {
+      "source": "https://github.com/confident-ai/deepeval",
+      "official": "https://deepeval.com",
+      "docs": "https://deepeval.com/docs"
+    },
+    "read_at": "91457e8（2026-11-19）",
+    "summary": "像 pytest 的 LLM 評測框架：用 Python 寫測試案例，套用 RAG、多輪對話、agent、語音等指標；母公司 Confident AI 賣雲端平台。",
+    "architecture": null,
+    "integration": [
+      "library",
+      "cli"
+    ],
+    "hosts": {
+      "claude_code": "unknown",
+      "others": "Python 程式內使用"
+    },
+    "runs": "hybrid",
+    "privacy": "deepeval/telemetry/__init__.py 預設開（PostHog），`DEEPEVAL_TELEMETRY_OPT_OUT=1` 關閉。評分模型預設是雲端 LLM，也可換本機。",
+    "security": null,
+    "resources": "Python；費用來自評分模型。",
+    "license": {
+      "spdx": "Apache-2.0",
+      "basis": "gh api license 欄位（2026-11-21）",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "多數指標是 LLM-as-judge，分數受評分模型影響；README 引入自家「Jev」模型做 JevEval。",
+    "alternatives": [
+      "promptfoo",
+      "ragas"
+    ],
+    "learning_value": "agent 指標拆得細：Task Completion、Tool Correctness、Argument Correctness、Step Efficiency、Plan Adherence、Plan Quality；DAG 指標把評分寫成確定性的決策圖，降低 judge 隨機性。",
+    "integration_value": "框架用 Python 標準庫，不宜加依賴；可借指標分類設計 evals/ 的檢查欄位。",
+    "tier": 3,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/confident-ai/deepeval/blob/91457e8/README.md",
+        "level": "READ",
+        "note": "README 指標清單"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/confident-ai/deepeval/HEAD/deepeval/telemetry/__init__.py",
+        "level": "READ",
+        "note": "DEEPEVAL_TELEMETRY_OPT_OUT、PostHogBackend"
+      }
+    ]
+  },
+  {
+    "id": "ragas",
+    "name": "Ragas",
+    "category": "benchmark-evaluation",
+    "also": [],
+    "type": "library",
+    "urls": {
+      "source": "https://github.com/vibrantlabsai/ragas",
+      "official": "https://docs.ragas.io",
+      "docs": "https://docs.ragas.io"
+    },
+    "read_at": "8c63f10（2026-11-14）",
+    "summary": "RAG 與 LLM 應用的評測工具：LLM 與傳統指標、測試集生成、範本專案（rag_eval、agent_evals、benchmark_llm、prompt_evals、workflow_eval）。原 explodinggradients/ragas，現在在 vibrantlabsai 名下。",
+    "architecture": null,
+    "integration": [
+      "library",
+      "cli"
+    ],
+    "hosts": {
+      "claude_code": "unknown",
+      "others": "Python、LangChain 等"
+    },
+    "runs": "hybrid",
+    "privacy": "src/ragas/_analytics.py 預設送使用統計到 t.explodinggradients.com，`RAGAS_DO_NOT_TRACK=true` 關閉。評分 LLM 預設雲端。",
+    "security": null,
+    "resources": "Python；費用來自評分與生成模型。",
+    "license": {
+      "spdx": "Apache-2.0",
+      "basis": "gh api license 欄位與 README badge（2026-11-21）",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "重心在 RAG；agent 評測是範本層級。",
+    "alternatives": [
+      "deepeval",
+      "promptfoo"
+    ],
+    "learning_value": "faithfulness／context recall 等 RAG 指標的定義可用來檢查框架 read-research 的「引用是否支持結論」。",
+    "integration_value": "不需引入。",
+    "tier": 3,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/vibrantlabsai/ragas/blob/8c63f10/README.md",
+        "level": "READ",
+        "note": "README"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/vibrantlabsai/ragas/HEAD/src/ragas/_analytics.py",
+        "level": "READ",
+        "note": "USAGE_TRACKING_URL 與 RAGAS_DO_NOT_TRACK"
+      }
+    ]
+  },
+  {
+    "id": "litellm",
+    "name": "LiteLLM",
+    "category": "mcp-cli-api",
+    "also": [
+      "security-devops"
+    ],
+    "type": "library",
+    "urls": {
+      "source": "https://github.com/BerriAI/litellm",
+      "official": "https://www.litellm.ai",
+      "docs": "https://docs.litellm.ai"
+    },
+    "read_at": "590f5b8（2026-11-21）",
+    "summary": "用 OpenAI 格式呼叫 100 多家模型的 Python SDK 與 AI Gateway（proxy）：virtual key、花費追蹤、guardrail、負載平衡、Auto Router，也能代理 A2A agent。",
+    "architecture": null,
+    "integration": [
+      "library",
+      "service",
+      "api"
+    ],
+    "hosts": {
+      "claude_code": "partial",
+      "others": "任何 OpenAI 相容 client；Claude Code 可把 ANTHROPIC_BASE_URL 指到 proxy"
+    },
+    "runs": "hybrid",
+    "privacy": "proxy 會看到所有 prompt 與回應，也存各家 API key。",
+    "security": "2026 年兩次 PyPI 供應鏈事件。(1) 2026-03-24：1.82.7、1.82.8 被植入惡意程式；1.82.8 的 litellm_init.pth 在每次 Python 啟動時執行（不必 import），偷環境變數、SSH、雲端與 K8s 憑證、shell 歷史、錢包等，加密後送到 models.litellm.cloud（issue #24512，HN 938 分）。(2) 2026-10-21：1.107.0 的 7 個 wheel 與 Docker 映像 v1.107.0、latest、main-latest、main-stable（11:46～14:20 UTC）帶 cook.pth 竊密程式＋sitecustomize.py 後門，後門每小時從攻擊者 GitHub 取網域再下載 exec；入口是從外露部署日誌拿到的三位開發者 GitHub CLI 憑證，用組織擁有者 token 繞過分支保護。約 1 小時 40 分後下架（SafeDep 分析）。",
+    "resources": "Python；proxy 需 Postgres 等。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "根目錄 LICENSE（2026-11-21）：litellm/enterprise/ 以外為 MIT，enterprise/ 另有授權；GitHub 因此顯示 NOASSERTION",
+      "label": "conditional",
+      "notes": "enterprise 目錄的功能不適用 MIT。"
+    },
+    "weaknesses": "八個月內兩次發版管道被攻破，第二次是在 3 月宣布改善 CI/CD（trusted publisher、cosign）之後。",
+    "alternatives": [
+      "routellm",
+      "claude-code-router"
+    ],
+    "learning_value": "事件本身是教材：`.pth`／sitecustomize 讓套件在任何 Python 程序啟動時執行；固定版本、核對雜湊、在隔離環境安裝，是框架 Docker 試跑規則的依據。",
+    "integration_value": "框架不當 model orchestrator，不引入 gateway。若主 session 要試跑，固定到已知乾淨版本、核對雜湊、在無憑證的 Docker 裡做；任何曾裝 1.82.7／1.82.8／1.107.0 的環境要輪換憑證。",
+    "tier": 4,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "docs",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/BerriAI/litellm/blob/590f5b8/README.md",
+        "level": "READ",
+        "note": "README 功能、Auto Router、A2A"
+      },
+      {
+        "url": "https://github.com/BerriAI/litellm/issues/24512",
+        "level": "READ",
+        "note": "2026-03 事件：版本、payload、外傳網域、維護者 CI/CD 計畫"
+      },
+      {
+        "url": "https://safedep.io/litellm-pypi-compromise-credential-stealer-backdoor/",
+        "level": "READ",
+        "note": "2026-10-21 事件：受影響 wheel 與映像、cook.pth、後門、入侵途徑、時間線"
+      },
+      {
+        "url": "https://news.ycombinator.com/item?id=47501426",
+        "level": "READ",
+        "note": "HN 首報（3 月）"
+      },
+      {
+        "url": "https://news.ycombinator.com/item?id=50181114",
+        "level": "SEARCH-ONLY",
+        "note": "HN 10 月事件討論，未讀留言"
+      }
+    ]
+  },
+  {
+    "id": "routellm",
+    "name": "RouteLLM",
+    "category": "benchmark-evaluation",
+    "also": [
+      "mcp-cli-api"
+    ],
+    "type": "library",
+    "urls": {
+      "source": "https://github.com/lm-sys/RouteLLM",
+      "official": null,
+      "docs": "https://arxiv.org/abs/2406.18665"
+    },
+    "read_at": "0b64fda（2024-08-10）",
+    "summary": "LMSYS 的強弱模型路由框架：用 Chatbot Arena 偏好資料訓練路由器（mf、sw_ranking、bert、causal_llm），依門檻把每個查詢送給強模型或弱模型。",
+    "architecture": null,
+    "integration": [
+      "library",
+      "service"
+    ],
+    "hosts": {
+      "claude_code": "no",
+      "others": "OpenAI 相容 server"
+    },
+    "runs": "hybrid",
+    "privacy": "mf 與 sw_ranking 路由器需要 OPENAI_API_KEY 產生 embedding，查詢內容會送 OpenAI。",
+    "security": null,
+    "resources": "Python；bert／causal_llm 路由器需要模型推論。",
+    "license": {
+      "spdx": "Apache-2.0",
+      "basis": "gh api license 欄位",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "2024-08 之後沒有更新；範例模型是 GPT-4-1106 與 Mixtral 8x7B。作者自報「成本少 85%、保有 95% GPT-4 表現」是 MT Bench 等聊天題，不是 coding agent 長任務。門檻要依自己的查詢分布校準。",
+    "alternatives": [
+      "factory-router",
+      "litellm",
+      "claude-code-router"
+    ],
+    "learning_value": "路由門檻用「希望幾 % 走強模型」來校準（calibrate_threshold），把成本目標轉成可調參數。",
+    "integration_value": "框架的模型選擇是人工決定；只借「先定強模型比例、再校準」的思路。",
+    "tier": 3,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/lm-sys/RouteLLM/blob/0b64fda/README.md",
+        "level": "READ",
+        "note": "README：路由器、門檻校準、OPENAI_API_KEY 需求、作者自報數字"
+      }
+    ]
+  },
+  {
+    "id": "factory-router",
+    "name": "Factory Router（Factory.ai Droid）",
+    "category": "benchmark-evaluation",
+    "also": [
+      "agent-workflows"
+    ],
+    "type": "service",
+    "urls": {
+      "source": null,
+      "official": "https://factory.ai/news/factory-router",
+      "docs": "https://docs.factory.ai/model-independence/factory-router"
+    },
+    "read_at": "2026-11-21（搜尋摘要與 vocus 文章）",
+    "summary": "Factory 的 Droid coding agent 內建的模型路由，2026-06-01 推出：依 prompt、程式範圍、需要的工具判斷難度，從旗艦＋平價模型池挑模型，卡住時升級，並跨供應商 failover。",
+    "architecture": null,
+    "integration": [
+      "service"
+    ],
+    "hosts": {
+      "claude_code": "no",
+      "others": "只在 Droid CLI 與 Factory App"
+    },
+    "runs": "cloud",
+    "privacy": "專有雲端服務。",
+    "security": null,
+    "resources": "Factory 付費方案。",
+    "license": {
+      "spdx": null,
+      "basis": "專有服務，沒有原始碼",
+      "label": "not-recommended",
+      "notes": "不能整合，只能讀設計。"
+    },
+    "weaknesses": "數字都是 Factory 自報（以 Opus 4.7 為 100%）：甜蜜點 Terminal-Bench 2 成本約 80%、通過率 99%；Legacy-Bench 約 75%、96%；激進設定 Terminal-Bench 2 成本 56% 但通過率掉到 81%，Legacy-Bench 30% 成本只剩 49%。其他來源的省 30～40%、58%、72% 基準不同，不能互比。上市時是 private preview，文件後來說已 GA。",
+    "alternatives": [
+      "routellm",
+      "litellm"
+    ],
+    "learning_value": "(1) 路由放在 harness 而不是 gateway：harness 知道任務範圍與工具。(2) 文件說路由「強烈考慮 prompt cache 的維持」，因為中途換模型會讓快取失效。(3) 激進設定的品質崩落說明省錢有底線，要看「每個成功任務的成本」而不只看單次成本。",
+    "integration_value": "支持框架既有的「換模型會讓快取失效，在里程碑再換；單步需要別的模型就用指定模型的子代理」。不整合。",
+    "tier": 3,
+    "use": [
+      "learn"
+    ],
+    "evidence": "search",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://vocus.cc/article/6a2f761ffd89780001b51c13",
+        "level": "READ",
+        "note": "使用者提供的文章：三種策略（壓縮 headroom、路由 OpenSquilla／Factory Router、替換 deepclaude／ds4）與 Factory 數字表"
+      },
+      {
+        "url": "https://factory.ai/news/factory-router",
+        "level": "SEARCH-ONLY",
+        "note": "官方發表文，搜尋摘要"
+      },
+      {
+        "url": "https://docs.factory.ai/model-independence/factory-router",
+        "level": "SEARCH-ONLY",
+        "note": "GA 與 prompt cache 考量，搜尋摘要"
+      }
+    ]
+  },
+  {
+    "id": "dspy-gepa",
+    "name": "DSPy 與 GEPA",
+    "category": "benchmark-evaluation",
+    "also": [
+      "agent-workflows"
+    ],
+    "type": "library",
+    "urls": {
+      "source": "https://github.com/stanfordnlp/dspy",
+      "official": "https://dspy.ai",
+      "docs": "https://github.com/gepa-ai/gepa"
+    },
+    "read_at": "dspy 7fbc8ff（2026-11-19）；gepa README（2026-11-21）",
+    "summary": "DSPy 用 Python 模組與 signature 描述 LM 程式，再用最佳化器（MIPROv2、GEPA 等）依評測指標自動改 prompt 與示例。GEPA 是反思式、Pareto 演化搜尋的最佳化器，可最佳化任何文字參數。",
+    "architecture": null,
+    "integration": [
+      "library"
+    ],
+    "hosts": {
+      "claude_code": "no",
+      "others": "Python 程式內"
+    },
+    "runs": "hybrid",
+    "privacy": "最佳化時反覆呼叫被測模型與反思模型（範例用 openai/gpt-5）。",
+    "security": null,
+    "resources": "GEPA 自報 100～500 次評測（對 GRPO 的 5,000～25,000 次）；每次評測都是模型呼叫費用。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "gh api：stanfordnlp/dspy 與 gepa-ai/gepa 都是 MIT",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "需要可自動打分的指標與訓練集；對「skill 文字」這種難自動評分的東西不好套。",
+    "alternatives": [
+      "ace-agentic-context-engineering",
+      "promptfoo"
+    ],
+    "learning_value": "prompt 當成可最佳化的參數，有評測集才改；GEPA 用失敗軌跡的反思產生修改，而不是隨機改寫。",
+    "integration_value": "框架若有足夠 evals 案例，可考慮用 GEPA 式「讀失敗軌跡→提出 skill 描述修改→在保留集驗證」，但現在案例太少，先記錄。",
+    "tier": 3,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/stanfordnlp/dspy/blob/7fbc8ff/README.md",
+        "level": "READ",
+        "note": "README 與論文列表"
+      },
+      {
+        "url": "https://github.com/gepa-ai/gepa/blob/main/README.md",
+        "level": "READ",
+        "note": "GEPA 機制、自報評測次數"
+      },
+      {
+        "url": "https://arxiv.org/abs/2507.19457",
+        "level": "SEARCH-ONLY",
+        "note": "GEPA 論文，未讀"
+      }
+    ]
+  },
+  {
+    "id": "swe-bench",
+    "name": "SWE-bench 系列",
+    "category": "benchmark-evaluation",
+    "also": [],
+    "type": "benchmark",
+    "urls": {
+      "source": "https://github.com/SWE-bench/SWE-bench",
+      "official": "https://www.swebench.com",
+      "docs": null
+    },
+    "read_at": "02e7a74（2026-09-02）",
+    "summary": "用真實 GitHub issue 與 PR 測 coding agent 能否修好問題的 benchmark：full、Lite（300）、Verified（500，人工確認）、Multimodal（v2 有 480 題可本機跑）、Multilingual；v5 CLI 有 eval、report、infer。",
+    "architecture": null,
+    "integration": [
+      "cli",
+      "library"
+    ],
+    "hosts": {
+      "claude_code": "unknown",
+      "others": "infer 子命令內建 mini-SWE-agent"
+    },
+    "runs": "hybrid",
+    "privacy": "本機 Docker 評測；sb-cli 與 Modal 是雲端選項。",
+    "security": "評測會 build 與執行各 repo 的程式，要在隔離環境。",
+    "resources": "README 建議 x86_64、至少 120 GB 空間、16 GB RAM、8 核；WSL 8 GB 不夠跑完整評測。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "gh api license 欄位",
+      "label": "usable",
+      "notes": "資料集在 Hugging Face，題目來自各 repo 原授權。"
+    },
+    "weaknesses": "Python 為主；框架既有研究（F-hooks-evals-ci）提到 django 佔比高、污染疑慮。分數反映 agent＋模型，不反映 skill 文字。",
+    "alternatives": [
+      "terminal-bench"
+    ],
+    "learning_value": "以「隱藏測試是否轉綠」當成功標準，比 LLM judge 可靠。",
+    "integration_value": "不適合在使用者機器跑；只當讀論文時的背景。",
+    "tier": 3,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "docs",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/SWE-bench/SWE-bench/blob/02e7a74/README.md",
+        "level": "READ",
+        "note": "README：變體、v5 CLI、資源需求"
+      },
+      {
+        "url": "/home/user/src/ai-general-framework-s16/studies/research-2026-11/F-hooks-evals-ci.md",
+        "level": "READ",
+        "note": "既有 ETH AGENTS.md 研究用 SWE-bench Lite 的紀錄"
+      }
+    ]
+  },
+  {
+    "id": "terminal-bench",
+    "name": "Terminal-Bench（與 Harbor）",
+    "category": "benchmark-evaluation",
+    "also": [],
+    "type": "benchmark",
+    "urls": {
+      "source": "https://github.com/harbor-framework/terminal-bench-1",
+      "official": "https://www.tbench.ai",
+      "docs": "https://harborframework.com/docs/task-format"
+    },
+    "read_at": "terminal-bench-1 d28711d（2026-07-11）；harbor pushed 2026-11-21",
+    "summary": "在真實終端沙箱裡測 agent 能否完成編譯、訓練模型、架服務等端到端工作。原 repo 改名 terminal-bench-1（約 100 題 beta），2.0 版改用 Harbor 框架執行。",
+    "architecture": null,
+    "integration": [
+      "cli"
+    ],
+    "hosts": {
+      "claude_code": "unknown",
+      "others": "Harbor 有各 agent adapter"
+    },
+    "runs": "local",
+    "privacy": null,
+    "security": "任務在容器內執行。",
+    "resources": "Docker；各任務資源不同，沒查。",
+    "license": {
+      "spdx": "Apache-2.0",
+      "basis": "gh api：terminal-bench-1 與 harbor 都是 Apache-2.0",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "框架 C-evidence 記過〈Failure as a Process〉在 Terminal-Bench 上的分析：關鍵錯誤中位數在第 7 步，第一個可見訊號晚約十步。",
+    "alternatives": [
+      "swe-bench"
+    ],
+    "learning_value": "比 SWE-bench 更接近使用者的系統與 DevOps 工作（編譯、服務、環境設定）；Factory Router 也用 Terminal-Bench 2 報數字。",
+    "integration_value": "可挑幾題 C/系統類任務當框架行為實驗的素材（由主 session 決定）。",
+    "tier": 3,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/harbor-framework/terminal-bench-1/blob/d28711d/README.md",
+        "level": "READ",
+        "note": "README 與 Harbor 公告"
+      },
+      {
+        "url": "https://github.com/harbor-framework/harbor",
+        "level": "READ",
+        "note": "gh api metadata（7,313 stars、Apache-2.0）"
+      }
+    ]
+  },
+  {
+    "id": "longmemeval",
+    "name": "LongMemEval",
+    "category": "benchmark-evaluation",
+    "also": [
+      "memory-context"
+    ],
+    "type": "benchmark",
+    "urls": {
+      "source": "https://github.com/xiaowu0162/LongMemEval",
+      "official": null,
+      "docs": "https://huggingface.co/datasets/xiaowu0162/longmemeval-cleaned"
+    },
+    "read_at": "9e0b455（2026-05-11）",
+    "summary": "長期對話記憶 benchmark：500 題，測資訊抽取、多 session 推理、知識更新、時間推理與拒答；S 版每題約 115k token（約 40 個 session），M 版約 500 個 session，另有 oracle 版。",
+    "architecture": null,
+    "integration": [
+      "library"
+    ],
+    "hosts": {
+      "claude_code": "no",
+      "others": null
+    },
+    "runs": "local",
+    "privacy": null,
+    "security": null,
+    "resources": "資料集下載；評分多用 GPT-4o judge。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "gh api license 欄位",
+      "label": "usable",
+      "notes": "資料集在 Hugging Face，授權另查。"
+    },
+    "weaknesses": "各記憶產品自報分數用不同模型與 judge，不能直接比（例如 Mem0 自報 94.4 是雲端版）。",
+    "alternatives": [
+      "locomo"
+    ],
+    "learning_value": "「知識更新」與「拒答」兩類題目直接對應記憶系統的衝突處理與「找不到就說不知道」。",
+    "integration_value": "評估任何記憶方案時，至少看這兩類題目的分數；框架不跑。",
+    "tier": 3,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "docs",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455/README.md",
+        "level": "READ",
+        "note": "README：五種能力、S／M／oracle 版"
+      }
+    ]
+  },
+  {
+    "id": "locomo",
+    "name": "LoCoMo",
+    "category": "benchmark-evaluation",
+    "also": [
+      "memory-context"
+    ],
+    "type": "benchmark",
+    "urls": {
+      "source": "https://github.com/snap-research/locomo",
+      "official": null,
+      "docs": "https://arxiv.org/abs/2402.17753"
+    },
+    "read_at": "3eb6f2c（2024-08-13）",
+    "summary": "Snap Research 的超長多 session 對話記憶 benchmark，是 Mem0、Zep 等記憶產品最常引用的分數來源。",
+    "architecture": null,
+    "integration": [
+      "library"
+    ],
+    "hosts": {
+      "claude_code": "no",
+      "others": null
+    },
+    "runs": "local",
+    "privacy": null,
+    "security": null,
+    "resources": null,
+    "license": {
+      "spdx": null,
+      "basis": "GitHub 顯示 NOASSERTION，README 幾乎是空的",
+      "label": "needs-review",
+      "notes": null
+    },
+    "weaknesses": "Penfield Labs 稽核（自身也做記憶產品）：1,540 題中 99 題答案錯（6.4%），judge 會接受最多 63% 故意答錯的回答；第 5 類缺標準答案，Mem0 與 Zep 都排除。Mem0 與 Zep 互指對方實作錯誤、分數差異大。",
+    "alternatives": [
+      "longmemeval"
+    ],
+    "learning_value": "benchmark 本身的答案錯誤與寬鬆 judge 會讓自報分數失真，是「作者自報」要分開寫的具體理由。",
+    "integration_value": "看到記憶產品引用 LoCoMo 分數時降權。",
+    "tier": 4,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "search",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/snap-research/locomo",
+        "level": "READ",
+        "note": "gh api metadata；README 只有 3 個字"
+      },
+      {
+        "url": "https://penfieldlabs.substack.com/p/we-audited-locomo-64-of-the-answer",
+        "level": "SEARCH-ONLY",
+        "note": "6.4% 錯誤、judge 接受 63% 錯答"
+      },
+      {
+        "url": "https://blog.getzep.com/lies-damn-lies-statistics-is-mem0-really-sota-in-agent-memory/",
+        "level": "SEARCH-ONLY",
+        "note": "Zep 對 Mem0 分數的質疑"
+      }
+    ]
+  },
+  {
+    "id": "langfuse",
+    "name": "Langfuse",
+    "category": "benchmark-evaluation",
+    "also": [
+      "security-devops"
+    ],
+    "type": "service",
+    "urls": {
+      "source": "https://github.com/langfuse/langfuse",
+      "official": "https://langfuse.com",
+      "docs": "https://langfuse.com/self-hosting"
+    },
+    "read_at": "306cdfb（2026-11-21）",
+    "summary": "LLM／agent 的 tracing、評測、prompt 管理平台；建在 OpenTelemetry 上，任何 OTel 資料都能送進來。2026 年 1 月起屬於 ClickHouse。",
+    "architecture": null,
+    "integration": [
+      "service",
+      "sdk",
+      "api"
+    ],
+    "hosts": {
+      "claude_code": "partial",
+      "others": "任何 OTel 來源"
+    },
+    "runs": "hybrid",
+    "privacy": "self-host 時資料留在自己機器；雲端版另計。",
+    "security": null,
+    "resources": "self-host 用 Docker Compose（Postgres、ClickHouse、Redis、S3 相容儲存）；WSL 8 GB 可能吃緊（推論，未試）。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "根目錄 LICENSE（2026-11-21）：ee/ 等目錄以外為 MIT Expat，ee/ 另有授權；GitHub 顯示 NOASSERTION",
+      "label": "conditional",
+      "notes": "企業功能不在 MIT 範圍。"
+    },
+    "weaknesses": "自架元件多；對單人 CLI 使用偏重。",
+    "alternatives": [
+      "arize-phoenix",
+      "claude-code-otel"
+    ],
+    "learning_value": "trace、評分、資料集、prompt 版本放在同一個資料模型，方便回頭比較。",
+    "integration_value": "只有在要長期看 Claude Code OTel 資料時才考慮；框架的 agf 量測工具已能讀 usage。",
+    "tier": 3,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/langfuse/langfuse/blob/306cdfb/README.md",
+        "level": "READ",
+        "note": "README：self-host、OTel、ClickHouse 收購"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/langfuse/langfuse/HEAD/LICENSE",
+        "level": "READ",
+        "note": "MIT＋ee 目錄例外"
+      }
+    ]
+  },
+  {
+    "id": "arize-phoenix",
+    "name": "Arize Phoenix",
+    "category": "benchmark-evaluation",
+    "also": [],
+    "type": "service",
+    "urls": {
+      "source": "https://github.com/Arize-ai/phoenix",
+      "official": "https://arize.com/docs/phoenix",
+      "docs": "https://arize.com/docs/phoenix/self-hosting"
+    },
+    "read_at": "2f8031e（2026-11-21）",
+    "summary": "開源、可自架的 LLM tracing 與評測工具，用 OpenInference（OTel 擴充）instrumentation；`pip install arize-phoenix` 就能在本機跑，另有 /mcp 端點讓 Claude Code 等查 trace。",
+    "architecture": null,
+    "integration": [
+      "service",
+      "mcp",
+      "library"
+    ],
+    "hosts": {
+      "claude_code": "partial",
+      "others": "OpenAI Agents SDK、Claude Agent SDK 等"
+    },
+    "runs": "local",
+    "privacy": "本機自架時資料不外送；README 鼓勵讓 coding agent 自動幫 app 加 instrumentation。",
+    "security": null,
+    "resources": "Python 套件或 Docker；比 Langfuse 輕。",
+    "license": {
+      "spdx": "Elastic-2.0",
+      "basis": "根目錄 LICENSE（2026-11-21）：Elastic License 2.0",
+      "label": "conditional",
+      "notes": "ELv2 不可提供成託管服務；本機自用可以，不能把程式碼併進 MIT 框架。"
+    },
+    "weaknesses": "授權不是 OSI 開源；託管版 Arize AX 另售。",
+    "alternatives": [
+      "langfuse",
+      "claude-code-otel"
+    ],
+    "learning_value": "單機一個指令啟動的 trace 檢視器，對個人實驗夠用。",
+    "integration_value": "主 session 若要看 Claude Code 的 trace（beta），Phoenix 是最輕的本機接收端候選。",
+    "tier": 3,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/Arize-ai/phoenix/blob/2f8031e/README.md",
+        "level": "READ",
+        "note": "README：本機安裝、OpenInference、MCP"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/Arize-ai/phoenix/HEAD/LICENSE",
+        "level": "READ",
+        "note": "ELv2"
+      }
+    ]
+  },
+  {
+    "id": "otel-genai-semconv",
+    "name": "OpenTelemetry GenAI semantic conventions",
+    "category": "benchmark-evaluation",
+    "also": [
+      "security-devops"
+    ],
+    "type": "catalog",
+    "urls": {
+      "source": "https://github.com/open-telemetry/semantic-conventions-genai",
+      "official": "https://opentelemetry.io/docs/specs/semconv/gen-ai/",
+      "docs": "https://github.com/open-telemetry/semantic-conventions-genai/tree/main/docs/gen-ai"
+    },
+    "read_at": "semantic-conventions-genai（pushed 2026-11-21）",
+    "summary": "GenAI 呼叫的 OTel 命名規範：spans、agent spans、metrics、token metrics、events、MCP、A2A、retrieval，以及 OpenAI、Anthropic、Bedrock 等供應商頁。已從主 semconv repo 搬到獨立 repo。",
+    "architecture": null,
+    "integration": [
+      "api"
+    ],
+    "hosts": {
+      "claude_code": "partial",
+      "others": "Claude Code 自己的 OTel 用 claude_code.* 名稱，不是 gen_ai.*"
+    },
+    "runs": "local",
+    "privacy": "gen_ai.input.messages／output.messages 等內容屬性是 Opt-In，預設不記。",
+    "security": null,
+    "resources": null,
+    "license": {
+      "spdx": "Apache-2.0",
+      "basis": "gh api license 欄位",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "spans 文件標 Status: Development，屬性還會改；opentelemetry.io 舊頁只剩搬遷通知。",
+    "alternatives": [
+      "claude-code-otel"
+    ],
+    "learning_value": "gen_ai.operation.name、gen_ai.provider.name、gen_ai.usage.* 這組欄位可當跨工具比較用量的共同語彙；內容預設不記是合理的隱私預設。",
+    "integration_value": "框架量測若要輸出結構化紀錄，可對齊這些欄位名，但規範仍在 Development。",
+    "tier": 3,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/",
+        "level": "READ",
+        "note": "搬遷通知"
+      },
+      {
+        "url": "https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-spans.md",
+        "level": "READ",
+        "note": "Status: Development、必填屬性、messages 為 Opt-In"
+      }
+    ]
+  },
+  {
+    "id": "claude-code-otel",
+    "name": "Claude Code 的 OpenTelemetry 監控",
+    "category": "benchmark-evaluation",
+    "also": [
+      "security-devops"
+    ],
+    "type": "api",
+    "urls": {
+      "source": null,
+      "official": "https://code.claude.com/docs/en/monitoring-usage",
+      "docs": "https://code.claude.com/docs/en/monitoring-usage"
+    },
+    "read_at": "2026-11-21（官方文件前 100k 字元）",
+    "summary": "Claude Code 內建的 OTel 匯出：metrics（session、行數、PR、commit、cost、token、編輯決定、活躍時間）、events（user_prompt、api_request、api_error、tool_decision、tool_result 等）與 beta traces；預設關閉。",
+    "architecture": "設 CLAUDE_CODE_ENABLE_TELEMETRY=1 與 OTEL_METRICS_EXPORTER／OTEL_LOGS_EXPORTER（otlp、prometheus、console、none）。cost 與 token 計數器帶 model、effort、agent.name、skill.name、plugin.name、mcp_server.name 等屬性；api_request event 有 cost_usd、input／output／cache_read／cache_creation tokens、duration_ms。traces 需 CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1，span 有 interaction、llm_request、hook、tool（含 blocked_on_user、execution）。專案層 .claude/settings.json 的 OTel 變數會被忽略，repo 無法偷開遙測或改目的地；OTEL_* 不傳給子程序。",
+    "integration": [
+      "api"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": null
+    },
+    "runs": "local",
+    "privacy": "內容預設不記：OTEL_LOG_USER_PROMPTS、OTEL_LOG_TOOL_DETAILS、OTEL_LOG_TOOL_CONTENT、OTEL_LOG_ASSISTANT_RESPONSES、OTEL_LOG_RAW_API_BODIES 都要明確開。metrics 預設帶 session id 與 account uuid。資料只送到使用者設定的端點；Anthropic 自己的營運遙測是另一回事。",
+    "security": "OTEL_LOG_RAW_API_BODIES 會輸出整段對話，等於同意其他所有內容開關。",
+    "resources": "要一個接收端（console、本機 Prometheus、Phoenix、Langfuse 等）。",
+    "license": {
+      "spdx": null,
+      "basis": "Claude Code 的功能，依 Anthropic 條款",
+      "label": "usable",
+      "notes": "本機使用自己的資料。"
+    },
+    "weaknesses": "traces 是 beta；文件後 82k 字元沒讀。",
+    "alternatives": [
+      "ccusage",
+      "otel-genai-semconv"
+    ],
+    "learning_value": "skill.name、agent.name 屬性讓「哪個 skill 花多少錢」可直接量；這正是框架想回答的問題。",
+    "integration_value": "Tier 1：用 console 或本機 Prometheus 接收、只開 metrics 與 api_request event、不開內容紀錄，就能量 skill、子代理與換模型的實際成本，不違反使用者的隱私決定。框架量測工具可讀這份輸出。",
+    "tier": 1,
+    "use": [
+      "integrate"
+    ],
+    "evidence": "docs",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://code.claude.com/docs/en/monitoring-usage",
+        "level": "READ",
+        "note": "環境變數、metrics、events、traces、內容開關（讀到 100,000 字元處）"
+      }
+    ]
+  },
+  {
+    "id": "ccusage",
+    "name": "ccusage",
+    "category": "benchmark-evaluation",
+    "also": [
+      "shell-utilities"
+    ],
+    "type": "cli",
+    "urls": {
+      "source": "https://github.com/ccusage/ccusage",
+      "official": null,
+      "docs": "https://github.com/ccusage/ccusage/blob/main/apps/ccusage/README.md"
+    },
+    "read_at": "5a66b99（2026-11-21）",
+    "summary": "讀各家 coding agent CLI 存在本機的用量檔（Claude Code 的 JSONL 等），產生日、週、月、session 與 5 小時計費視窗報表；支援 Claude Code、Codex、OpenCode、Gemini CLI、Copilot CLI、Hermes、Pi 等二十多種。",
+    "architecture": null,
+    "integration": [
+      "cli",
+      "mcp"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "Codex、OpenCode、Amp、Droid、Cline、Hermes、Pi、Goose、Gemini CLI、Copilot CLI 等"
+    },
+    "runs": "local",
+    "privacy": "只讀本機檔；費用換算的價格表預設線上取得，`--offline` 用內建快取。",
+    "security": "常見用法是 `npx ccusage@latest`，每次執行最新版，供應鏈風險較高；固定版本較安全。",
+    "resources": "Node／Bun；很輕。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "gh api license 欄位（ccusage/ccusage）",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "費用是用公開價格估算，不等於帳單（訂閱方案尤其如此）；repo 已從 ryoppippi/ccusage 搬到 ccusage/ccusage。",
+    "alternatives": [
+      "claude-code-otel"
+    ],
+    "learning_value": "5 小時視窗（blocks）報表直接對應使用者撞過的用量上限。",
+    "integration_value": "框架 G／H 量測已自己讀 usage；ccusage 可當交叉核對工具（固定版本、--offline）。",
+    "tier": 2,
+    "use": [
+      "direct"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/ccusage/ccusage/blob/5a66b99/apps/ccusage/README.md",
+        "level": "READ",
+        "note": "支援來源表、指令、--offline、自訂價格"
+      }
+    ]
+  },
+  {
+    "id": "superpowers-obra",
+    "name": "Superpowers",
+    "category": "agent-workflows",
+    "also": [
+      "agent-skills"
+    ],
+    "type": "skill-collection",
+    "urls": {
+      "source": "https://github.com/obra/superpowers",
+      "official": null,
+      "docs": null
+    },
+    "read_at": "22f0b46（2026-11-03），v7.0.2",
+    "summary": "以 SessionStart hook 注入 bootstrap、強制「可能適用就先叫 skill」的工作流程組：brainstorming、writing-plans、TDD、systematic-debugging、verification-before-completion、subagent-driven-development 等。",
+    "architecture": "詳見 A-projects 2.2。v7.0.0（2026-10-10）新資訊：brainstorming 重寫，先問一個具體情境的開放問題、依理解後的規模決定是當場做、在對話裡談小改動，或寫設計文件；用新的子代理扮演「要實作的人」讀設計、列出還要問的問題，取代原本的 spec reviewer。",
+    "integration": [
+      "skill",
+      "hook"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "Codex、Gemini、Pi、Hermes、Antigravity 等"
+    },
+    "runs": "local",
+    "privacy": null,
+    "security": "v7.0.0 修正：Windows 的 run-hook.cmd 以前會執行目前目錄裡的 bash.cmd／where.bat，等於 repo 可以在 session 開始時植入程式（#2393）；也修正 hook 失敗卻回報成功。這是「hook 從 cwd 找執行檔」的實際案例。",
+    "resources": "純文字＋hook。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "gh api license 欄位（2026-11-21）",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "「1% 機會就必須叫 skill」很強勢，常駐成本與誤觸風險高（A-projects 的觀察）。",
+    "alternatives": [
+      "pstack-cursor",
+      "mattpocock-skills",
+      "spec-kit-github"
+    ],
+    "learning_value": "「實作者視角審設計」：讓沒參與討論的子代理列出開工前還要問什麼，比泛泛的 spec review 具體。",
+    "integration_value": "align-with-me 可考慮加「讓新子代理以實作者身分列出缺口」這一步；其餘沿用既有結論。",
+    "tier": 2,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/obra/superpowers/releases/tag/v7.0.0",
+        "level": "READ",
+        "note": "v7.0.0 release notes 前 40 行"
+      },
+      {
+        "url": "/home/user/src/ai-general-framework-s16/studies/research-2026-11/A-projects.md",
+        "level": "READ",
+        "note": "既有紀錄 2.2 節"
+      }
+    ]
+  },
+  {
+    "id": "openspec-fission-ai",
+    "name": "OpenSpec",
+    "category": "agent-workflows",
+    "also": [
+      "agent-skills"
+    ],
+    "type": "cli",
+    "urls": {
+      "source": "https://github.com/Fission-AI/OpenSpec",
+      "official": null,
+      "docs": null
+    },
+    "read_at": "0c737dc（2026-11-19），v2.1.1",
+    "summary": "比 Spec Kit 輕的規格層：每個變更一個資料夾（proposal、specs delta、design、tasks），archive 時把 delta 合進活的 specs。",
+    "architecture": "v2.0.0（2026-11-11）：skill 統一裝在 `.agents/skills/`，不讀這個資料夾的工具（Claude Code、Kiro）改用連結；移除 /opsx:* 指令，改成 /openspec-propose 等 skill；`openspec update` 會清掉舊版產生的檔案，但保留使用者改過的並列出。v2.1.0 支援全域 skill，v2.1.1 支援離線安裝 skill、archive 更安全。",
+    "integration": [
+      "cli",
+      "skill"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "Codex、Kiro 等 30 多個工具（作者自述）"
+    },
+    "runs": "local",
+    "privacy": null,
+    "security": null,
+    "resources": "Node CLI。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "gh api license 欄位",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "11 月內三個版本，2.0 有破壞性變更（指令名稱改了）。",
+    "alternatives": [
+      "spec-kit-github",
+      "bmad-method"
+    ],
+    "learning_value": "「一份 skill、各宿主用連結」避免多份副本 drift；update 時保留使用者改過的舊檔並列出來。",
+    "integration_value": "框架 adapters 部署 skill 時可參考：用連結而非複製，升級時保留本地修改並列清單。",
+    "tier": 2,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/Fission-AI/OpenSpec/releases/tag/v2.0.0",
+        "level": "READ",
+        "note": "v2.0.0 release notes"
+      },
+      {
+        "url": "/home/user/src/ai-general-framework-s16/studies/research-2026-11/A-projects.md",
+        "level": "READ",
+        "note": "既有紀錄 2.5 節"
+      }
+    ]
+  },
+  {
+    "id": "bmad-method",
+    "name": "BMAD-METHOD",
+    "category": "agent-workflows",
+    "also": [],
+    "type": "skill-collection",
+    "urls": {
+      "source": "https://github.com/bmad-code-org/BMAD-METHOD",
+      "official": null,
+      "docs": null
+    },
+    "read_at": "e435a22（2026-11-12），v6.12.4（2026-10-14）",
+    "summary": "以角色（PM、架構師、開發者等）與模組（Method、Builder、Test Architect、Loop、Game Dev）組成的完整開發流程，V7 改成 skill 為主（alpha）。",
+    "architecture": null,
+    "integration": [
+      "skill",
+      "cli"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "多個 IDE agent"
+    },
+    "runs": "local",
+    "privacy": null,
+    "security": null,
+    "resources": null,
+    "license": {
+      "spdx": "MIT",
+      "basis": "根目錄 LICENSE（2026-11-21）：MIT 全文另附商標聲明，BMad、BMAD-METHOD 等名稱為 BMad Code, LLC 商標；GitHub 因此顯示 NOASSERTION",
+      "label": "conditional",
+      "notes": "程式碼 MIT；名稱與商標不可隨意使用（見 TRADEMARK.md）。"
+    },
+    "weaknesses": "流程與角色多，和框架「少而專」相反；A-projects 只讀過首頁。",
+    "alternatives": [
+      "spec-kit-github",
+      "openspec-fission-ai"
+    ],
+    "learning_value": "依工作規模決定深度（小改直接做）。",
+    "integration_value": "沿用既有結論，不引入。",
+    "tier": 3,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "docs",
+    "confidence": "low",
+    "references": [
+      {
+        "url": "https://raw.githubusercontent.com/bmad-code-org/BMAD-METHOD/HEAD/LICENSE",
+        "level": "READ",
+        "note": "MIT＋商標聲明"
+      },
+      {
+        "url": "/home/user/src/ai-general-framework-s16/studies/research-2026-11/A-projects.md",
+        "level": "READ",
+        "note": "既有紀錄 2.6 節"
+      }
+    ]
+  },
+  {
+    "id": "codex-plugin-cc",
+    "name": "Codex plugin for Claude Code（OpenAI 官方）",
+    "category": "agent-workflows",
+    "also": [
+      "mcp-cli-api"
+    ],
+    "type": "project",
+    "urls": {
+      "source": "https://github.com/openai/codex-plugin-cc",
+      "official": null,
+      "docs": null
+    },
+    "read_at": "db52e28（2026-07-08）",
+    "summary": "在 Claude Code 裡叫 Codex：/codex:review（唯讀審查未提交或分支差異）、/codex:adversarial-review（可指定焦點、質疑設計）、/codex:rescue 委派工作、/codex:transfer 把目前 Claude 對話交給 Codex 接手，以及背景工作的 status／result／cancel。",
+    "architecture": "Claude Code plugin＋codex:codex-rescue 子代理；用本機 Codex CLI 與其登入。可選的 review gate 用 Stop hook：每次 Claude 要結束時跑一次 Codex 審查，有問題就擋下 stop。/codex:transfer 由 SessionStart hook 記下 transcript 路徑，再用 Codex 的外部 session 匯入器轉換。",
+    "integration": [
+      "skill",
+      "hook"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "需要 Codex CLI"
+    },
+    "runs": "cloud",
+    "privacy": "審查會把 diff 與相關內容送 OpenAI；/codex:transfer 會把整段 Claude 對話紀錄交給 Codex（OpenAI），依使用者定義屬於上雲端，且是另一家服務，要另外同意。",
+    "security": "README 警告 review gate 會形成長時間的 Claude／Codex 迴圈，可能很快耗光用量，只在有人盯著時開。",
+    "resources": "Codex 訂閱或 API；用量算進 Codex 額度。",
+    "license": {
+      "spdx": "Apache-2.0",
+      "basis": "gh api license 欄位",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "7 月後沒有新 commit；/codex:review 不能指定焦點。",
+    "alternatives": [
+      "trailofbits-second-opinion",
+      "pstack-cursor"
+    ],
+    "learning_value": "(1) 審查分「一般」與「對抗式」兩種，後者可帶焦點文字。(2) Stop hook 當審查閘門的做法與風險（迴圈耗額度）都寫明了。(3) 交接用 transcript 匯入，而不是重寫摘要。",
+    "integration_value": "框架已有「換模型審查用指定模型子代理」；若使用者要跨廠商審查，這是官方路徑。transfer 會整段上傳，使用前要使用者明確同意。",
+    "tier": 2,
+    "use": [
+      "direct",
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/openai/codex-plugin-cc/blob/db52e28/README.md",
+        "level": "READ",
+        "note": "README 全文（指令、review gate 警告、transfer）"
+      }
+    ]
+  },
+  {
+    "id": "trailofbits-second-opinion",
+    "name": "second-opinion（Trail of Bits skills）",
+    "category": "agent-workflows",
+    "also": [
+      "agent-skills",
+      "security-devops"
+    ],
+    "type": "skill",
+    "urls": {
+      "source": "https://github.com/trailofbits/skills/tree/main/plugins/second-opinion",
+      "official": null,
+      "docs": null
+    },
+    "read_at": "trailofbits/skills main（2026-11-21）",
+    "summary": "讓 Claude Code 用 Codex 或 Antigravity（Gemini）CLI 對未提交變更、分支差異或某個 commit 做外部審查，只產出發現，不改檔、不發到遠端。",
+    "architecture": "SKILL.md 加 references（review-input、codex-invocation、antigravity-invocation、gemini-invocation、codex-review-schema.json）。兩個供應商用同一份擷取的 diff；prompt、輸出、診斷檔用 mktemp 放在 checkout 外；repo 內容當字面資料寫入，不經 shell 展開；超過上限就請使用者縮小範圍，不偷偷截斷；Codex 走 `codex exec` 加 JSON schema，不開 MCP server。",
+    "integration": [
+      "skill"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "需 codex、agy 或 gemini CLI"
+    },
+    "runs": "cloud",
+    "privacy": "diff 與專案指示會送 OpenAI 或 Google。",
+    "security": "明文「不要為了跑審查而開自動核准寫入」；非零退出、沒輸出、JSON 無效、要求核准計畫都算未完成，不算乾淨審查。",
+    "resources": "對應 CLI 的訂閱或 API。",
+    "license": {
+      "spdx": "CC-BY-SA-4.0",
+      "basis": "gh api：trailofbits/skills 為 CC-BY-SA-4.0",
+      "label": "conditional",
+      "notes": "ShareAlike：改寫後散布要同授權並署名；只借概念、自己重寫不受影響。"
+    },
+    "weaknesses": "Gemini CLI 部分帳號已回 UNSUPPORTED_CLIENT，要改用 Antigravity。",
+    "alternatives": [
+      "codex-plugin-cc"
+    ],
+    "learning_value": "跨模型審查的契約寫得很完整：同一份輸入、檔案在 checkout 外、不截斷、失敗不等於通過、「兩家同意不等於證明」、外部發現與自己的評估分開寫。",
+    "integration_value": "直接對應框架 workflow 的「換模型審查」；可把這幾條契約用自己的話補進 review-change 或 workflow，不複製原文（CC-BY-SA）。",
+    "tier": 1,
+    "use": [
+      "borrow",
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://github.com/trailofbits/skills/blob/main/plugins/second-opinion/skills/second-opinion/SKILL.md",
+        "level": "READ",
+        "note": "SKILL.md 前 90 行與安全相關 grep"
+      }
+    ]
+  },
+  {
+    "id": "claude-code-router",
+    "name": "Claude Code Router",
+    "category": "mcp-cli-api",
+    "also": [
+      "agent-workflows"
+    ],
+    "type": "app",
+    "urls": {
+      "source": "https://github.com/musistudio/claude-code-router",
+      "official": "https://ccrdesk.top/",
+      "docs": null
+    },
+    "read_at": "README（2026-11-21，pushed 同日）",
+    "summary": "本機的模型 gateway 與控制台：讓 Claude Code、Codex、Grok CLI、Kimi CLI、OpenCode、Pi 等連到自選的供應商，做路由、重試、金鑰輪替、fallback，另加 web search、vision、MCP 工具，並記錄請求、延遲、token 與費用估計。",
+    "architecture": null,
+    "integration": [
+      "app",
+      "service"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "Codex、Grok CLI、Kimi CLI、Kilo Code、OpenCode、Pi 等"
+    },
+    "runs": "hybrid",
+    "privacy": "所有請求經過本機 gateway，再送到使用者選的供應商；會保存請求紀錄與各家憑證。",
+    "security": "credential pool 與 key rotation 代表它集中保管多組 API key。",
+    "resources": "桌面 app 或 CLI。",
+    "license": {
+      "spdx": "MIT",
+      "basis": "gh api license 欄位",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "讓 Claude Code 跑在非 Anthropic 模型上，工具呼叫相容性與品質沒有保證（沒查到量測）。",
+    "alternatives": [
+      "litellm",
+      "routellm"
+    ],
+    "learning_value": "路由放在 agent 與供應商之間的本機層，順便取得每個請求的 token 與費用紀錄。",
+    "integration_value": "框架不當 orchestrator，不引入；使用者若想用便宜模型跑次要任務，這是比 LiteLLM 輕的選項（自行評估）。",
+    "tier": 3,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/musistudio/claude-code-router/blob/main/README.md",
+        "level": "READ",
+        "note": "README 前 30 行（功能、支援 agent 與供應商）"
+      }
+    ]
+  },
+  {
+    "id": "ace-agentic-context-engineering",
+    "name": "ACE（Agentic Context Engineering）",
+    "category": "agent-workflows",
+    "also": [
+      "memory-context",
+      "benchmark-evaluation"
+    ],
+    "type": "paper",
+    "urls": {
+      "source": "https://github.com/ace-agent/ace",
+      "official": null,
+      "docs": "https://arxiv.org/abs/2510.04618"
+    },
+    "read_at": "README（2026-11-21；pushed 2026-08-24）",
+    "summary": "讓 agent 自我改進的方法：把 context 當成會演化的「playbook」，由 Generator 產生軌跡、Reflector 抽出教訓、Curator 把教訓寫成局部 delta 更新（帶有用／有害計數），避免反覆重寫造成細節流失。",
+    "architecture": null,
+    "integration": [
+      "library"
+    ],
+    "hosts": {
+      "claude_code": "no",
+      "others": null
+    },
+    "runs": "hybrid",
+    "privacy": "三個角色都呼叫 LLM（範例用 DeepSeek-V3.1）。",
+    "security": null,
+    "resources": "需要模型 API 或本機模型。",
+    "license": {
+      "spdx": "Apache-2.0",
+      "basis": "gh api license 欄位",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "作者自報 AppWorld +10.6%、金融 +8.6%，延遲與 rollout 比 GEPA 少；未見獨立重現。",
+    "alternatives": [
+      "dspy-gepa",
+      "pstack-cursor"
+    ],
+    "learning_value": "(1) 「context collapse」：每次整份重寫 prompt 會慢慢磨掉細節，所以只做局部 delta。(2) 每條規則帶有用／有害計數，用來決定保留或刪除。(3) 反思與整理分成兩個角色。這和 pstack reflect「只改既有 skill、可強制的放 backlog」是同一類問題的不同解法。",
+    "integration_value": "框架改規則時已偏向局部修改；可借「每條規則記錄被證實有用／有害的次數」當刪減依據。",
+    "tier": 2,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/ace-agent/ace/blob/main/README.md",
+        "level": "READ",
+        "note": "README：三角色、delta 更新、自報結果"
+      },
+      {
+        "url": "https://arxiv.org/abs/2510.04618",
+        "level": "SEARCH-ONLY",
+        "note": "論文，未讀全文"
+      }
+    ]
+  },
+  {
+    "id": "a2a-protocol",
+    "name": "A2A（Agent2Agent）協定",
+    "category": "mcp-cli-api",
+    "also": [
+      "agent-workflows"
+    ],
+    "type": "api",
+    "urls": {
+      "source": "https://github.com/a2aproject/A2A",
+      "official": "https://a2a-protocol.org",
+      "docs": null
+    },
+    "read_at": "5f931b8（2026-11-18）",
+    "summary": "讓不透明的 agent 應用互相溝通的開放協定：JSON-RPC 2.0 over HTTP(S)，用 Agent Card 描述能力與連線資訊，支援同步、SSE 串流與非同步推播；與 MCP 互補（MCP 接工具，A2A 接 agent）。",
+    "architecture": null,
+    "integration": [
+      "api",
+      "sdk"
+    ],
+    "hosts": {
+      "claude_code": "no",
+      "others": "Python、Go、JS、Java、.NET、Rust SDK；LiteLLM 可代理 A2A agent"
+    },
+    "runs": "hybrid",
+    "privacy": null,
+    "security": null,
+    "resources": null,
+    "license": {
+      "spdx": "Apache-2.0",
+      "basis": "gh api license 欄位",
+      "label": "usable",
+      "notes": null
+    },
+    "weaknesses": "針對服務間的 agent；本機 CLI 宿主之間的交接（Claude Code↔Codex）目前靠各自的 plugin 或匯入器，不是 A2A。",
+    "alternatives": [
+      "codex-plugin-cc"
+    ],
+    "learning_value": "Agent Card 的能力宣告與長時間 task 狀態，可對照框架交接檔該寫哪些欄位。",
+    "integration_value": "框架不需要；只記錄方向。",
+    "tier": 4,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/a2aproject/A2A/blob/5f931b8/README.md",
+        "level": "READ",
+        "note": "README：協定特性與 SDK"
+      }
+    ]
+  },
+  {
+    "id": "anthropic-context-engineering",
+    "name": "Effective context engineering for AI agents（Anthropic）",
+    "category": "agent-workflows",
+    "also": [
+      "memory-context"
+    ],
+    "type": "article",
+    "urls": {
+      "source": null,
+      "official": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "docs": null
+    },
+    "read_at": "2025-09-29 發表；2026-11-21 讀",
+    "summary": "Anthropic Applied AI 團隊的文章：context 是有限資源，長 context 會 context rot；技巧包括 compaction、結構化筆記（NOTES.md、待辦）、子代理回傳 1,000～2,000 token 摘要、只帶路徑等識別碼再即時讀取、工具少重疊且回傳精簡。",
+    "architecture": null,
+    "integration": [],
+    "hosts": {
+      "claude_code": "yes",
+      "others": null
+    },
+    "runs": "unknown",
+    "privacy": null,
+    "security": null,
+    "resources": null,
+    "license": {
+      "spdx": null,
+      "basis": "Anthropic 網站文章",
+      "label": "usable",
+      "notes": "只讀與引用。"
+    },
+    "weaknesses": "沒有量測數字；警告過度壓縮會丟掉之後才重要的細節（先求 recall 再求 precision）。",
+    "alternatives": [
+      "ace-agentic-context-engineering",
+      "pstack-cursor"
+    ],
+    "learning_value": "壓縮時先保 recall；子代理只回摘要；識別碼優先於全文。",
+    "integration_value": "框架的續接 hook（PreCompact 寫檢查點）與有界輸出工具已對應；可作為 workflow 的引用來源。",
+    "tier": 2,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "high",
+    "references": [
+      {
+        "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+        "level": "READ",
+        "note": "全文（WebFetch 摘要）"
+      }
+    ]
+  },
+  {
+    "id": "graphiti-zep",
+    "name": "Graphiti（Zep）",
+    "category": "memory-context",
+    "also": [],
+    "type": "library",
+    "urls": {
+      "source": "https://github.com/getzep/graphiti",
+      "official": "https://www.getzep.com",
+      "docs": "https://arxiv.org/abs/2501.13956"
+    },
+    "read_at": "README（2026-11-21；pushed 2026-11-20）",
+    "summary": "建時間性知識圖的 Python 框架（Zep 的核心）：每個事實（edge）有有效期間，新資訊推翻舊事實時把舊的標成失效而不刪除，每個事實可回溯到原始 episode。",
+    "architecture": null,
+    "integration": [
+      "library",
+      "mcp"
+    ],
+    "hosts": {
+      "claude_code": "partial",
+      "others": "MCP server"
+    },
+    "runs": "hybrid",
+    "privacy": "預設用 OpenAI 做 LLM 推論與 embedding；可換 Anthropic、Gemini、Groq 或本機。",
+    "security": null,
+    "resources": "需要圖資料庫（Neo4j、FalkorDB 等）與支援 structured output 的 LLM。",
+    "license": {
+      "spdx": "Apache-2.0",
+      "basis": "gh api license 欄位",
+      "label": "usable",
+      "notes": "Zep 雲端另計。"
+    },
+    "weaknesses": "Zep 與 Mem0 互相質疑 LoCoMo 分數（見 locomo）。",
+    "alternatives": [
+      "mem0",
+      "letta-code"
+    ],
+    "learning_value": "衝突處理的第三種做法：Mem0 只新增、讀時挑時間；memory-os 用相似度合併；Graphiti 用有效期間自動失效並保留歷史與出處。",
+    "integration_value": "框架 profile／決策紀錄可借「每條事實帶生效時間與出處，被推翻時標失效而不刪」，不需圖資料庫。",
+    "tier": 3,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/getzep/graphiti/blob/main/README.md",
+        "level": "READ",
+        "note": "README：context graph、validity window、episodes、預設 OpenAI"
+      }
+    ]
+  },
+  {
+    "id": "basic-memory",
+    "name": "Basic Memory",
+    "category": "memory-context",
+    "also": [
+      "ai-writing"
+    ],
+    "type": "mcp",
+    "urls": {
+      "source": "https://github.com/basicmachines-co/basic-memory",
+      "official": null,
+      "docs": null
+    },
+    "read_at": "README（2026-11-21；pushed 2026-11-20）",
+    "summary": "本機優先的 Markdown 知識庫，透過 MCP 讓 AI 與人讀寫同一批檔案；observations 與 wikilink 形成知識圖，支援語意搜尋與可選的 cross-encoder rerank，雲端同步可選。",
+    "architecture": null,
+    "integration": [
+      "mcp",
+      "cli"
+    ],
+    "hosts": {
+      "claude_code": "yes",
+      "others": "任何 MCP client"
+    },
+    "runs": "local",
+    "privacy": "檔案在本機；雲端版與同步為可選。",
+    "security": "每個 MCP 工具標 read-only、destructive、idempotent 提示。",
+    "resources": "Python；語意搜尋需 embedding 模型（細節沒查）。",
+    "license": {
+      "spdx": "AGPL-3.0",
+      "basis": "gh api license 欄位",
+      "label": "conditional",
+      "notes": "AGPL：網路提供服務也要開源；本機自用沒問題，不能併進 MIT 框架。"
+    },
+    "weaknesses": "README 首段推雲端試用；embedding 與同步細節沒讀。",
+    "alternatives": [
+      "mem-agent-firstbatch",
+      "openhuman-tinyhumans"
+    ],
+    "learning_value": "Markdown＋wikilink 是 PKM 與 agent 記憶的交會點（vocus 文章也觀察到這個共識）；工具上標行為提示可減少試錯。",
+    "integration_value": "使用者若用 Obsidian 類筆記，可作為本機知識庫候選；與框架不直接相關。",
+    "tier": 3,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://github.com/basicmachines-co/basic-memory/blob/main/README.md",
+        "level": "READ",
+        "note": "README 前 50 行"
+      }
+    ]
+  },
+  {
+    "id": "article-vocus-local-memory-four",
+    "name": "〈AI 每換一個工具就把你忘光？本地記憶層的四個開源答案〉",
+    "category": "memory-context",
+    "also": [],
+    "type": "article",
+    "urls": {
+      "source": null,
+      "official": "https://vocus.cc/article/6a48c442fd89780001ba1661",
+      "docs": null
+    },
+    "read_at": "2026-11-21 讀；文中 GitHub 數據截至 2026-06-25",
+    "summary": "把 dejavu（pip dejavu-memory）、mem-agent、OpenHuman、memory-os（ClaudioDrews）從輕到重排成一排，依部署重量、隱私、授權、社群活躍度選。",
+    "architecture": null,
+    "integration": [],
+    "hosts": {
+      "claude_code": "unknown",
+      "others": null
+    },
+    "runs": "unknown",
+    "privacy": null,
+    "security": null,
+    "resources": null,
+    "license": {
+      "spdx": null,
+      "basis": "方格子文章",
+      "label": "usable",
+      "notes": "只讀與引用。"
+    },
+    "weaknesses": "作者與日期未標；四個專案都沒附網址；mem-agent benchmark 是轉述官方說法未實測。文中的 dejavu 與使用者種子的 HMAKT99/Dejavu、文中的 memory-os 與種子的 bmaltais/memory-os 都是同名不同專案。dejavu 的 repo 到 11 月已 404；OpenHuman 已轉型為 agent harness。",
+    "alternatives": [
+      "article-vocus-memory-os-layers"
+    ],
+    "learning_value": "作者觀察三個專案都用 Markdown／Obsidian 風格當記憶單位，四個都本機優先；但「本機儲存」不等於「不送雲端」，dejavu 走 Venice、memory-os 預設用 OpenRouter embedding。",
+    "integration_value": "提醒：記憶工具同名很多，要以 repo 擁有者分辨。",
+    "tier": 3,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://vocus.cc/article/6a48c442fd89780001ba1661",
+        "level": "READ",
+        "note": "全文（WebFetch 摘要）"
+      }
+    ]
+  },
+  {
+    "id": "article-vocus-memory-os-layers",
+    "name": "〈AI Agent 的遺忘不是一個問題，是七個：memory-os 的分層設計〉",
+    "category": "memory-context",
+    "also": [],
+    "type": "article",
+    "urls": {
+      "source": null,
+      "official": "https://vocus.cc/article/6a37e0c6fd8978000159fc90",
+      "docs": null
+    },
+    "read_at": "2026-11-21 讀；星數快照 2026-06-05",
+    "summary": "介紹 ClaudioDrews/memory-os 的七層記憶，主張向量搜尋＋注入只解決「找到」，沒解決「agent 會不會用」。",
+    "architecture": null,
+    "integration": [],
+    "hosts": {
+      "claude_code": "unknown",
+      "others": null
+    },
+    "runs": "unknown",
+    "privacy": null,
+    "security": null,
+    "resources": null,
+    "license": {
+      "spdx": null,
+      "basis": "方格子文章",
+      "label": "usable",
+      "notes": "只讀與引用。"
+    },
+    "weaknesses": "作者說沒有自己完整部署，競品比較依官方自述；沒提預設送 OpenRouter 做 embedding。",
+    "alternatives": [
+      "article-vocus-local-memory-four"
+    ],
+    "learning_value": "「記住了但 agent 不用」是可觀察的失敗模式，值得量。",
+    "integration_value": "見 memory-os-claudiodrews。",
+    "tier": 3,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://vocus.cc/article/6a37e0c6fd8978000159fc90",
+        "level": "READ",
+        "note": "全文（WebFetch 摘要）"
+      }
+    ]
+  },
+  {
+    "id": "article-vocus-cost-routing",
+    "name": "〈AI 成本優化：壓縮、路由、替換，Factory Router 帶來的不只是省錢〉",
+    "category": "benchmark-evaluation",
+    "also": [
+      "agent-workflows"
+    ],
+    "type": "article",
+    "urls": {
+      "source": null,
+      "official": "https://vocus.cc/article/6a2f761ffd89780001b51c13",
+      "docs": null
+    },
+    "read_at": "2026-11-21 讀；文中新聞 2026-05-22～06-05",
+    "summary": "把降低 AI 成本分成壓縮（headroom）、路由（OpenSquilla 規則式、Factory Router 依難度）、替換（deepclaude 換後端、ds4 本機 DeepSeek）三層，主張先診斷瓶頸再選策略。",
+    "architecture": null,
+    "integration": [],
+    "hosts": {
+      "claude_code": "unknown",
+      "others": null
+    },
+    "runs": "unknown",
+    "privacy": null,
+    "security": null,
+    "resources": null,
+    "license": {
+      "spdx": null,
+      "basis": "方格子文章",
+      "label": "usable",
+      "notes": "只讀與引用。"
+    },
+    "weaknesses": "工具都沒附網址；headroom「60～95% 壓縮」等數字未附來源；作者自己提醒 Factory 數字只是上限參考。",
+    "alternatives": [
+      "factory-router"
+    ],
+    "learning_value": "三層分法與框架現況對照：壓縮＝rtk／agf run 有界輸出；路由＝人工決定、指定模型子代理；替換＝框架不做。",
+    "integration_value": "headroom、OpenSquilla、deepclaude、ds4 列入待確認。",
+    "tier": 3,
+    "use": [
+      "study-only"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://vocus.cc/article/6a2f761ffd89780001b51c13",
+        "level": "READ",
+        "note": "全文（WebFetch 摘要）"
+      }
+    ]
+  },
+  {
+    "id": "article-ginseng-ep091",
+    "name": "〈你知道嗎：vibe coding 做的 app，資安要從哪裡顧起？〉（人蔘 Try Catch ep091）",
+    "category": "security-devops",
+    "also": [
+      "agent-workflows"
+    ],
+    "type": "article",
+    "urls": {
+      "source": null,
+      "official": "https://ginseng.dnplus.dev/blog/ep091",
+      "docs": null
+    },
+    "read_at": "2026-11-06 發表；2026-11-21 讀",
+    "summary": "用永豐銀行、91APP、幣安三起 2026 事件講資安三段（事前、事中、事後）與三個 A（認證、授權、稽核）；示範每講一個名詞就跑一次 pstack 的 teach，讓 AI 用自己的專案（PA Cafe）舉例。",
+    "architecture": null,
+    "integration": [],
+    "hosts": {
+      "claude_code": "unknown",
+      "others": null
+    },
+    "runs": "unknown",
+    "privacy": null,
+    "security": "建議：所有帳號開 MFA（實體金鑰／passkey 優先、避開簡訊）、publishable 與 secret key 分開且 secret 不放前端、開紀錄並比對各平台保留天數、為自己的 app 寫 audit log。幣安事件的路徑是假面試誘騙下載惡意 repo、再透過內部 AI 工具擴散。",
+    "resources": null,
+    "license": {
+      "spdx": null,
+      "basis": "部落格文章",
+      "label": "usable",
+      "notes": "只讀與引用。"
+    },
+    "weaknesses": "作者說明是入門課；幣安為初步報告、91APP 為最大可能範圍、金管會部分來自轉載。",
+    "alternatives": [
+      "pstack-cursor"
+    ],
+    "learning_value": "teach 的實際用法：把抽象概念綁到使用者自己的程式（例如權限判斷在哪個檔案），而不是通用解說；幣安案例說明「clone 不明 repo＋AI 工具」本身就是攻擊面。",
+    "integration_value": "guide-learning 可借「每個新名詞用使用者自己的專案舉例」；幣安案例支持框架「clone 的程式不執行、只讀」的規則。",
+    "tier": 3,
+    "use": [
+      "learn"
+    ],
+    "evidence": "docs",
+    "confidence": "medium",
+    "references": [
+      {
+        "url": "https://ginseng.dnplus.dev/blog/ep091",
+        "level": "READ",
+        "note": "全文（WebFetch 摘要）"
+      }
+    ]
+  }
+]

@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 import re
 
+from . import ecosystem
+
 
 def _description(value):
     """Validate this package's deliberately small one-line YAML subset."""
@@ -83,6 +85,9 @@ def audit(root):
             local = target.split("#", 1)[0]
             if local and not (path.parent / local).is_file():
                 errors.append(f"{path}: missing linked file {local}")
+    catalog = ecosystem.check(directory)
+    errors.extend(catalog["errors"])
+    warnings.extend(catalog["warnings"])
     return {"status": "PASS" if not errors else "FAIL", "skills": skills,
             "python_files": python_files, "json_files": json_files, "errors": errors, "warnings": warnings,
             "meaning": "Static structure, supported frontmatter fields, local links and Python/JSON syntax only. Does not measure routing, reasoning, prose or learning.",

@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "updated": "2026-11-21",
+  "categories": {
+    "agent-workflows": {
+      "title": "AI coding 工作流程",
+      "page": "categories/agent-workflows.md"
+    },
+    "memory-context": {
+      "title": "記憶與 context 管理",
+      "page": "categories/memory-context.md"
+    },
+    "code-understanding": {
+      "title": "程式理解與 code graph",
+      "page": "categories/code-understanding.md"
+    },
+    "agent-skills": {
+      "title": "Agent skills 與規則",
+      "page": "categories/agent-skills.md"
+    },
+    "mcp-cli-api": {
+      "title": "MCP、CLI 與 API 整合",
+      "page": "categories/mcp-cli-api.md"
+    },
+    "shell-utilities": {
+      "title": "Shell 工具與格式轉換",
+      "page": "categories/shell-utilities.md"
+    },
+    "document-processing": {
+      "title": "文件解析、OCR 與 PDF",
+      "page": "categories/document-processing.md"
+    },
+    "visualization": {
+      "title": "圖解與視覺化",
+      "page": "categories/visualization.md"
+    },
+    "web-research": {
+      "title": "網頁研究、資料集與擷取",
+      "page": "categories/web-research.md"
+    },
+    "security-devops": {
+      "title": "CI/CD、資安與授權工具",
+      "page": "categories/security-devops.md"
+    },
+    "benchmark-evaluation": {
+      "title": "評測、模型路由與可觀測性",
+      "page": "categories/benchmark-evaluation.md"
+    },
+    "ai-writing": {
+      "title": "寫作、研究與 Podcast",
+      "page": "categories/ai-writing.md"
+    },
+    "ai-music": {
+      "title": "音樂與音訊",
+      "page": "categories/ai-music.md"
+    },
+    "ai-video": {
+      "title": "影片與動畫",
+      "page": "categories/ai-video.md"
+    }
+  },
+  "entries": []
+}

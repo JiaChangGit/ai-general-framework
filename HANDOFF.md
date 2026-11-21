@@ -3,6 +3,16 @@
 更新日期：2026-11-21（S15 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
 
+> **S16 進行中（2026-11-21）。** 在 `../ai-general-framework-s16` 的 `s16-ecosystem` 分支：建立外部資源資料庫（`docs/ecosystem/`）、對照使用者兩份需求寫分析第六輪與路線圖。研究規格在 `studies/ecosystem-2026-11/SPEC.md`，三個子代理（W、C、M）的筆記與草稿寫在同一個資料夾的 `*.md` 與 `drafts/*.json`。使用者這輪的決定寫在 SPEC 開頭。被額度打斷時：先看哪些草稿已經寫出，缺的分類只補那一塊，不要整批重跑。
+>
+> **2026-11-21 撞到用量上限時的狀態（WIP commit）：**
+> - 已完成：分析第六輪與路線圖（`docs/analysis-2026-11.md`）；`agf/ecosystem.py`（check／render／refresh／find，audit 會呼叫）與 `tests/test_ecosystem.py`；`docs/ecosystem/` 的 README、security.md、license.md、14 個分類頁骨架、空的 `entries.json`；文件解析試跑全部完成（`studies/ecosystem-2026-11/trials/docparse/RESULTS.md`）；C 程式理解試跑只做了傳統工具（`trials/codegraph/classic-output.txt`，結論：cflow `--cpp` 與 clang 處理得了巨集與 `#ifdef`，沒有工具解得出 ops table 與 callback）。
+> - 草稿：W（48 筆）、M（133 筆）已完成；C 子代理在撞上限時還在跑，`drafts/C.json` 與 `C-code-tools.md` 可能不完整，先看筆記最後寫到哪。
+> - 已用一手來源核對的資安事件：Trivy CVE-2026-33634（2026-03-19，NVD）、LiteLLM 1.82.7／1.82.8（2026-03-24，OSV MAL-2026-2144）、LiteLLM 1.107.0（2026-10-21，The Register、BleepingComputer）。~/src 底下沒有專案用到 trivy-action、setup-trivy 或 LiteLLM。
+> - 剛改完、還沒加測試：`ecosystem.py` 允許 `{"path": "docs/link-study.md", "level": "RECORD"}` 這種指向框架內舊紀錄的 reference（W 的 9 筆用了絕對路徑，合併時改成相對路徑）。
+> - 下一步，依序：(1) 替 RECORD reference 加測試；(2) 寫合併腳本 `studies/ecosystem-2026-11/merge.py`：讀三份草稿、補 `checked`、絕對路徑改相對、把 `supply-chain-incidents-*` 從 entries 移到 security.md 的事件段、依試跑調整 tier 與 evidence（pymupdf4llm、Docling、Marker、OCRmyPDF、markitdown 改 `ran`；pymupdf4llm 升 Tier 1），寫進 `docs/ecosystem/entries.json`；(3) `python -m agf.ecosystem refresh`、`render`、`check`；(4) 程式理解的 AI 工具試跑（看 C 的建議，題目在 `trials/codegraph/fixture/truth.json`），寫 `trials/codegraph/RESULTS.md`；(5) 寫分類頁的說明、`comparisons/` 五頁、`articles.md`、`recommendations.md`（README 已連到它們，現在 audit 會因連結不存在而失敗）；(6) CHANGELOG、更新這份交接、最後 commit。
+> - 試跑的映像檔（`agf-parse-*:s16`、`agf-codegraph-classic:s16`）與原始輸出在 `~/.cache/agf-ecosystem/trials/`，clone 的 repo 在 `~/.cache/agf-ecosystem/repos/`。
+
 ## 一開始先做什麼
 
 ```bash

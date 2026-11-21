@@ -1,0 +1,26 @@
+{
+  "build": "cc -Wall -Wextra -Iinclude src/*.c (CONFIG_FAST_PATH not defined); the binary exits with 3, the value slow_submit returns",
+  "direct_edges": [
+    ["main", "handle_uart"], ["main", "handle_spi"], ["main", "timer_setup"], ["main", "timer_fire"], ["main", "submit"],
+    ["handle_uart", "dev_open"], ["handle_spi", "dev_open"],
+    ["heartbeat", "dev_close"],
+    ["submit", "slow_submit"],
+    ["uart_open", "uart_reset"], ["uart_close", "uart_reset"]
+  ],
+  "indirect_edges": [
+    ["dev_open", "uart_open", "dev->ops->open, uart_ops at src/uart.c:19"],
+    ["dev_open", "spi_open", "dev->ops->open, spi_ops at src/spi.c:14"],
+    ["dev_close", "uart_close", "dev->ops->close"],
+    ["dev_close", "spi_close", "dev->ops->close"],
+    ["timer_fire", "heartbeat", "t->cb registered by timer_setup(&t, heartbeat, &uart) in main"]
+  ],
+  "inactive_edges": [["submit", "fast_submit", "only when CONFIG_FAST_PATH is defined (src/main.c:17-21)"]],
+  "macro_definitions": {"handle_uart": "src/main.c:9", "handle_spi": "src/main.c:10"},
+  "questions": {
+    "Q1 callers of dev_open": ["handle_uart", "handle_spi"],
+    "Q2 functions dev_open can reach through the ops table": ["uart_open", "spi_open"],
+    "Q3 function run by timer_fire in this program": ["heartbeat"],
+    "Q4 submit calls which function in this build": ["slow_submit"],
+    "Q5 where handle_uart is defined": ["src/main.c:9"]
+  }
+}
