@@ -1,5 +1,9 @@
 # CI/CD、資安與授權工具
 
+CI/CD、秘密掃描、相依漏洞、SBOM、GitHub Actions 的安全檢查、授權掃描，以及掃描 MCP 與 skill 的工具。先看[審查清單](../security.md)的近期事件：2026 年 Trivy 的 GitHub Action 與 LiteLLM 都被植入竊密程式，掃描工具本身也要固定版本。框架的 CI 已用 commit SHA 引用 Action。
+
+對個人框架最划算的是 zizmor（掃 GitHub workflow 的安全問題）、actionlint、gitleaks 與 osv-scanner；授權掃描（ScanCode、REUSE）等要引入外部程式碼時再用。
+
 <!-- ecosystem:table security-devops -->
 | 名稱 | 類型 | Tier | 授權 | 最後更新 | 證據 | 說明 |
 |---|---|---|---|---|---|---|

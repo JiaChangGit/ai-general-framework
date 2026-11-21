@@ -1,5 +1,9 @@
 # 影片與動畫
 
+不靠大型影片生成模型、用程式產生影片：AI 寫腳本、分鏡與場景程式碼，本機的 renderer 組成 MP4。最貼近這個流程的是 Stickman Kino（全本機、用 Kokoro 做旁白、旁白長度決定畫面）；Remotion（React，個人與三人以下公司免費）、Hyperframes（HTML 加 GSAP）、Manim（數學與演算法動畫）、Motion Canvas 是不同的場景寫法。
+
+8 GB 的 WSL 跑得動，瓶頸在 headless Chrome 逐格渲染。Stickman Kino 的安裝腳本會下載並安裝 Chrome 函式庫與 TTS 模型，要先在容器裡評估。
+
 <!-- ecosystem:table ai-video -->
 | 名稱 | 類型 | Tier | 授權 | 最後更新 | 證據 | 說明 |
 |---|---|---|---|---|---|---|

@@ -1,5 +1,9 @@
 # 評測、模型路由與可觀測性
 
+量框架有沒有幫助、花了多少：評測框架、coding 與記憶 benchmark、模型路由、tracing 與用量統計。框架已有 `evals/host/impact.py` 做有無框架的配對量測。
+
+這一輪最有用的兩個發現：Claude Code 內建的 OpenTelemetry 能把 cost 與 token 依 `skill.name`、`agent.name` 分開，內容紀錄預設關閉，只開 metrics 送到本機就符合使用者的隱私決定；Promptfoo 有斷言 skill 叫用次數的功能（它在 2026-03 被 OpenAI 收購，telemetry 預設開）。各家 benchmark 分數多是自報，不能互比。
+
 <!-- ecosystem:table benchmark-evaluation -->
 | 名稱 | 類型 | Tier | 授權 | 最後更新 | 證據 | 說明 |
 |---|---|---|---|---|---|---|

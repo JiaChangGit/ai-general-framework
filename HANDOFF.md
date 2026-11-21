@@ -1,33 +1,23 @@
 # 接手文件
 
-更新日期：2026-11-21（S15 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
+更新日期：2026-11-22（S16 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
-
-> **S16 進行中（2026-11-21）。** 在 `../ai-general-framework-s16` 的 `s16-ecosystem` 分支：建立外部資源資料庫（`docs/ecosystem/`）、對照使用者兩份需求寫分析第六輪與路線圖。研究規格在 `studies/ecosystem-2026-11/SPEC.md`，三個子代理（W、C、M）的筆記與草稿寫在同一個資料夾的 `*.md` 與 `drafts/*.json`。使用者這輪的決定寫在 SPEC 開頭。被額度打斷時：先看哪些草稿已經寫出，缺的分類只補那一塊，不要整批重跑。
->
-> **2026-11-21 撞到用量上限時的狀態（WIP commit）：**
-> - 已完成：分析第六輪與路線圖（`docs/analysis-2026-11.md`）；`agf/ecosystem.py`（check／render／refresh／find，audit 會呼叫）與 `tests/test_ecosystem.py`；`docs/ecosystem/` 的 README、security.md、license.md、14 個分類頁骨架、空的 `entries.json`；文件解析試跑全部完成（`studies/ecosystem-2026-11/trials/docparse/RESULTS.md`）；C 程式理解試跑只做了傳統工具（`trials/codegraph/classic-output.txt`，結論：cflow `--cpp` 與 clang 處理得了巨集與 `#ifdef`，沒有工具解得出 ops table 與 callback）。
-> - 草稿：W（48 筆）、M（133 筆）已完成；C 子代理在撞上限時還在跑，`drafts/C.json` 與 `C-code-tools.md` 可能不完整，先看筆記最後寫到哪。
-> - 已用一手來源核對的資安事件：Trivy CVE-2026-33634（2026-03-19，NVD）、LiteLLM 1.82.7／1.82.8（2026-03-24，OSV MAL-2026-2144）、LiteLLM 1.107.0（2026-10-21，The Register、BleepingComputer）。~/src 底下沒有專案用到 trivy-action、setup-trivy 或 LiteLLM。
-> - 剛改完、還沒加測試：`ecosystem.py` 允許 `{"path": "docs/link-study.md", "level": "RECORD"}` 這種指向框架內舊紀錄的 reference（W 的 9 筆用了絕對路徑，合併時改成相對路徑）。
-> - 下一步，依序：(1) 替 RECORD reference 加測試；(2) 寫合併腳本 `studies/ecosystem-2026-11/merge.py`：讀三份草稿、補 `checked`、絕對路徑改相對、把 `supply-chain-incidents-*` 從 entries 移到 security.md 的事件段、依試跑調整 tier 與 evidence（pymupdf4llm、Docling、Marker、OCRmyPDF、markitdown 改 `ran`；pymupdf4llm 升 Tier 1），寫進 `docs/ecosystem/entries.json`；(3) `python -m agf.ecosystem refresh`、`render`、`check`；(4) 程式理解的 AI 工具試跑（看 C 的建議，題目在 `trials/codegraph/fixture/truth.json`），寫 `trials/codegraph/RESULTS.md`；(5) 寫分類頁的說明、`comparisons/` 五頁、`articles.md`、`recommendations.md`（README 已連到它們，現在 audit 會因連結不存在而失敗）；(6) CHANGELOG、更新這份交接、最後 commit。
-> - 試跑的映像檔（`agf-parse-*:s16`、`agf-codegraph-classic:s16`）與原始輸出在 `~/.cache/agf-ecosystem/trials/`，clone 的 repo 在 `~/.cache/agf-ecosystem/repos/`。
 
 ## 一開始先做什麼
 
 ```bash
 git -C <框架目錄> status --short          # 預期：沒有輸出
-git -C <框架目錄> log --oneline -3         # 預期：最上面是 S15 的 commit（見 CHANGELOG），或使用者之後的新 commit
+git -C <框架目錄> log --oneline -3         # 預期：最上面是 S16 的 commit（見 CHANGELOG），或使用者之後的新 commit
 python3 -B <框架目錄>/scripts/agf.py audit --root <框架目錄>      # 預期："errors": []、"warnings": []
 (cd <框架目錄> && python3 -B -m unittest discover -s tests)        # 預期：OK（有幾個依平台略過）
 python3 -B <框架目錄>/scripts/agf.py task checkpoint --help        # 預期：列出 --done、--doing、--next、--repo、--append
 ```
 
-`<框架目錄>` 換成實際的位置。S12～S15 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s15`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以 `git -C <框架目錄> log --oneline -5` 為準。
+`<框架目錄>` 換成實際的位置。S12～S16 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s16`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以 `git -C <框架目錄> log --oneline -5` 為準。
 
 ## 目前的位置
 
-修改與驗證在 [CHANGELOG.md](CHANGELOG.md)；分析與排好順序的待辦在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md)（S11、S12 在最後兩節）；研究與量測在 [studies/](studies/README.md)。
+修改與驗證在 [CHANGELOG.md](CHANGELOG.md)；分析與排好順序的待辦在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md)（第六輪的路線圖在最後）；研究與量測在 [studies/](studies/README.md)；外部資源資料庫在 [docs/ecosystem/](docs/ecosystem/README.md)。
 
 S12 的重點：
 
@@ -42,6 +32,13 @@ S12 的重點：
 S13：常駐規則從 1,413 字縮到 1,073 字，固定成本少約 310 tokens，S11 的 8 個任務照樣全過（[I 報告](studies/research-2026-11/I-rules-s13.md)）。省得不多；要再省，見分析報告第四輪。
 
 S14：常駐規則只留四段，其餘放需要時才讀的 `docs/practices.md`；寫作指引那一句留在常駐，並寫明什麼時候要讀 `practices.md`。固定成本少約 220 tokens。做事的 session 幾乎都會去讀 `practices.md`，花費和之前差不多（[J 報告](studies/research-2026-11/J-s14.md)）。被宿主擋下的 Skill 呼叫，量測工具另記在 `skill_calls_blocked`。
+
+S16（2026-11-21～22）：使用者給了兩份長需求（框架怎麼演進、外部資源資料庫）。這一輪照使用者的選擇只做分析、資料庫與路線圖，規則、skill 與既有命令沒有改。
+
+- **分析第六輪**：第一份需求逐項對照現有框架，路線圖是 S17 共通能力（按需讀的文件）→ S18 有標準答案的 benchmark 題目 → S19 C 與 kernel 的程式理解 → S20 研究文件 → S21 跨宿主交接。
+- **資料庫**：`docs/ecosystem/` 237 筆，`entries.json` 是唯一資料來源，分類頁的表格由 `python -m agf.ecosystem render` 產生，`agf audit` 會檢查表格與資料一致。新增一筆的方法在資料庫的 README。
+- **兩組試跑**（`studies/ecosystem-2026-11/trials/`）：文件解析與 C 程式理解，都用自己做的、答案已知的材料。映像檔 `agf-parse-*:s16`、`agf-codegraph-*:s16` 留在本機 Docker，原始輸出與 clone 下來的 repo 在 `~/.cache/agf-ecosystem/`（不在版本庫）。
+- **研究方式的教訓**：子代理用 `gh api` 抓維護狀態、clone 只讀，結果先寫進檔案，撞到額度時沒有丟；但子代理的事件表來自搜尋摘要，寫進資料庫前要主 session 自己回一手來源核對（這輪核對的四件都屬實，另外發現一件子代理沒找到）。
 
 ## 拿框架到別的專案測試
 
@@ -60,17 +57,23 @@ S14：常駐規則只留四段，其餘放需要時才讀的 `docs/practices.md`
 
 ## 還沒做的事
 
-依分析報告第五輪的優先順序：
+依分析報告第六輪的路線圖：
 
-1. **使用者**把 `s15-windows` 併進 main（`git -C <框架目錄> pull --ff-only ../ai-general-framework-s15 s15-windows`），再 push，確認 GitHub 上 CI 的 Windows job 恢復通過。
-2. （中）寫作指引拆成常用的短版與完整版，量文字品質（照 S14 的盲評方法）與花費。常駐規則的拆分已在 S14 做完：固定成本少了，做事的 session 花費卻差不多。
-3. （已決定）`save_prompts` 在使用者的專案不開，再送一次給模型服務也算上雲端；guard hook 維持裝在工作區上一層（`/home/user/src/.claude/settings.json`），不移到使用者層級。兩者都是 2026-11-19 使用者的決定。
-4. 要等使用者 push 的：在 GitHub 上實際跑一次 `skill-triggers.yml`（並設定 `ANTHROPIC_API_KEY`，會花錢）。
-5. （低）教學文件格式的個人化（第二輪的建議）；子命令退場（先累積使用紀錄）。
+1. **使用者**把 `s16-ecosystem` 併進 main（`git -C <框架目錄> pull --ff-only ../ai-general-framework-s16 s16-ecosystem`），再 push。S15 在 2026-11-21 開始時已經在 main，而且和 origin/main 一致。
+2. （建議下一步）S16 的變更交給另一個模型獨立審查：`agf/ecosystem.py` 與測試、資料庫裡 Tier 1 項目的事實、兩份試跑結果的解讀。前幾輪都有做，這一輪沒有。
+3. （S17）共通能力，全部寫在按需讀的文件：證據順序與文件不一致的紀錄方式、資料分級表、模型與 effort 短表、規格樣板、maintenance 指引的「錯誤出現兩次就升級成檢查」；tools 指引的「不另建中央評分庫」改寫成指向資料庫。驗收方式見分析報告。
+4. （S18～S21）見分析報告第六輪的路線圖。
+5. 第五輪留下的：寫作指引拆短版與完整版（中）；在 GitHub 上跑一次 `skill-triggers.yml`（要 `ANTHROPIC_API_KEY`，會花錢）；教學文件格式的個人化與子命令退場（低）。
+6. 要使用者回答的名稱（FastCtx 指哪一版、Mythpen 的來源）列在 `docs/ecosystem/recommendations.md`；不影響其他工作。
+7. （已決定）`save_prompts` 在使用者的專案不開；guard hook 維持裝在工作區上一層（`/home/user/src/.claude/settings.json`）。都是 2026-11-19 使用者的決定。
 
 沒有在真實 session 觸發過的：續接 hook 的 PreCompact、PostCompact、StopFailure、PreModelSwitch。`align-with-me` 在 2026-11-19 第一次被使用者實際叫用，照 skill 寫的流程走完。`debug-root-cause` 新加的「先驗證前提、附證據」量過一次（`debug-wrong-premise`），兩組都做對，量不出作用。
 
 ## 踩過的坑
+
+- **試跑工具時，答案檔不要放在被分析的資料夾裡。** S16 的 C 試跑第一次把 `truth.json` 一起交給 code graph 工具，codebase-memory-mcp 把它收進索引，查詢先回答案檔的內容。只複製要分析的檔案。
+- **「本機執行」的工具要斷網跑一次才算數。** S16 的 Docling、Marker 在下載過模型之後，第一次斷網執行仍然失敗（還要另外的參數或暖機）。試跑都加 `--network none`。
+- **Claude Code 會擋 `rm -f 目錄/*` 這類可能刪太多的命令**，由使用者才能核准。要重做輸出時換一個新的資料夾。
 
 - **框架的主目錄被 deny 規則與 guard hook 保護。** 工作區上一層的 `.claude/settings.json` 禁止用 Edit／Write 改框架目錄，PreToolUse 的 guard hook 也擋 push、PR、`pkill -f`，以及在框架 repo 裡的 git 寫入（包括 `worktree add`）。這是使用者刻意設的，不要去改它。使用者點名要改框架時，用 `git clone <框架目錄> ../ai-general-framework-<名稱>` 複製一份，在複本開分支修改；改完由使用者自己 `pull --ff-only` 併進 main。clone 的 `origin` 指向本機的框架目錄，不是 GitHub。
 - **舊版 guard hook 會誤擋 heredoc。** 使用者把 S11 併進 main 之後已修正；如果看到 heredoc 裡的文字被當成命令擋下，先確認 main 是不是新版。

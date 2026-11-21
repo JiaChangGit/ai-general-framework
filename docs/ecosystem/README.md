@@ -120,6 +120,7 @@ jq '.entries[] | select(.runs == "local" and .category == "document-processing")
 
 ## 限制
 
-- 2026-11-21 第一次建立，由三個子代理研究、主 session 核對整理。多數項目只讀了文件，`evidence` 欄照實標示；作者自己公布的 benchmark 寫成作者自報。
+- 2026-11-21～22 第一次建立：三個子代理研究，主 session 核對、合併（[merge.py](../../studies/ecosystem-2026-11/merge.py) 列出主 session 改過的每一處）。237 筆裡，實際執行過 13 筆（文件解析與 C 程式理解的[試跑](../../studies/ecosystem-2026-11/trials/README.md)）、讀過原始碼 45 筆、讀過文件 92 筆、只有搜尋摘要 87 筆（多數是知名的 shell 工具）。作者自己公布的 benchmark 寫成作者自報。
+- 資安事件只有標「已核對」的讀過一手來源，見[審查清單](security.md)的近期事件。
 - 授權標記不是法律意見。
 - 只查了公開資料；沒有使用者帳號內、公司內網或付費資料庫的資訊。

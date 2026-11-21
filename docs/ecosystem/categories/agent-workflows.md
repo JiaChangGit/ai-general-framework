@@ -1,5 +1,9 @@
 # AI coding 工作流程
 
+讓 AI 做工程工作的方法：規劃、設計取捨、驗證、交接、控制產出量。多數是 skill 集或規則，差別在觸發方式與自主程度。框架現在的對應是 `align-with-me`、workflow 指引與常駐規則；逐項對照見 [AI coding 工作流程比較](../comparisons/agent-workflows.md)。
+
+選的時候先看兩件事：skill 由誰叫用（使用者、模型，或每個 session 強制注入），以及它會不會自己做外部動作（開 PR、合併、使用任何 MCP）。後者和框架「不 push、不開 PR」的規則衝突，只能借設計。pstack 有一份上游、三種包裝，Ponytail 有兩版，比較頁有分清楚。
+
 <!-- ecosystem:table agent-workflows -->
 | 名稱 | 類型 | Tier | 授權 | 最後更新 | 證據 | 說明 |
 |---|---|---|---|---|---|---|

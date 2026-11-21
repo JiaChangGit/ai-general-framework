@@ -1,5 +1,9 @@
 # 文件解析、OCR 與 PDF
 
+把 PDF、Office、圖片與音訊轉成 AI 讀得了的文字，同時保留頁碼與來源。這一輪在 Docker 裡試跑了六個工具，結果、比較與建議的流程見[文件解析比較](../comparisons/document-parsers.md)。
+
+重點：文字型 PDF 用 pymupdf4llm（只能當外部命令，AGPL）或 Docling（要頁碼與座標時用它的 JSON）；掃描件先用 OCRmyPDF 加文字層。沒有 OCR 的工具遇到掃描件會輸出空檔、exit code 卻是 0，所以每次都要檢查輸出長度。
+
 <!-- ecosystem:table document-processing -->
 | 名稱 | 類型 | Tier | 授權 | 最後更新 | 證據 | 說明 |
 |---|---|---|---|---|---|---|

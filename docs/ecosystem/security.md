@@ -53,6 +53,23 @@ SKILL.md、references 與附帶的 scripts 都是會被模型讀進去的指令�
 - 近期的供應鏈事件：被入侵的 GitHub Action、被搶註或植入的套件版本。有的話記下日期、受影響版本與來源。
 - 沒查到公開漏洞，不代表安全；寫「未發現公開紀錄（查核日期）」。
 
+### 近期事件（2026-11-22 整理）
+
+都和這份資料庫收錄的工具有關。「已核對」表示主 session 讀過官方公告或漏洞資料庫的條目；其他只看到搜尋摘要或子代理的筆記。
+
+| 日期 | 事件 | 受影響 | 來源 |
+|---|---|---|---|
+| 2026-03-19 | Trivy 生態系被入侵（CVE-2026-33634）：惡意的 Trivy v0.69.4，`aquasecurity/trivy-action` 的版本 tag 被改指到竊密程式 | trivy-action 0.0.1～0.34.2、setup-trivy 0.2.0～0.2.6；用 tag 而不是 commit SHA 引用的 workflow | 已核對：[NVD](https://nvd.nist.gov/vuln/detail/CVE-2026-33634)；CISA 已列入 KEV |
+| 2026-03-24 | LiteLLM 1.82.7、1.82.8 在 PyPI 被植入竊密程式；維護者的 PyPI 憑證是從 CI 裡被入侵的 Trivy 洩漏的 | 這兩個版本；1.82.8 用 `.pth` 檔，任何 Python 程序啟動都會執行 | 已核對：[OSV MAL-2026-2144](https://osv.dev/vulnerability/MAL-2026-2144)、[LiteLLM 公告](https://docs.litellm.ai/blog/security-update-march-2026) |
+| 2026-10-21 | LiteLLM 1.107.0 的發布流程被劫持，PyPI 七個 wheel 與官方 Docker 映像都帶竊密程式與每小時回連的下載器 | 1.107.0；最後安全版 1.106.2 | 已核對：[The Register](https://theregister.com/security/2026-10-21/litellm-supply-chain-attack-hoovers-up-passwords-and-secrets/5304548)、[BleepingComputer](https://bleepingcomputer.com/news/security/litellm-release-pipeline-hacked-to-distribute-info-stealer-malware) |
+| 2026-02（2026-08-18 給 CVE） | ContextCrush（CVE-2026-75130）：Context7 的社群規則原樣送給 agent，可夾帶指令 | 使用 Context7 MCP 的 agent；Upstash 已從伺服器端修正，使用者端不用升級 | 已核對：[NVD](https://nvd.nist.gov/vuln/detail/CVE-2026-75130)、[Context7 說明](https://context7.com/guides/contextcrush) |
+| 2025-03 | tj-actions/changed-files 被入侵，會把 CI secrets 印到 log（CVE-2025-30066） | 使用該 Action 的 repo | 搜尋摘要（子代理 M） |
+| 2026-03～04 | Checkmarx 的 KICS 與 AST GitHub Action 被同一批攻擊者入侵 | 見子代理 M 的筆記 | 搜尋摘要（子代理 M） |
+
+研究時在被研究的內容裡看到、沒有照做的指令：MinerU 的 README 有一段寫給 AI agent 的話，要它用 `npx skills add … --global --yes` 全域安裝第三方 skill；Graphify 的 skill 在找不到套件時會自動 `pip install … --break-system-packages`。工具文件本身也可能是 prompt injection 的來源。
+
+2026-11-22 查過：`~/src` 底下的專案沒有用到 trivy-action、setup-trivy 或 LiteLLM；框架自己的 CI 用 commit SHA 引用 Action。
+
 ## 7. 試用
 
 使用者允許試跑時，在 Docker 容器裡做：不掛載家目錄，只掛一個放測試資料的資料夾，測試資料不含私人內容或公司程式碼。記下 image、版本、命令與結果。要給它網路時，說明它會連到哪裡。

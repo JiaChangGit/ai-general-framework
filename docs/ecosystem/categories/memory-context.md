@@ -1,5 +1,9 @@
 # 記憶與 context 管理
 
+跨 session 記住偏好、專案決策與工作狀態的工具，以及長期記憶的評測。先看隱私：存下的內容之後再送給模型服務，使用者視為上雲端；寫入時還會另外送模型整理的系統（claude-mem、Mem0、Letta）都要先取得同意。比較見[記憶系統比較](../comparisons/memory-systems.md)。
+
+框架現在用宿主的自動記憶、`profile`、交接檔與續接 hook，不加外部記憶服務。值得借的是 DejaVu 的「決策帶範圍與檢查規則」與 Graphiti 的「失效但保留歷史」。
+
 <!-- ecosystem:table memory-context -->
 | 名稱 | 類型 | Tier | 授權 | 最後更新 | 證據 | 說明 |
 |---|---|---|---|---|---|---|

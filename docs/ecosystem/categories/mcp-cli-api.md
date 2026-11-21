@@ -1,5 +1,9 @@
 # MCP、CLI 與 API 整合
 
+讓 agent 接外部能力的介面：MCP server、CLI、API 與模型 gateway。先問同一件事能不能直接用 CLI 做：GitHub、GitLab 用 `gh`、`glab` 比包成 MCP 省 context，也少一個常駐程式。
+
+MCP 要看連線方式（本機 stdio 或遠端 HTTP）、認證範圍與工具描述；描述與回傳的文件都可能夾帶指令，Context7 的 ContextCrush（CVE-2026-75130）就是這一類。常駐的模型 gateway（LiteLLM proxy 等）不採用，理由見分析報告第六輪。
+
 <!-- ecosystem:table mcp-cli-api -->
 | 名稱 | 類型 | Tier | 授權 | 最後更新 | 證據 | 說明 |
 |---|---|---|---|---|---|---|

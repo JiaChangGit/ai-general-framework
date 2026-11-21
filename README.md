@@ -106,7 +106,7 @@ python scripts/agf.py integration template claude-guard-settings
 
 把前者存成檔案，依後者把它加進 `~/.claude/settings.json`（每個 session 都生效）或專案的 `.claude/settings.json`（只在從那個目錄啟動時生效），再用一個 JSON 列出受保護的路徑：`{"protected_paths": ["/path/to/repo"]}`。它只看命令列，看不到程式執行之後做了什麼（例如 `python3 -c` 寫檔），限制見檔案開頭的說明。
 
-完整命令、權限範圍、共用工具與 hooks 見 [CLI 操作](docs/cli.md)。[設計說明](docs/design.md)與[研究紀錄](docs/research.md)交代採納和刪減理由。共用創作指引可協助小說、音樂與投影片式影片；真正使用時再選可用工具，分清企劃、草稿與可播放成品。
+完整命令、權限範圍、共用工具與 hooks 見 [CLI 操作](docs/cli.md)。[設計說明](docs/design.md)與[研究紀錄](docs/research.md)交代採納和刪減理由。改善框架或挑選外部工具之前，先查[外部資源資料庫](docs/ecosystem/README.md)：約兩百多個專案、skill、MCP 與工具的授權、資料流向、限制與查核日期，另有同類工具的比較與試跑結果；在框架根目錄執行 `python -m agf.ecosystem find 關鍵字` 可以依關鍵字查。共用創作指引可協助小說、音樂與投影片式影片；真正使用時再選可用工具，分清企劃、草稿與可播放成品。
 
 本輪候選工具的盤點、合併及延後理由見[能力取捨](docs/capability-decisions.md)。[按需選型參考](templates/tool-selection/README.md)供跨來源／高成本任務使用，不必每次載入整張清單。資料庫工作可選配 `--skill review-sql`；不用設定外部服務或環境變數也能審查已提供的 SQL／計畫。採用 PawSQL、Bytebase 等服務時，才依所用介面核對設定與授權，憑證留在宿主登入、環境變數或 Secret Manager，不打包進框架。
 

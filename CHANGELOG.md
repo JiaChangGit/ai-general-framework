@@ -2,6 +2,25 @@
 
 每一輪寫：改了什麼、為什麼、怎麼驗證、還沒驗證什麼。細節在各 commit 的訊息與 [docs/verification.md](docs/verification.md)。
 
+## 2026-11-22：S16（分支 `s16-ecosystem`，在 clone `../ai-general-framework-s16` 裡做）
+
+起因：使用者給了兩份長需求，一份談框架接下來怎麼演進，一份要一個可以長期維護的外部資源資料庫。開始時一次問完四個決定：這一輪只做分析、資料庫與路線圖（規則、skill 與既有命令不改）；中等規模、用三個子代理平行研究；允許網頁搜尋、用 `gh` 唯讀查公開 repo、淺層 clone 讀原始碼、在 Docker 裡安裝試跑；四個工作領域都要涵蓋。途中撞到一次用量上限，額度恢復後照交接檔接著做。
+
+| 修改 | 為什麼 | 驗證 |
+|---|---|---|
+| `docs/analysis-2026-11.md` 第六輪：第一份需求逐項分成有、改、缺、整合、暫緩、衝突六類，加上不建議照做的項目與 S17～S21 路線圖 | 先從現有架構出發，找出真正缺的，而不是照需求清單加功能 | 文件；判斷依據是前五輪的量測與這次的研究，沒有新的量測 |
+| `docs/ecosystem/`：237 筆外部資源（`entries.json` 是唯一資料來源）、14 個分類頁、5 份比較、文章整理、建議與待確認、外部資源審查清單、授權判讀 | 第二份需求。資料庫只存 JSON：第二份需求建議 JSON 與 YAML 都放，但兩份會漂移，標準庫也讀不了 YAML | `python -m agf.ecosystem check` 通過；192 個 repo 的維護狀態用 `gh api` 唯讀抓取 |
+| `agf/ecosystem.py`：`check`、`render`、`refresh`、`find`，`agf audit` 會呼叫 `check` | 分類頁的表格由資料產生，資料改了表格沒更新就讓 audit 失敗；`find` 讓 session 先查再讀相關頁 | 新增 `tests/test_ecosystem.py` 8 個測試 |
+| `studies/ecosystem-2026-11/`：研究規格、三個子代理的原始筆記與草稿、`merge.py`（列出主 session 改過草稿的每一處）、兩組試跑 | 研究紀錄照慣例保留原始材料 | 草稿都通過格式檢查；W 用絕對路徑指向框架舊紀錄的 9 筆，改成相對路徑並加上檢查 |
+| 文件解析試跑：自己產生答案已知的三頁 PDF 與模擬掃描件，在斷網的容器裡跑 pdftotext、pymupdf4llm、markitdown、Docling（三種設定）、Marker、OCRmyPDF | 各家準確度都是自報，沒有中立比較 | `trials/docparse/RESULTS.md`。pymupdf4llm 與 Docling 在文字型 PDF 全對；沒有 OCR 的工具遇到掃描件輸出空檔、exit 0；Docling 與 Marker 要先暖機才能斷網執行 |
+| C 程式理解試跑：六個檔案、答案已知的 C 專案（ops table、callback、巨集產生的函式、`#ifdef`），七個工具回答五個問題 | 使用者最常做 C、kernel 與韌體 | `trials/codegraph/RESULTS.md`。沒有工具全對；cflow `--cpp`、clang 與 CodeGraph 剛好互補；callback 沒有工具解得出；codebase-memory-mcp 會安靜地漏掉巨集後面的函式 |
+| 資安事件查證 | 子代理的事件表來自搜尋摘要 | Trivy（CVE-2026-33634）、LiteLLM 兩次（2026-03、2026-10）、Context7 ContextCrush（CVE-2026-75130）都讀過一手來源；`~/src` 底下沒有專案用到受影響的 Action 或套件 |
+| `README.md` 加資料庫的入口 | 讓接手的 session 知道先查這裡 | audit 檢查連結 |
+
+**驗證**：Linux 317 個測試通過（7 個依平台略過）、audit 通過；Windows 的 Python 3.13 跑 `test_ecosystem` 與 `test_audit` 通過（14 個）。
+
+**沒做的事**：這一輪沒有交給另一個模型獨立審查。試跑沒有測 Serena＋clangd、Joern、MinerU、真實論文與 kernel 規模的程式。iOS、資料分析、量化、DevOps 等領域的 skill 只做到搜尋，沒有收錄。FastCtx、Mythpen 等名稱要使用者確認（見 `docs/ecosystem/recommendations.md`）。
+
 ## 2026-11-21：S15（分支 `s15-windows`，在 clone `../ai-general-framework-s15` 裡做）
 
 起因：核對狀態時發現，GitHub 上的 CI「Python core」在 S11、S14 兩次 push 後都失敗，失敗的是 Windows 的兩個 job。CI 的輸出被截在 16,000 字，只看得到續接 hook 的 7 個測試；用這台 Windows 的 Python 3.13 跑完整測試，才看到 guard hook 另外 4 個測試（29 個子案例）也失敗，而且修正前的 main 就是這樣。

@@ -1,5 +1,9 @@
 # 圖解與視覺化
 
+把技術內容畫成圖：流程、時序、狀態、架構、呼叫圖與資料圖表。框架的做法是 AI 寫 Mermaid 圖源、交 mermaid-cli 渲染（[tools 指引](../../tools.md)的圖解段），這一類以它為基準評估：其他工具要在 Mermaid 不夠用時才值得加，例如要可拖曳編輯（draw.io）、C++ 的 UML（clang-uml）、大型圖的自動排版（Graphviz、ELK）、互動式網路圖（Cytoscape.js）、資料圖表（Observable Plot）。
+
+從原始碼產生的圖，節點要能對回檔案與行號；程式改了就重新產生，不手動維護圖。
+
 <!-- ecosystem:table visualization -->
 | 名稱 | 類型 | Tier | 授權 | 最後更新 | 證據 | 說明 |
 |---|---|---|---|---|---|---|

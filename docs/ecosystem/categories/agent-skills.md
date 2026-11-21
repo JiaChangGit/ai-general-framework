@@ -1,5 +1,9 @@
 # Agent skills 與規則
 
+外部的 skill 集、skill 目錄網站，以及 skill 怎麼組合與觸發的研究。skill 是會被模型讀進去的指令，安裝前照[審查清單](../security.md)第 3 節看過。skill 目錄網站的安全分數只看 SKILL.md，不掃附帶的腳本：davila7 的 clean-code 拿到滿分，卻要求執行其他目錄的腳本。
+
+框架的原則是 skill 少而專（SkillsBench：2～3 個專注的 skill 效果最好），外部 skill 多半借做法，不整包安裝。韌體與 kernel 相關的有 Trail of Bits 的 c-review 等與 embedded-review。
+
 <!-- ecosystem:table agent-skills -->
 | 名稱 | 類型 | Tier | 授權 | 最後更新 | 證據 | 說明 |
 |---|---|---|---|---|---|---|

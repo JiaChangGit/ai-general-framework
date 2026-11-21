@@ -1,5 +1,9 @@
 # 音樂與音訊
 
+作曲、編曲、歌詞、記譜、歌聲與語音合成、音訊處理，分三類：純文字的創作輔助 skill（music-composition-skills，不產生音訊、不外送）；雲端生成 API（Beatra、TinyMusic，背後是 Suno 等，要帳號與點數，使用權看條款）；本機開源模型（ACE-Step、YuE、MusicGen，這台沒有 GPU，都不實用）。
+
+模型權重的授權要另外看：YuE 與 MusicGen 的權重是非商業授權。符號音樂用 music21 驗證和弦與音域，譜面用 LilyPond 或 ABC 記譜：AI 寫文字，工具渲染。
+
 <!-- ecosystem:table ai-music -->
 | 名稱 | 類型 | Tier | 授權 | 最後更新 | 證據 | 說明 |
 |---|---|---|---|---|---|---|

@@ -1,5 +1,9 @@
 # Shell 工具與格式轉換
 
+能用確定性程式完成的工作，就不要交給 AI 讀或算：搜尋、diff、資料格式、二進位檢視、格式轉換、除錯追蹤。這一類多半是知名工具，每筆只寫「什麼時候該用、怎麼控制輸出量、常見陷阱」，證據多是搜尋摘要。框架的 `context`、`files`、`binary`、`run` 已經包了其中需要有界輸出與來源位置的部分，其餘直接用原生工具。
+
+幾個容易弄錯的：結構化 diff（difftastic、diffsitter、GumTree）能分辨重新排版與真正的變更；xsv 已封存，後繼是 qsv；yq 有 mikefarah 與 kislyuk 兩個不同專案，語法不同。
+
 <!-- ecosystem:table shell-utilities -->
 | 名稱 | 類型 | Tier | 授權 | 最後更新 | 證據 | 說明 |
 |---|---|---|---|---|---|---|

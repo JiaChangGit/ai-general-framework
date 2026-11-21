@@ -1,5 +1,7 @@
 # 程式理解與 code graph
 
+追執行路徑、找呼叫關係與 data flow、把程式碼打包給模型的工具。程式理解、記憶、RAG 與 context packing 是不同的問題，比較頁先把它們分開。C 與 kernel 特別要看巨集、`#ifdef` 與函式指標：這一輪用答案已知的小專案試跑了七個工具，沒有一個全對，錯的地方還互補。比較、試跑與建議的取證順序見[程式理解工具比較](../comparisons/code-understanding.md)。
+
 <!-- ecosystem:table code-understanding -->
 | 名稱 | 類型 | Tier | 授權 | 最後更新 | 證據 | 說明 |
 |---|---|---|---|---|---|---|

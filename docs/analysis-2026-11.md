@@ -311,8 +311,8 @@ guard hook 這一輪裝在工作區上一層的 `.claude/settings.json`（不是
 |---|---|---|
 | S17 | 共通能力，全部寫在按需讀的文件，不加常駐文字：證據順序與文件不一致的紀錄方式（5.2）、資料分級表（10.2）、模型與 effort 短表與 token 粗估（5.3）、規格樣板（6）；tools.md 與 maintenance.md 指向資料庫 | 準備「README 寫錯」的 trace 題目與「規格沒寫驗收條件」的實作題目，有無框架各跑 2～3 次；確認固定成本沒有增加 |
 | S18 | Benchmark 題目組：C 的 function pointer 與 callback 追蹤、文件誤導、只在對話裡說過的決定、中文改寫盲評；A～D 分組（A 不裝框架、B 只有規則與記憶、C 加 skill、D 再加審查） | 每組每題 3 次，記成敗、四種 token 與時間；費用上限由使用者決定 |
-| S19 | C 與 kernel 的程式理解：依資料庫的比較與試跑，把一到兩個確定性工具接進 `trace-code` 的 reference；圖上的節點附檔案與行號 | 用 S18 的 C 題目重跑，比較正確率與花費 |
-| S20 | 研究文件：選定的 PDF 解析器接法（保留原檔、頁碼與表格）與引用回查 | 用一份有表格與公式的論文、一份中文 PDF 核對頁碼與數字 |
+| S19 | C 與 kernel 的程式理解：把確定性工具接進 `trace-code` 的 reference，圖上的節點附檔案與行號。S16 的試跑已顯示分工：cflow `--cpp`、clang 處理巨集與 `#ifdef`，CodeGraph 補 ops table，callback 沒有工具解得出（[程式理解比較](ecosystem/comparisons/code-understanding.md)）；這一輪補測 Serena＋clangd 與 Joern | 用 S18 的 C 題目與一個 kernel 子目錄重跑，比較正確率與花費 |
+| S20 | 研究文件：PDF 解析的接法與引用回查。S16 的試跑建議：文字型用 pymupdf4llm（外部命令）或 Docling 的 JSON，掃描件先用 OCRmyPDF（[文件解析比較](ecosystem/comparisons/document-parsers.md)） | 用真實論文（合併儲存格、跨頁表格、公式）與一份中文 PDF 核對頁碼與數字 |
 | S21 | 跨宿主：同一份交接交給 Codex 或 Gemini 接手 | 記下漏掉的資訊與重做的工作 |
 | 之後 | 其他領域清單（Android、iOS、Web、DevOps、量化、chatbot 安全邊界）、有真實作品時的創作流程、寫作指引拆版、教學格式偏好、資料庫定期 `refresh` | 各自用一個真實任務驗收 |
 
