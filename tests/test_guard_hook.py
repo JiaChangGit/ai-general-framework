@@ -216,12 +216,24 @@ class GuardHookTests(unittest.TestCase):
                 with self.subTest(codepage=codepage, command=command):
                     self.assertEqual(result.returncode, expected, result.stderr.decode("utf-8", "replace"))
 
+    def test_bytes_that_are_not_utf8_are_still_judged(self):
+        # S15 review: strict UTF-8 made such an event undecodable, and the guard let it through
+        # as "not an event"; the old locale-dependent reading refused it.
+        command = b"echo \xff > " + self.protected.as_posix().encode() + b"/a"
+        event = b'{"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": "' + command + b'"}, "cwd": ' \
+            + json.dumps(str(self.work)).encode() + b"}"
+        for env in (dict(os.environ, LC_ALL="C"), dict(os.environ, LC_ALL="C.UTF-8"), dict(os.environ, PYTHONIOENCODING="cp1252")):
+            result = subprocess.run([sys.executable, str(HOOK), str(self.config)], input=event, capture_output=True, env=env, timeout=10)
+            with self.subTest(env={k: env[k] for k in ("LC_ALL", "PYTHONIOENCODING") if k in env}):
+                self.assertEqual(result.returncode, 2, result.stderr.decode("utf-8", "replace"))
+
     @unittest.skipUnless(sys.platform == "win32", "Git Bash drive paths exist only on Windows")
     def test_git_bash_drive_paths_into_a_protected_path_are_refused(self):
         # S15: on Windows, /c/Users/... is how Git Bash writes C:\\Users\\...; it was let through.
         posix = self.protected.as_posix()
         gitbash = "/" + posix[0].lower() + posix[2:]
-        for command in [f"echo x > {gitbash}/a", f"cp a {gitbash}/b", f"rm -rf {gitbash}"]:
+        cygwin = "/cygdrive" + gitbash
+        for command in [f"echo x > {gitbash}/a", f"cp a {gitbash}/b", f"rm -rf {gitbash}", f"echo x > {cygwin}/a"]:
             with self.subTest(command=command):
                 self.assertEqual(self.bash(command).returncode, 2, command)
         self.assertEqual(self.bash(f"echo x > /{posix[0].lower()}{self.work.as_posix()[2:]}/ok").returncode, 0)

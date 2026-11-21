@@ -10,12 +10,14 @@
 |---|---|---|
 | `templates/claude-continuity-hook.py`、`claude-guard-hook.py`：啟動時把 stdin、stdout、stderr 設成 UTF-8 | Claude Code 用 UTF-8 收送 hook 的 JSON。Windows 預設用系統的字碼頁（CI 是 cp1252，這台是 cp950）：續接 hook 一印中文就 `UnicodeEncodeError`，hook 照設計吞掉錯誤、什麼都不輸出，所以在 Windows 上它等於沒有作用 | 新測試在 cp1252、cp950 下檢查輸出是 UTF-8；修正前失敗、修正後通過。guard hook 在 cp1252 下沒重現出誤擋，那部分是預防 |
 | 續接 hook 印路徑一律用 `/` | Windows 上印成 `.ai\HANDOFF.md`，和其他平台不一致 | 同上 |
-| guard hook 在 Windows 上把 Git Bash 的 `/c/Users/...` 當成 `C:/Users/...` | Windows 上 Claude Code 的 Bash 是 Git Bash；`echo x > /c/...受保護的路徑/a` 原本會放行 | 新測試（只在 Windows 跑）；用 Windows 的 Python 實測 |
-| `tests/test_guard_hook.py` 的 shell 命令改用 `/` 的路徑 | 原本把 `C:\Users\...` 放進 bash 命令；反斜線在 bash 裡是跳脫字元，那行命令實際上不會寫到那個路徑，測試在 Windows 上一直失敗 | Windows：308 個測試通過（38 個 POSIX 專用的照設計略過）；Linux：308 個通過（6 個略過） |
+| guard hook 在 Windows 上把 Git Bash 的 `/c/Users/...`（以及 Cygwin 的 `/cygdrive/c/...`）當成 `C:/Users/...` | Windows 上 Claude Code 的 Bash 是 Git Bash；`echo x > /c/...受保護的路徑/a` 原本會放行 | 新測試（只在 Windows 跑）；用 Windows 的 Python 實測 |
+| `tests/test_guard_hook.py` 的 shell 命令改用 `/` 的路徑 | 原本把 `C:\Users\...` 放進 bash 命令；反斜線在 bash 裡是跳脫字元，那行命令實際上不會寫到那個路徑，測試在 Windows 上一直失敗 | Windows：308 個測試通過（38 個 POSIX 專用的照設計略過）；Linux：309 個通過（7 個略過，包括只在 Windows 跑的那一個） |
 | guard hook 說明文字裡的 `<<\EOF` 改成 `<<\\EOF`；新增「所有 Python 檔在警告視為錯誤時都能編譯」的測試 | S11 寫的說明文字有無效的跳脫字元，每次執行 guard 都印一行 `SyntaxWarning`；之後的 Python 版本會直接拒絕編譯 | `tests/test_audit.py` 新測試 |
 | `tests/test_continuity_hook.py` 讀寫一律指定 UTF-8 | 測試本身在 cp950 的 Windows 上也會讀錯 | 同上 |
 
-**驗證**：Linux 308 個測試、audit 通過；這台 Windows 的 Python 3.13 跑完整測試、audit，以及 CI 實際執行的 `agf check --profile full`，都通過。GitHub 上的 CI 要等使用者 push 之後才知道。
+**驗證**：Linux 309 個測試、audit 通過；這台 Windows 的 Python 3.13 跑完整測試、audit，以及 CI 實際執行的 `agf check --profile full`，都通過。GitHub 上的 CI 要等使用者 push 之後才知道。
+
+**審查。** 換模型（claude-sonnet-5-5）只讀審查，在 Linux 與 Windows 的 Python 都跑過。找到：設成 UTF-8 時錯誤處理變成嚴格，輸入裡有不是 UTF-8 的位元組時，guard 會把它當成「不是事件」而放行（舊版會擋下），改成讀取時保留這些位元組（surrogateescape）、輸出時用 backslashreplace，並加測試；Cygwin 的 `/cygdrive/c/...` 一併對應；編譯檢查加進 `examples/`、`studies/`。
 
 **沒做的事**：沒有在 Windows 的 Claude Code 裡實際裝 hook 試；Windows 的 `/mnt/c` 一類 WSL 路徑不在這次範圍。
 

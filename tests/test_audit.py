@@ -76,7 +76,7 @@ class SourcesCompileTests(unittest.TestCase):
         # SyntaxWarning; newer Python versions will refuse to compile it.
         import warnings
         root = Path(__file__).resolve().parents[1]
-        files = [path for folder in ("agf", "templates", "evals", "scripts", "tests") for path in sorted((root / folder).rglob("*.py"))]
+        files = [path for folder in ("agf", "templates", "evals", "scripts", "tests", "examples", "studies") for path in sorted((root / folder).rglob("*.py"))]
         self.assertTrue(files)
         for path in files:
             with self.subTest(path=path.relative_to(root).as_posix()), warnings.catch_warnings():

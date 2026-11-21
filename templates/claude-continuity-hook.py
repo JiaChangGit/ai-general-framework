@@ -282,9 +282,11 @@ def utf8_stdio() -> None:
     """Claude Code sends and reads hook JSON as UTF-8. Without this, Windows uses the
     locale's code page (cp1252, cp950, ...): printing Chinese raised UnicodeEncodeError,
     which the hook swallowed, so it printed nothing (S15, the CI's Windows jobs)."""
-    for stream in (sys.stdin, sys.stdout, sys.stderr):
+    # surrogateescape keeps bytes that are not UTF-8 instead of failing on them, so such
+    # an event is still read and judged; backslashreplace never fails to print.
+    for stream, errors in ((sys.stdin, "surrogateescape"), (sys.stdout, "backslashreplace"), (sys.stderr, "backslashreplace")):
         try:
-            stream.reconfigure(encoding="utf-8")
+            stream.reconfigure(encoding="utf-8", errors=errors)
         except (AttributeError, ValueError):
             pass
 

@@ -110,8 +110,9 @@ def protected(path: str, cwd: Path, config: dict) -> Path | None:
     """The protected root that contains `path` (resolved against cwd), if any."""
     if not path or path.startswith("-"):
         return None
-    if os.name == "nt" and re.match(r"/[A-Za-z](/|$)", path):
-        path = f"{path[1]}:/{path[3:]}"  # Git Bash writes C:\\x as /c/x (S15)
+    drive = re.match(r"(?:/cygdrive)?/([A-Za-z])(?:/|$)", path) if os.name == "nt" else None
+    if drive:
+        path = f"{drive.group(1)}:/{path[drive.end():]}"  # Git Bash writes C:\\x as /c/x, Cygwin as /cygdrive/c/x (S15)
     target = (cwd / Path(path).expanduser()).resolve()
     for root in config["protected_paths"]:
         if target == root or root in target.parents:
@@ -474,9 +475,11 @@ def utf8_stdio() -> None:
     """Claude Code sends and reads hook JSON as UTF-8. Without this, Windows uses the
     locale's code page (cp1252, cp950, ...): printing Chinese failed, and a command with
     Chinese text could be misread as one the hook cannot parse, which it refuses (S15)."""
-    for stream in (sys.stdin, sys.stdout, sys.stderr):
+    # surrogateescape keeps bytes that are not UTF-8 instead of failing on them, so such
+    # an event is still read and judged; backslashreplace never fails to print.
+    for stream, errors in ((sys.stdin, "surrogateescape"), (sys.stdout, "backslashreplace"), (sys.stderr, "backslashreplace")):
         try:
-            stream.reconfigure(encoding="utf-8")
+            stream.reconfigure(encoding="utf-8", errors=errors)
         except (AttributeError, ValueError):
             pass
 
