@@ -1,0 +1,55 @@
+### versions
+/usr/local/lib
+`-- codebase-memory-mcp@0.12.1
+
+codebase-memory-mcp 0.12.1
+{"project":"work-demo","not_indexed_files_count":0,"skipped_count":0,"parse_partial_count":0,"parse_unusable_count":0,"nodes":51,"edges":91,"expected_nodes":51,"expected_edges":91,"adr_present":false,"adr_hint":"Project indexed. Consider creating an Architecture Decision Record: explore the codebase with get_architecture(aspects=['all']), then use manage_adr(mode='update') to persist architectural insights across sessions.","artifact_present":false,"status":"indexed"}
+project=work-demo
+-- trace_path dev_open (both directions)
+function: dev_open
+direction: both
+callees_total: 1
+callees_total_relation: eq
+callees: 1  (cols: qn hop)
+  work-demo.include.dev.dev_ops.open 1
+callers_total: 1
+callers_total_relation: eq
+callers: 1  (cols: qn hop)
+  work-demo.src.main.c.__file__ 1
+
+-- trace_path timer_fire (both directions)
+function: timer_fire
+direction: both
+callees_total: 1
+callees_total_relation: eq
+callees: 1  (cols: qn hop)
+  work-demo.include.dev.timer.cb 1
+callers_total: 1
+callers_total_relation: eq
+callers: 1  (cols: qn hop)
+  work-demo.src.main.main 1
+
+-- trace_path submit (both directions)
+function: submit
+direction: both
+callees_total: 2
+callees_total_relation: eq
+callees: 2  (cols: qn hop)
+  work-demo.src.submit.fast_submit 1
+  work-demo.src.submit.slow_submit 1
+callers_total: 1
+callers_total_relation: eq
+callers: 1  (cols: qn hop)
+  work-demo.src.main.main 1
+
+-- trace_path heartbeat (both directions)
+{"error":"function not found","function_name":"heartbeat","hint":"Use search_graph(name_pattern=...) to find the exact qualified name, then pass it to trace_path."}
+-- Q5 search handle_ and heartbeat
+results: 0  (cols: qn label file lines in out)
+hint: "No results match the current filters; broaden or remove filters and retry."
+total: 0
+returned: 0
+has_more: false
+truncated: false
+
+peak_mb=92

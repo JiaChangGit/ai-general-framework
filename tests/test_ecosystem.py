@@ -61,6 +61,19 @@ class CatalogTests(unittest.TestCase):
         self.assertIn("duplicate id demo-tool", errors)
         self.assertIn("other: missing summary", errors)
 
+    def test_record_references_must_be_relative_and_exist(self):
+        (self.root / "docs" / "old-study.md").write_text("# 舊紀錄\n", encoding="utf-8")
+        good = {"path": "docs/old-study.md", "level": "RECORD"}
+        self.write([entry(references=[good])])
+        ecosystem.render(self.root)
+        self.assertEqual(ecosystem.check(self.root)["status"], "PASS")
+        for bad, message in (({"path": "/abs/old-study.md", "level": "RECORD"}, "relative to the framework root"),
+                             ({"path": "docs/../docs/old-study.md", "level": "RECORD"}, "relative to the framework root"),
+                             ({"path": "docs/old-study.md", "level": "READ"}, "level RECORD"),
+                             ({"path": "docs/missing.md", "level": "RECORD"}, "does not exist")):
+            self.write([entry(references=[bad])])
+            self.assertIn(message, "\n".join(ecosystem.check(self.root)["errors"]), bad)
+
     def test_pipes_in_text_do_not_break_the_table(self):
         self.write([entry(summary="a | b")])
         ecosystem.render(self.root)

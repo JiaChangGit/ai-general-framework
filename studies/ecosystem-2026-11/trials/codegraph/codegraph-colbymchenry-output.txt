@@ -1,0 +1,63 @@
+### versions
+1.6.4
+│
+●  35 nodes, 54 edges in 261ms
+│
+└  Done
+
+-- Q1 callers of dev_open
+
+Callers of "dev_open" (0):
+
+function dev_open (c) — src/dev.c:3
+ℹ No callers found for "dev_open"
+-- Q2 callees of dev_open
+
+Callees of "dev_open" (2):
+
+function dev_open (c) — src/dev.c:3
+function    spi_open
+  src/spi.c:3
+
+function    uart_open
+  src/uart.c:8
+
+-- Q3 callees of timer_fire
+
+Callees of "timer_fire" (0):
+
+function timer_fire (c) — src/timer.c:9
+ℹ No callees found for "timer_fire"
+-- Q4 callees of submit
+
+Callees of "submit" (2):
+
+function submit (c) — src/main.c:18
+function    fast_submit
+  src/submit.c:3
+
+function    slow_submit
+  src/submit.c:9
+
+-- Q5 where is handle_uart
+ℹ No results found for "handle_uart"
+-- extra: callers of uart_open
+
+Callers of "uart_open" (2):
+
+function uart_open (c) — src/uart.c:8
+function    dev_open
+  src/dev.c:5
+
+file        uart.c [references]
+  src/uart.c:20
+
+-- extra: callers of heartbeat
+
+Callers of "heartbeat" (1):
+
+function heartbeat (c) — src/main.c:12
+function    main [references]
+  src/main.c:37
+
+peak_mb=136
