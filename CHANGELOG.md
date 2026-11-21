@@ -19,6 +19,11 @@
 
 **驗證**：Linux 317 個測試通過（7 個依平台略過）、audit 通過；Windows 的 Python 3.13 跑 `test_ecosystem` 與 `test_audit` 通過（14 個）。
 
+**後續（2026-11-22，同一個分支）**：使用者確認 FastCtx 是 yc-duan/fastctx、Mythpen 是 niyongsheng/mythpen，都以最新版為準。兩筆寫在 `studies/ecosystem-2026-11/drafts/U.json`，`merge.py` 以它取代子代理 C 的 FastCtx 草稿，資料庫變成 238 筆。
+
+- **Fastctx 1.0.1-beta.22**：重讀原始碼，確認 Workbench 以 `bypassPermissions` 啟動背景 Claude Code。它會關掉 agent 內建的 shell、改由 MCP 工具 `run` 執行命令，而 guard hook 的 matcher 只有 `Bash|Edit|Write|MultiEdit|NotebookEdit`，所以經 `run` 的命令不會被擋（推論，未實測）。審查清單的 MCP 段加上這一項，交接檔列為 S17 要問使用者的事。
+- **Mythpen v0.1.3**：Tauri 桌面應用，角色、關係、伏筆、世界觀、時間線的管理，也能從既有稿件反推；打包版預設開啟 Sentry 錯誤回報與 Aptabase 使用統計（設定裡一個開關可以都關），README 的「No cloud required」和這點、以及 AI 功能會送稿件給模型服務不完全一致。
+
 **沒做的事**：這一輪沒有交給另一個模型獨立審查。試跑沒有測 Serena＋clangd、Joern、MinerU、真實論文與 kernel 規模的程式。iOS、資料分析、量化、DevOps 等領域的 skill 只做到搜尋，沒有收錄。FastCtx、Mythpen 等名稱要使用者確認（見 `docs/ecosystem/recommendations.md`）。
 
 ## 2026-11-21：S15（分支 `s15-windows`，在 clone `../ai-general-framework-s15` 裡做）

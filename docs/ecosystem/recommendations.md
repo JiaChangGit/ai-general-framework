@@ -24,16 +24,16 @@
 | 適合整合 | Claude Code OTel、Docling、pymupdf4llm（外部命令）、OCRmyPDF、Crawl4AI、trafilatura、zizmor、Serena（試跑後再定） |
 | 適合學架構 | pstack（上游）、CodeGraph（colbymchenry）、codebase-memory-mcp、DejaVu（HMAKT99）、claude-mem、Novel Studio、Graphiti |
 | 值得借鑑的 skill | pstack 的 correct、why、arena；Trail of Bits second-opinion；Cloudflare security-audit-skill（多階段稽核、發現要再驗證）；mattpocock 的 grill-me 與 claude-handoff；embedded-review（韌體 code review 的 P0～P3 分級） |
-| 值得研究但不建議安裝 | claude-mem（寫入時把工具輸出送模型、telemetry 預設開）、Memory OS（ClaudioDrews）、Firecrawl（本機失敗時改走雲端、AGPL）、LiteLLM（常駐 gateway，2026 年兩次被植入後門）、Graphify（skill 會自動安裝套件）、FastCtx 1.0（關掉 agent 內建 shell，原始碼有以 bypassPermissions 啟動背景 Claude Code 的路徑） |
+| 值得研究但不建議安裝 | claude-mem（寫入時把工具輸出送模型、telemetry 預設開）、Memory OS（ClaudioDrews）、Firecrawl（本機失敗時改走雲端、AGPL）、LiteLLM（常駐 gateway，2026 年兩次被植入後門）、Graphify（skill 會自動安裝套件）、Fastctx 1.0（關掉 agent 內建 shell、改由 MCP 工具 `run` 執行命令，guard hook 因此看不到；Workbench 以 bypassPermissions 啟動背景 Claude Code） |
 | 暫不建議 | davila7 的 clean-code skill（要求執行其他 skill 目錄的腳本，skill 目錄網站仍給滿分）；mhattingpete 的 git-pushing（寬鬆自動觸發，`git add .` 之後 push）；memory-os（bmaltais，沒有授權、宣傳與實作不符） |
 | 需要人工確認 | 授權標成「需人工確認」的 34 筆，例如 Zotero（GitHub 偵測不到授權）、mem-agent 的模型權重、ACE-Step 的權重；Remotion 本機渲染會不會送出使用登記 |
 
 ## 待確認的名稱
 
+2026-11-22 使用者確認：FastCtx 是 [yc-duan/fastctx](https://github.com/yc-duan/fastctx)、Mythpen 是 [niyongsheng/mythpen](https://github.com/niyongsheng/mythpen)，兩者都以最新版為準，已寫進資料庫（Fastctx 在 MCP 分類、Mythpen 在寫作分類）。下面是還沒確定的。
+
 | 名稱 | 目前的判斷 | 需要使用者做的 |
 |---|---|---|
-| FastCtx | 最可能是 yc-duan/fastctx。1.0 前是給 agent 用的 repo 工具 MCP；1.0 起變成跨機器執行平台，行為差很多 | 說明指的是哪一版，或給原始連結 |
-| Mythpen | 沒找到同名專案；名稱相近的有 Mythflow、TheMostlyGreat/mythos、StoryCraftr，都沒有證據是同一個 | 給原始連結 |
 | anydoc | firecrawl/anydoc（Rust，MIT）；另有同名 fork 與 SourceForge 舊專案 | 確認是不是這個 |
 | headroom、OpenSquilla、deepclaude、ds4、TokenJuice | vocus 成本文章提到，沒有附網址，沒找到唯一來源 | 有興趣再補連結 |
 | dejavu（文章版） | jsingletonai/dejavu，repo 與 PyPI 都已 404 | 不用處理 |
@@ -41,7 +41,7 @@
 ## 還沒涵蓋的
 
 - iOS、frontend、資料分析、量化、DevOps／SRE／MLOps、技術寫作領域的 skill：只做到搜尋，沒有收錄。
-- 長篇小說一致性的專用工具、講義轉筆記的工具：沒找到（只有 Novel Studio 內建）。
+- 講義轉筆記的專用工具：沒找到。長篇小說的一致性管理原本也沒找到，使用者補上 Mythpen 之後有了一個。
 - Mem0、Letta、DeepEval、Ragas 沒讀原始碼。
 - 2026-10、11 月的供應鏈事件只查到 LiteLLM 1.107.0，沒有系統性搜尋。
 - 試跑只用了自己做的小型材料；真實論文與 kernel 規模的測試還沒做。

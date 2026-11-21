@@ -1,0 +1,63 @@
+[
+  {
+    "id": "fastctx-yc-duan",
+    "name": "Fastctx",
+    "category": "mcp-cli-api",
+    "type": "mcp",
+    "urls": {"source": "https://github.com/yc-duan/fastctx", "official": null, "docs": null},
+    "read_at": "db37324（v1.0.1-beta.22，2026-11-21 的 pre-release）",
+    "checked": "2026-11-22",
+    "summary": "1.0 版（beta）：給 agent 一個 `run` 工具，經自己架的 Hub 在多台機器上執行命令、讀改檔案、在機器間複製檔案、讓長時間的工作在背景跑；每台機器有 Activity 紀錄。另有 Workbench：在 Fastctx 的桌面或 Android app 裡和 Claude Code、Codex 對話，等待的工作完成時自動喚醒 agent，也能把子任務交給另一個模型。",
+    "architecture": "Rust workspace（crates/）＋ Tauri GUI；各機器主動以 HTTPS 與 WebSocket 連到 Hub，不需要公開 IP；Hub 負責帳號（Super Admin、Member、Guest）與機器權限並轉送流量，管理員可允許有公開 IP 的機器直連。",
+    "integration": ["mcp", "cli", "service"],
+    "hosts": {"claude_code": "yes", "others": "README 說支援 23 個 agent，含 Codex、Cursor；其中 10 個的內建 shell 關不掉"},
+    "runs": "local",
+    "privacy": "機器之間的資料只經過自己的 Hub 或直連；agent 對模型廠商的請求從各自的機器發出，Fastctx 不轉送。README 提醒 Hub 看得到所有經過的流量。關鍵字搜尋沒找到 Sentry、PostHog、Aptabase 的初始化程式（沒有逐檔讀）。",
+    "security": "Connect 之前會逐項顯示要改的檔案與 diff。會在 agent 的全域指令檔（CLAUDE.md、AGENTS.md）寫一段使用說明，並關掉 13 個 agent 的內建 shell，改由 `run` 執行命令。Workbench 以 `--permission-mode bypassPermissions` 啟動背景 Claude Code（crates/fastctx-hosts/src/claude/background.rs:100，程式註解寫「不等核准、不拒絕任何動作」；Claude Code 只在使用者曾於互動 session 接受這個模式後才允許），scripts/claude-wake-once.py 也設 `skipDangerousModePermissionPrompt`。推論（未實測）：使用者的 guard hook 只攔 `Bash|Edit|Write|MultiEdit|NotebookEdit`，經 `run` 這個 MCP 工具執行的 git push 或寫入受保護路徑不會被它看到。",
+    "resources": "桌面 app（Windows、macOS、Linux）、Android app、CLI；Linux 伺服器用 `fastctx server install <code>` 加入；macOS 安裝檔沒有經過 Apple 公證。",
+    "license": {"spdx": "Apache-2.0", "basis": "LICENSE-APACHE、NOTICE（db37324）", "label": "usable", "notes": "第三方元件授權列在 dist/THIRD_PARTY_LICENSES.md，沒有讀。"},
+    "weaknesses": "1.0 仍是 beta，只發在 GitHub 的 pre-release；GitHub API 的「最新 release」與 npm 上的 `fastctx`、`codex-fastctx` 都還是 0.2.6（舊的 repo 工具 MCP）。macOS 與 ARM64 的系統服務沒在實機驗證過。把機器的 agent 借給其他帳號是否符合模型廠商的使用條款，README 說由使用者自己判斷。",
+    "alternatives": [],
+    "learning_value": "Activity 把 agent 透過工具做的每件事記在執行的那台機器上；Workbench 在背景工作完成時喚醒 agent，接續長時間任務；Connect 前逐項顯示 diff 的做法。",
+    "integration_value": "使用者 2026-11-22 確認指的是這個專案、以 1.0 新版為準。和框架的保護機制衝突：關掉內建 shell 後，guard hook 看不到命令；背景 session 用 bypassPermissions。只研究設計，不建議在使用者的環境安裝；真的需要跨機器執行時，先在隔離的機器上試，並把 guard hook 的 matcher 擴大到 `run` 工具。",
+    "tier": 4,
+    "use": ["study-only"],
+    "evidence": "source",
+    "confidence": "high",
+    "references": [
+      {"url": "https://github.com/yc-duan/fastctx", "level": "CLONED", "note": "README、background.rs、claude-wake-once.py（db37324）"},
+      {"url": "https://github.com/yc-duan/fastctx/releases", "level": "READ", "note": "v1.0.1-beta.22 為 pre-release（2026-11-21）"},
+      {"path": "studies/ecosystem-2026-11/C-code-tools.md", "level": "RECORD", "note": "子代理 C 找到的四個候選與 1.0 前後的差異"}
+    ]
+  },
+  {
+    "id": "mythpen-niyongsheng",
+    "name": "Mythpen",
+    "category": "ai-writing",
+    "type": "app",
+    "urls": {"source": "https://github.com/niyongsheng/mythpen", "official": "https://mythpen.looplooptech.com/", "docs": null},
+    "read_at": "f46b8f6（v0.1.3 之後，2026-11-20）",
+    "checked": "2026-11-22",
+    "summary": "本機優先的小說寫作駕駛艙：角色、關係、伏筆、大綱、世界觀、時間線集中管理，有六步引導的寫作模式與 AI 協作模式；可匯入既有的 TXT／EPUB，由模型切出卷與章並建立角色、世界觀、時間線、伏筆與敘事記憶；介面支援 11 種語言（含繁體中文）。",
+    "architecture": "Tauri 2 桌面應用；前端 React 19＋Zustand，後端是 Express 5＋sql.js 的 sidecar，只綁 127.0.0.1；資料存在 `~/.mythpen/` 的 SQLite。",
+    "integration": ["service"],
+    "hosts": {"claude_code": "no", "others": "獨立的桌面應用；作者另有給 Claude Code 用的 clark-typer（沒有研究）"},
+    "runs": "hybrid",
+    "privacy": "稿件與設定存在本機，但 AI 功能把內容送到設定的 OpenAI 相容服務（可以設成 localhost 上的本機模型）。打包版預設開啟 Sentry 錯誤回報與 Aptabase 使用統計，設定 → Privacy 的「匿名統計」一個開關兩者一起關；Sentry 送出前刪掉稿件、請求內容與使用者資料，例外訊息截到 500 字。自動更新預設開啟。README 寫「No cloud required, full privacy」，和這幾點不完全一致。",
+    "security": "Tauri 權限只允許啟動自己的 sidecar（shell:allow-spawn 限 mythpen-server）、開啟連結、更新與統計事件。repo 根目錄有給貢獻者用的 CLAUDE.md（只當資料，沒有照做）。",
+    "resources": "從原始碼建置要 Node.js 20 以上與 pnpm 9；一般使用者下載安裝檔即可。AI 的成本在模型服務。",
+    "license": {"spdx": "GPL-3.0", "basis": "LICENSE（GitHub 偵測 GPL-3.0）", "label": "conditional", "notes": "當成應用程式使用沒有問題；程式碼不能複製進 MIT 授權的框架。"},
+    "weaknesses": "2026-07 才建立，版本 0.1.x；資料格式與功能還在快速變動。匯入與寫作的品質依所選模型而定，沒有實測。",
+    "alternatives": ["novel-studio", "awesome-novel-studio"],
+    "learning_value": "把長篇小說的一致性拆成角色、關係、伏筆、時間線、敘事記憶幾種結構化資料，並由匯入流程從既有稿件反推出來；Payoff Board 把伏筆與回收排成看板。和 Novel Studio 的狀態機是兩種做法：一個是給人操作的介面，一個是給 agent 跑的引擎。",
+    "integration_value": "使用者 2026-11-22 確認指的是這個專案、以最新版為準。寫長篇小說時可以直接用，記得先關匿名統計，AI 端點盡量設成本機模型；框架不整合它（GPL、桌面應用），只借它的資料分類設計小說專案的設定檔。",
+    "tier": 2,
+    "use": ["direct", "learn"],
+    "evidence": "source",
+    "confidence": "medium",
+    "references": [
+      {"url": "https://github.com/niyongsheng/mythpen", "level": "CLONED", "note": "README、server/instrument.js、server/index.js、src/lib/analytics.ts、src-tauri（f46b8f6）"},
+      {"url": "https://github.com/niyongsheng/mythpen/releases", "level": "READ", "note": "最新 v0.1.3（2026-11-19）"}
+    ]
+  }
+]

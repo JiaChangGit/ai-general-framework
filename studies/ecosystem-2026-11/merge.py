@@ -19,7 +19,8 @@ CODEGRAPH = {"path": "studies/ecosystem-2026-11/trials/codegraph/RESULTS.md", "l
 # Not a resource: the incident list moves to docs/ecosystem/security.md after the main session checked primary sources.
 DROP = {"supply-chain-incidents-2025-2026"}
 # Same project researched by two subagents: keep the deeper entry, add the other category to "also".
-PREFER = {"codeql": "C"}
+# U.json: entries rewritten or added after the user named the projects on 2026-11-22.
+PREFER = {"codeql": "C", "fastctx-yc-duan": "U"}
 
 OVERRIDES = {
     "pymupdf4llm": {"tier": 1, "evidence": "ran", "use": ["direct", "integrate"], "refs": [DOCPARSE],
@@ -59,7 +60,7 @@ OVERRIDES = {
 
 def main():
     entries, origin = {}, {}
-    for name in ("W", "C", "M"):
+    for name in ("W", "C", "M", "U"):
         for entry in json.loads((DRAFTS / f"{name}.json").read_text(encoding="utf-8")):
             if entry["id"] in DROP:
                 continue

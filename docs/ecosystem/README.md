@@ -38,7 +38,7 @@ jq '.entries[] | select(.runs == "local" and .category == "document-processing")
 | [網頁研究、資料集與擷取](categories/web-research.md) | 14 | 2 | 7 | 5 | 0 |
 | [CI/CD、資安與授權工具](categories/security-devops.md) | 23 | 1 | 9 | 12 | 1 |
 | [評測、模型路由與可觀測性](categories/benchmark-evaluation.md) | 16 | 2 | 1 | 12 | 1 |
-| [寫作、研究與 Podcast](categories/ai-writing.md) | 6 | 1 | 3 | 2 | 0 |
+| [寫作、研究與 Podcast](categories/ai-writing.md) | 7 | 1 | 4 | 2 | 0 |
 | [音樂與音訊](categories/ai-music.md) | 15 | 1 | 3 | 7 | 4 |
 | [影片與動畫](categories/ai-video.md) | 8 | 2 | 4 | 2 | 0 |
 <!-- /ecosystem -->
@@ -120,7 +120,7 @@ jq '.entries[] | select(.runs == "local" and .category == "document-processing")
 
 ## 限制
 
-- 2026-11-21～22 第一次建立：三個子代理研究，主 session 核對、合併（[merge.py](../../studies/ecosystem-2026-11/merge.py) 列出主 session 改過的每一處）。237 筆裡，實際執行過 13 筆（文件解析與 C 程式理解的[試跑](../../studies/ecosystem-2026-11/trials/README.md)）、讀過原始碼 45 筆、讀過文件 92 筆、只有搜尋摘要 87 筆（多數是知名的 shell 工具）。作者自己公布的 benchmark 寫成作者自報。
+- 2026-11-21～22 第一次建立：三個子代理研究，主 session 核對、合併（[merge.py](../../studies/ecosystem-2026-11/merge.py) 列出主 session 改過的每一處）。238 筆裡，實際執行過 13 筆（文件解析與 C 程式理解的[試跑](../../studies/ecosystem-2026-11/trials/README.md)）、讀過原始碼 46 筆、讀過文件 92 筆、只有搜尋摘要 87 筆（多數是知名的 shell 工具）。作者自己公布的 benchmark 寫成作者自報。
 - 資安事件只有標「已核對」的讀過一手來源，見[審查清單](security.md)的近期事件。
 - 授權標記不是法律意見。
 - 只查了公開資料；沒有使用者帳號內、公司內網或付費資料庫的資訊。

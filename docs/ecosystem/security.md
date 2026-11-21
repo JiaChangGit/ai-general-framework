@@ -40,6 +40,7 @@ SKILL.md、references 與附帶的 scripts 都是會被模型讀進去的指令�
 - **認證**：要哪些 token 或 OAuth scope，是不是比用途寬；token 存在哪裡。
 - **工具清單**：每個 tool 的描述也會被模型讀進去，描述裡夾帶的指令和 SKILL.md 一樣危險。哪些 tool 會寫檔、送出請求或改遠端資料。
 - **版本固定**：server 更新後工具描述可能改變。用固定版本，更新時重看一次清單。
+- **會不會繞過 hook**：PreToolUse hook 只看 matcher 列出的工具。框架的 guard hook 攔的是 `Bash|Edit|Write|MultiEdit|NotebookEdit`；能執行命令或寫檔的 MCP 工具（例如 Fastctx 的 `run`）不在其中，經它做的 push 或寫入就不會被擋。裝這類 MCP 之前，先把它的工具名稱加進 matcher，並確認 hook 讀得懂它的參數。
 
 ## 5. 資料送到哪裡
 

@@ -59,13 +59,14 @@ S16（2026-11-21～22）：使用者給了兩份長需求（框架怎麼演進�
 
 依分析報告第六輪的路線圖：
 
-1. **使用者**把 `s16-ecosystem` 併進 main（`git -C <框架目錄> pull --ff-only ../ai-general-framework-s16 s16-ecosystem`），再 push。S15 在 2026-11-21 開始時已經在 main，而且和 origin/main 一致。
+1. **使用者**把 `s16-ecosystem` 併進 main（`git -C <框架目錄> pull --ff-only ../ai-general-framework-s16 s16-ecosystem`），再 push。S16 的主要 commit 已在 2026-11-22 併進 main（還沒 push）；FastCtx、Mythpen 的後續 commit 也在同一個分支，用同一個命令再併一次。
 2. （建議下一步）S16 的變更交給另一個模型獨立審查：`agf/ecosystem.py` 與測試、資料庫裡 Tier 1 項目的事實、兩份試跑結果的解讀。前幾輪都有做，這一輪沒有。
 3. （S17）共通能力，全部寫在按需讀的文件：證據順序與文件不一致的紀錄方式、資料分級表、模型與 effort 短表、規格樣板、maintenance 指引的「錯誤出現兩次就升級成檢查」；tools 指引的「不另建中央評分庫」改寫成指向資料庫。驗收方式見分析報告。
 4. （S18～S21）見分析報告第六輪的路線圖。
 5. 第五輪留下的：寫作指引拆短版與完整版（中）；在 GitHub 上跑一次 `skill-triggers.yml`（要 `ANTHROPIC_API_KEY`，會花錢）；教學文件格式的個人化與子命令退場（低）。
-6. 要使用者回答的名稱（FastCtx 指哪一版、Mythpen 的來源）列在 `docs/ecosystem/recommendations.md`；不影響其他工作。
-7. （已決定）`save_prompts` 在使用者的專案不開；guard hook 維持裝在工作區上一層（`/home/user/src/.claude/settings.json`）。都是 2026-11-19 使用者的決定。
+6. FastCtx、Mythpen 已由使用者確認（2026-11-22，都以最新版為準）並寫進資料庫；其餘待確認的名稱在 `docs/ecosystem/recommendations.md`，不影響其他工作。
+7. （S17 一併處理）Fastctx 的研究發現：guard hook 的 matcher 不含 MCP 工具，能執行命令的 MCP（例如 Fastctx 的 `run`）可以繞過它。要不要把 matcher 擴大、怎麼解析 MCP 工具的參數，先問使用者。
+8. （已決定）`save_prompts` 在使用者的專案不開；guard hook 維持裝在工作區上一層（`/home/user/src/.claude/settings.json`）。都是 2026-11-19 使用者的決定。
 
 沒有在真實 session 觸發過的：續接 hook 的 PreCompact、PostCompact、StopFailure、PreModelSwitch。`align-with-me` 在 2026-11-19 第一次被使用者實際叫用，照 skill 寫的流程走完。`debug-root-cause` 新加的「先驗證前提、附證據」量過一次（`debug-wrong-premise`），兩組都做對，量不出作用。
 
