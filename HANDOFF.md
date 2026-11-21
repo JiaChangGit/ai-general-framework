@@ -1,23 +1,23 @@
 # 接手文件
 
-更新日期：2026-11-22（S16 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
+更新日期：2026-11-22（S17 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
 
 ## 一開始先做什麼
 
 ```bash
 git -C <框架目錄> status --short          # 預期：沒有輸出
-git -C <框架目錄> log --oneline -3         # 預期：最上面是 S16 的 commit（見 CHANGELOG），或使用者之後的新 commit
+git -C <框架目錄> log --oneline -3         # 預期：最上面是 S17 的 commit（見 CHANGELOG），或使用者之後的新 commit
 python3 -B <框架目錄>/scripts/agf.py audit --root <框架目錄>      # 預期："errors": []、"warnings": []
 (cd <框架目錄> && python3 -B -m unittest discover -s tests)        # 預期：OK（有幾個依平台略過）
 python3 -B <框架目錄>/scripts/agf.py task checkpoint --help        # 預期：列出 --done、--doing、--next、--repo、--append
 ```
 
-`<框架目錄>` 換成實際的位置。S12～S16 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s16`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以 `git -C <框架目錄> log --oneline -5` 為準。
+`<框架目錄>` 換成實際的位置。S12～S17 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s17`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以 `git -C <框架目錄> log --oneline -5` 為準。
 
 ## 目前的位置
 
-修改與驗證在 [CHANGELOG.md](CHANGELOG.md)；分析與排好順序的待辦在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md)（第六輪的路線圖在最後）；研究與量測在 [studies/](studies/README.md)；外部資源資料庫在 [docs/ecosystem/](docs/ecosystem/README.md)。
+修改與驗證在 [CHANGELOG.md](CHANGELOG.md)；分析與排好順序的待辦在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md)（第六輪的路線圖、第七輪的更新在最後）；研究與量測在 [studies/](studies/README.md)；外部資源資料庫在 [docs/ecosystem/](docs/ecosystem/README.md)。
 
 S12 的重點：
 
@@ -40,6 +40,8 @@ S16（2026-11-21～22）：使用者給了兩份長需求（框架怎麼演進�
 - **兩組試跑**（`studies/ecosystem-2026-11/trials/`）：文件解析與 C 程式理解，都用自己做的、答案已知的材料。映像檔 `agf-parse-*:s16`、`agf-codegraph-*:s16` 留在本機 Docker，原始輸出與 clone 下來的 repo 在 `~/.cache/agf-ecosystem/`（不在版本庫）。
 - **研究方式的教訓**：子代理用 `gh api` 抓維護狀態、clone 只讀，結果先寫進檔案，撞到額度時沒有丟；但子代理的事件表來自搜尋摘要，寫進資料庫前要主 session 自己回一手來源核對（這輪核對的四件都屬實，另外發現一件子代理沒找到）。
 
+S17（2026-11-22）：共通能力與使用者的新需求。guard hook 也檢查 MCP 工具；`agf traces` 與配置預設不留 AI 痕跡；按需讀的指引補上證據順序、驗證與證據、資料分級、模型與強度、核准過的教訓；`templates/spec.md`、`templates/domains/support-chatbot.md`；`usage.py --tokens`；資料庫 245 筆。量測兩題兩組都全過，量不出作用（[K 報告](studies/research-2026-11/K-s17.md)）。
+
 ## 拿框架到別的專案測試
 
 使用者會在其他聊天室用這個框架做別的專案，順便測它的表現。建議的做法：
@@ -57,16 +59,16 @@ S16（2026-11-21～22）：使用者給了兩份長需求（框架怎麼演進�
 
 ## 還沒做的事
 
-依分析報告第六輪的路線圖：
+依分析報告第七輪的優先順序：
 
-1. **使用者**把 `s16-ecosystem` 併進 main（`git -C <框架目錄> pull --ff-only ../ai-general-framework-s16 s16-ecosystem`），再 push。S16 的主要 commit 已在 2026-11-22 併進 main（還沒 push）；FastCtx、Mythpen 的後續 commit 也在同一個分支，用同一個命令再併一次。
-2. （建議下一步）S16 的變更交給另一個模型獨立審查：`agf/ecosystem.py` 與測試、資料庫裡 Tier 1 項目的事實、兩份試跑結果的解讀。前幾輪都有做，這一輪沒有。
-3. （S17）共通能力，全部寫在按需讀的文件：證據順序與文件不一致的紀錄方式、資料分級表、模型與 effort 短表、規格樣板、maintenance 指引的「錯誤出現兩次就升級成檢查」；tools 指引的「不另建中央評分庫」改寫成指向資料庫。驗收方式見分析報告。
-4. （S18～S21）見分析報告第六輪的路線圖。
-5. 第五輪留下的：寫作指引拆短版與完整版（中）；在 GitHub 上跑一次 `skill-triggers.yml`（要 `ANTHROPIC_API_KEY`，會花錢）；教學文件格式的個人化與子命令退場（低）。
-6. FastCtx、Mythpen 已由使用者確認（2026-11-22，都以最新版為準）並寫進資料庫；其餘待確認的名稱在 `docs/ecosystem/recommendations.md`，不影響其他工作。
-7. （S17 一併處理）Fastctx 的研究發現：guard hook 的 matcher 不含 MCP 工具，能執行命令的 MCP（例如 Fastctx 的 `run`）可以繞過它。要不要把 matcher 擴大、怎麼解析 MCP 工具的參數，先問使用者。
-8. （已決定）`save_prompts` 在使用者的專案不開；guard hook 維持裝在工作區上一層（`/home/user/src/.claude/settings.json`）。都是 2026-11-19 使用者的決定。
+1. **使用者**把 `s17-common` 併進 main（`git -C <框架目錄> pull --ff-only ../ai-general-framework-s17 s17-common`），再 push。並把 `/home/user/src/.claude/settings.json` 裡 guard hook 的 `"matcher"` 改成 `"Bash|Edit|Write|MultiEdit|NotebookEdit|mcp__.*"`；這個檔依使用者的規定不由 AI 改。
+2. （S18）有標準答案的 benchmark 題目與 A～D 分組；同時量寫作指引拆短版。不留痕跡的規則要在允許 Bash 的環境才量得到。
+3. （中）S16、S17 的變更交給另一個模型獨立審查。
+4. （中）doc-gardening：定期比對文件敘述與程式。
+5. S19～S21 照第六輪的路線圖；S21 需要先在 WSL 安裝 Codex 或 Gemini CLI（目前沒有），要使用者同意。
+6. 第五輪留下的：在 GitHub 上跑一次 `skill-triggers.yml`（要 `ANTHROPIC_API_KEY`，會花錢）；教學文件格式的個人化與子命令退場（低）。
+7. 其餘待確認的外部名稱在 `docs/ecosystem/recommendations.md`。
+8. （已決定）`save_prompts` 在使用者的專案不開；只存使用者核准過的教訓（2026-11-22）；guard hook 維持裝在工作區上一層。
 
 沒有在真實 session 觸發過的：續接 hook 的 PreCompact、PostCompact、StopFailure、PreModelSwitch。`align-with-me` 在 2026-11-19 第一次被使用者實際叫用，照 skill 寫的流程走完。`debug-root-cause` 新加的「先驗證前提、附證據」量過一次（`debug-wrong-premise`），兩組都做對，量不出作用。
 

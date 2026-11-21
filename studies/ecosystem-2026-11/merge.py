@@ -7,6 +7,7 @@ review and the trials. Run from the framework root: python3 -I studies/ecosystem
 
 import json
 from pathlib import Path
+import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -20,6 +21,7 @@ CODEGRAPH = {"path": "studies/ecosystem-2026-11/trials/codegraph/RESULTS.md", "l
 DROP = {"supply-chain-incidents-2025-2026"}
 # Same project researched by two subagents: keep the deeper entry, add the other category to "also".
 # U.json: entries rewritten or added after the user named the projects on 2026-11-22.
+# S17.json: three seeds and expert guidance added in S17 (2026-11-22).
 PREFER = {"codeql": "C", "fastctx-yc-duan": "U"}
 
 OVERRIDES = {
@@ -60,16 +62,17 @@ OVERRIDES = {
 
 def main():
     entries, origin = {}, {}
-    for name in ("W", "C", "M", "U"):
+    for name in ("W", "C", "M", "U", "S17"):
         for entry in json.loads((DRAFTS / f"{name}.json").read_text(encoding="utf-8")):
             if entry["id"] in DROP:
                 continue
             entry.setdefault("checked", CHECKED)
             for reference in entry.get("references", []):
                 url = str(reference.get("url", ""))
-                if url.startswith(str(ROOT) + "/"):
+                local = re.match(r"^/.*?/ai-general-framework[^/]*/(.+)$", url)  # any checkout of this framework
+                if local:
                     reference.pop("url")
-                    reference["path"] = url[len(str(ROOT)) + 1:]
+                    reference["path"] = local.group(1)
                     reference["level"] = "RECORD"
             key = entry["id"]
             if key in entries:

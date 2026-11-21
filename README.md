@@ -104,7 +104,9 @@ python scripts/agf.py integration template claude-guard-hook
 python scripts/agf.py integration template claude-guard-settings
 ```
 
-把前者存成檔案，依後者把它加進 `~/.claude/settings.json`（每個 session 都生效）或專案的 `.claude/settings.json`（只在從那個目錄啟動時生效），再用一個 JSON 列出受保護的路徑：`{"protected_paths": ["/path/to/repo"]}`。它只看命令列，看不到程式執行之後做了什麼（例如 `python3 -c` 寫檔），限制見檔案開頭的說明。
+它也檢查 MCP 工具：設定的 matcher 含 `mcp__.*` 時，參數裡看得懂的命令（command、cmd、script 等）照 Bash 的規則檢查，寫入類工具的路徑參數照寫檔規則檢查，看不懂的放行。把前者存成檔案，依後者把它加進 `~/.claude/settings.json`（每個 session 都生效）或專案的 `.claude/settings.json`（只在從那個目錄啟動時生效），再用一個 JSON 列出受保護的路徑：`{"protected_paths": ["/path/to/repo"]}`。它只看命令列，看不到程式執行之後做了什麼（例如 `python3 -c` 寫檔），限制見檔案開頭的說明。
+
+用框架開發的專案預設不留 AI 痕跡：AI 工具檔不進版本庫、commit 不加 AI 署名；`agf traces check` 檢查殘留，做法與理由見[交付指引](docs/delivery.md)的「不留 AI 痕跡的專案」。
 
 完整命令、權限範圍、共用工具與 hooks 見 [CLI 操作](docs/cli.md)。[設計說明](docs/design.md)與[研究紀錄](docs/research.md)交代採納和刪減理由。改善框架或挑選外部工具之前，先查[外部資源資料庫](docs/ecosystem/README.md)：約兩百多個專案、skill、MCP 與工具的授權、資料流向、限制與查核日期，另有同類工具的比較與試跑結果；在框架根目錄執行 `python -m agf.ecosystem find 關鍵字` 可以依關鍵字查。共用創作指引可協助小說、音樂與投影片式影片；真正使用時再選可用工具，分清企劃、草稿與可播放成品。
 

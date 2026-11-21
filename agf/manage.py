@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import base64
 import hashlib
+import json
 import os
 from pathlib import Path, PurePosixPath
 import re
@@ -16,6 +17,7 @@ import stat
 import sys
 import uuid
 
+from . import traces
 from .common import AgfError, digest, json_text, read_json, within
 
 
@@ -247,7 +249,7 @@ def doctor(args: argparse.Namespace) -> dict:
     }
 
 
-def _desired(source: Path, root: Path, hosts: list[str], old: dict | None, selected: list[str], tools_mode: str) -> tuple[dict, list[str]]:
+def _desired(source: Path, root: Path, hosts: list[str], old: dict | None, selected: list[str], tools_mode: str, ai_traces: str = "keep") -> tuple[dict, list[str]]:
     skills = source / "skills"
     if not skills.is_dir() or not (source / "scripts/agf.py").is_file():
         raise AgfError(f"Framework source is incomplete: {source}; skills/ and scripts/agf.py are required.")
@@ -287,6 +289,10 @@ def _desired(source: Path, root: Path, hosts: list[str], old: dict | None, selec
     instructions += (f"工具模式：`{tools_mode}`（{mode_note}）。執行 `agf`：{where}用 Python 跑 `\"{script}\"`（`python3 -B`；沒有 python3 時用 `python` 或 `py -3`）；"
                      "skill 裡的 `scripts/agf.py` 換成這個路徑，其餘參數不變。\n")
     instructions += "其他指引在 `.agf/managed/guides/`（workflow、writing、tools、delivery），需要時才讀。\n"
+    if ai_traces == "exclude":
+        instructions += ("這個專案不留 AI 痕跡：commit 訊息不加 AI 共同作者或「Generated with」一類的字樣；公開文件不提 AI 工具名稱，"
+                         "README 的 AI 使用說明照專案既有的那一段；AI 工具檔已由 `.git/info/exclude` 排除，不要加進版本庫。"
+                         "commit 前用 `agf traces check` 檢查。\n")
     add(".agf/managed/project-rules.md", instructions.encode("utf-8"), "templates/project-rules.md")
     for name in GUIDES:
         file = source / "docs" / name
@@ -323,8 +329,8 @@ def _desired(source: Path, root: Path, hosts: list[str], old: dict | None, selec
     return files, notices
 
 
-def _plan(root: Path, source: Path, hosts: list[str], old: dict | None, selected: list[str], tools_mode: str) -> tuple[dict, dict]:
-    desired, notices = _desired(source, root, hosts, old, selected, tools_mode)
+def _plan(root: Path, source: Path, hosts: list[str], old: dict | None, selected: list[str], tools_mode: str, ai_traces: str = "keep") -> tuple[dict, dict]:
+    desired, notices = _desired(source, root, hosts, old, selected, tools_mode, ai_traces)
     drift = _drift(root, old)
     conflicts = []
     operations = []
@@ -370,6 +376,7 @@ def _plan(root: Path, source: Path, hosts: list[str], old: dict | None, selected
         "command": "project", "target": str(root), "source": str(source),
         "mode": "update" if old else "install", "hosts": hosts, "applied": False,
         "tools_mode": tools_mode, "previous_tools_mode": old.get("tools_mode", "copy") if old else None,
+        "ai_traces": ai_traces, "ai_traces_exclude": traces.exclude(root) if ai_traces == "exclude" else None,
         "refresh_skills": selected,
         "available_skills": sorted(entry.parent.name for entry in (source / "skills").glob("*/SKILL.md")),
         "operations": sorted(operations, key=lambda item: item["path"]),
@@ -549,7 +556,7 @@ def project(args: argparse.Namespace) -> dict:
                 "drift": drift, "clean": old is not None and not drift,
                 "tools_mode": tools_mode, "tools_available": tools_available,
                 "ready": old is not None and not drift and tools_available,
-                "skills": (old or {}).get("skills", []),
+                "skills": (old or {}).get("skills", []), "ai_traces": (old or {}).get("ai_traces", "keep") if old else None,
                 "source": (old or {}).get("source"), "_exit_code": 1 if drift or (old and not tools_available) else 0}
     if args.operation == "rollback":
         return _rollback(root, old, args.apply)
@@ -569,14 +576,16 @@ def project(args: argparse.Namespace) -> dict:
     requested = getattr(args, "skill", None)
     selected = sorted(set(requested if requested is not None else (set(installed_skills) & available if old else [])))
     tools_mode = getattr(args, "tools", None) or (old.get("tools_mode", "copy") if old else "shared")
-    report, desired = _plan(root, source, hosts, old, selected, tools_mode)
+    # New projects leave no AI traces by default; older installs keep what they recorded until asked.
+    ai_traces = getattr(args, "ai_traces", None) or ((old.get("ai_traces", "keep") if old else "exclude"))
+    report, desired = _plan(root, source, hosts, old, selected, tools_mode, ai_traces)
     if not args.apply or args.operation == "plan":
         report["_exit_code"] = 0 if report["ready"] else 1
         return report
     if not report["ready"]:
         raise AgfError("Configuration blocked by local drift or an existing unmanaged file; inspect project plan. No files were changed.")
     changed = [item for item in report["operations"] if item["action"] != "keep"]
-    if not changed and old and old.get("hosts") == hosts and old.get("source") == str(source) and old.get("tools_mode", "copy") == tools_mode:
+    if not changed and old and old.get("hosts") == hosts and old.get("source") == str(source) and old.get("tools_mode", "copy") == tools_mode and old.get("ai_traces", "keep") == ai_traces:
         report.update({"applied": False, "unchanged": True})
         return report
     before = {}
@@ -589,7 +598,7 @@ def project(args: argparse.Namespace) -> dict:
     manifest_path = _path(root, MANIFEST)
     previous_bytes = manifest_path.read_bytes() if old else None
     transaction = uuid.uuid4().hex
-    new_manifest = {"version": SCHEMA, "source": str(source), "hosts": hosts, "tools_mode": tools_mode,
+    new_manifest = {"version": SCHEMA, "source": str(source), "hosts": hosts, "tools_mode": tools_mode, "ai_traces": ai_traces,
                     "skills": sorted({name.split("/")[2] for name in desired if name.startswith(".agents/skills/")}), "transaction": transaction,
                     "source_fingerprint": _sha(json_text({name: entry["sha256"] for name, entry in sorted(desired.items())}).encode("utf-8")),
                     "files": {name: {"sha256": entry["sha256"], "source": entry["source"], "source_root": entry["source_root"]} for name, entry in desired.items()}}
@@ -622,6 +631,8 @@ def project(args: argparse.Namespace) -> dict:
             raise AgfError(f"Configuration failed: {exc}; recovery incomplete: {'; '.join(failures)}. Snapshot: {history_path}") from exc
         raise AgfError(f"Configuration failed; completed writes were reverted where unchanged: {exc}. Snapshot: {history_path}") from exc
     report.update({"applied": True, "transaction": transaction, "manifest": str(manifest_path)})
+    # The exclude block lives in the clone's own .git/info/exclude, outside the managed files; keep it in step.
+    report["ai_traces_exclude"] = traces.exclude(root, apply=True) if ai_traces == "exclude" else traces.remove(root, apply=True)
     return report
 
 
@@ -678,6 +689,12 @@ def _rollback(root: Path, old: dict | None, apply: bool) -> dict:
             raise AgfError(f"Rollback failed: {exc}; recovery incomplete: {'; '.join(failures)}. Snapshot: {history}") from exc
         raise AgfError(f"Rollback failed; completed writes were reverted where unchanged: {exc}. Snapshot: {history}") from exc
     report["applied"] = True
+    try:
+        restored = json.loads(previous_bytes) if previous_bytes else {}
+    except ValueError:
+        restored = {}
+    report["ai_traces_exclude"] = (traces.exclude(root, apply=True) if restored.get("ai_traces") == "exclude"
+                                   else traces.remove(root, apply=True))
     return report
 
 
@@ -696,4 +713,9 @@ def register(subparsers) -> None:
         parser.add_argument("--skill", action="append", help="Install only named skills (repeatable). New projects get no skills by default; updates preserve existing selections except retired skills.")
         parser.add_argument("--tools", choices=("shared", "copy"), help="shared: use one framework tools checkout (new-install default); copy: include tools for offline delivery. Updates keep the recorded mode unless this is explicit.")
         parser.add_argument("--apply", action="store_true", help="Write the reviewed plan (plan and status always remain read-only)")
+        traces_mode = parser.add_mutually_exclusive_group()
+        traces_mode.add_argument("--keep-ai-traces", dest="ai_traces", action="store_const", const="keep",
+                                 help="Do not exclude AI tool files or add the no-trace rule (new installs exclude by default)")
+        traces_mode.add_argument("--exclude-ai-traces", dest="ai_traces", action="store_const", const="exclude",
+                                 help="Keep AI tool files out of Git via .git/info/exclude and add the no-trace rule")
         parser.set_defaults(func=project)

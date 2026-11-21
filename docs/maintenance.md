@@ -6,6 +6,10 @@
 
 反覆且能機械判定的錯誤，先看能否消除雙重來源，或用現有型別、檢查與行為測試防止再犯；用真實反例確認檢查會失敗，修正後才通過。仍需判斷的約定再補文字，不把每次更正都累積成 prompt，也不為小錯重寫架構。
 
+同一類錯誤出現第二次就是訊號（Anthropic 的建議是「被糾正兩次的事」才寫進 CLAUDE.md；一句規則一再加強語氣仍被忽略，就該改成 hook）。依序考慮：用架構讓錯誤無法發生，型別，檢查（lint、guard hook、`agf audit`），行為測試，最後才是文字。檢查的錯誤訊息寫成修正指示，讓讀到的 agent 知道該怎麼改，而不只知道錯了（OpenAI 的 harness engineering 做法）。來源與更多做法見 `docs/ecosystem/comparisons/agent-workflows.md` 與 `docs/ecosystem/articles.md`。
+
+改框架的某項能力或引入外部工具之前，先查 `docs/ecosystem/` 有沒有研究過（`python -m agf.ecosystem find 關鍵字`），沿用已查過的結論，只補新資訊。文件裡寫的命令與行為會悄悄過期：放進 `check --profile periodic` 重跑，或改框架時順手核對相關段落。
+
 一般開發交給宿主能力。採納或新增 skill 前，先查已有哪個入口負責相同工作，優先改好現有位置；通用方法能用短偏好或既有工具完成時，不新增 skill、alias、router 或 provider。領域知識按需求連到官方專案要求，不維護另一份容易過期的規格／工具手冊。
 
 修改名稱、description 或目的邊界時，用真實正反請求觀察選用；修改腳本時驗證行為與失敗副作用；文字小修直接校閱。只有相關變更才重跑對應檢查，不為每次維護安排完整儀式。格式 audit、腳本測試、代理行為與真人學習是不同證據。

@@ -2,6 +2,28 @@
 
 每一輪寫：改了什麼、為什麼、怎麼驗證、還沒驗證什麼。細節在各 commit 的訊息與 [docs/verification.md](docs/verification.md)。
 
+## 2026-11-22：S17（分支 `s17-common`，在 clone `../ai-general-framework-s17` 裡做）
+
+使用者再給一份需求（和 S16 的第一份大致相同，多了三個種子、聊天機器人、抹除 AI 痕跡、個人化與自我優化），途中又請框架多參考專家與組織的建議（附 Lauren Tan 演講的整理）。開始時一次問完四個決定，都採建議：做路線圖的 S17 加上新需求；用框架開發的專案預設不留 AI 痕跡（照 Raft）；只存使用者核准過的教訓、用量只記數字；guard hook 也檢查 MCP 工具。規格與結果在 [studies/research-2026-11/K-s17.md](studies/research-2026-11/K-s17.md)。
+
+| 修改 | 為什麼 | 驗證 |
+|---|---|---|
+| `templates/claude-guard-hook.py`：MCP 工具（`mcp__…`）的參數裡，名稱像命令的照 Bash 規則檢查，寫入類工具的路徑照寫檔規則檢查；設定範例的 matcher 加上 `mcp__.*` | S16 發現 Fastctx 這類 MCP 用 `run` 執行命令，guard hook 看不到 | 3 個新測試（Linux、Windows 的 Python） |
+| `agf traces check／exclude／remove`；`project install` 預設在 Git 專案寫 `.git/info/exclude` 的標記段並在專案規則加一行，`--keep-ai-traces` 關掉；舊配置維持原樣；rollback 跟著還原 | 使用者的決定：用框架開發的專案預設不留 AI 痕跡 | `tests/test_traces.py` 8 個測試；既有配置測試通過 |
+| 上一項的缺陷，開發時發現並修正：目標專案在另一個 Git repo 裡面時，原本會改到外層 repo 的 `.git/info/exclude`（既有測試的暫存專案建在框架 clone 底下，結果寫進了 clone 自己的檔案） | 只有目標目錄是 work tree 的根目錄才寫，巢狀時回報 `NESTED` | 新測試鎖住這個情況；clone 裡誤寫的那段已移除 |
+| `practices.md`：不照抄過時的寫法、不寫替繞路辯護的註解；「驗證與證據」：先找會回報通過失敗的檢查、回報附輸出、文件與程式衝突時信執行結果與原始碼、被糾正第二次就提議改成檢查 | 使用者的需求（不被文件誤導），以及 Lauren Tan、OpenAI、Anthropic 的建議 | 文字；量測見下 |
+| `tools.md` 的證據順序；`delivery.md` 的資料分級表與「不留 AI 痕跡的專案」；`workflow.md` 的「兩次糾正都沒改好就重來」「選模型、強度與粗估用量」「核准過的教訓」與跨廠商交接；`maintenance.md` 的升級順序與「錯誤訊息寫成修正指示」；`templates/spec.md` | S17 的共通能力，都放在按需讀的位置 | audit 通過 |
+| `templates/domains/support-chatbot.md` | 使用者要做情感支持類聊天機器人；美國多州已立法禁止 AI 自稱心理專業人員、要求危機轉介 | 文件；法規來源標在檔案裡 |
+| `evals/host/usage.py --tokens`：從本機紀錄加總各模型、各日的 token，只印數字 | 使用者同意「用量只記數字」 | 新測試 |
+| 資料庫加 7 筆：Cinematic Skill、Godogen、App Store Compliance Playbook，以及 Lauren Tan、OpenAI、Anthropic、Matt Pocock 的建議；`merge.py` 認得任何框架 checkout 的路徑 | 使用者給的種子與專家建議 | 共 245 筆，`check` 通過；OpenAI 與 Anthropic 兩篇讀過全文，Lauren Tan 只讀到轉述 |
+| 量測：`readme-wrong-retry`、`no-trace-commit-message` 兩題，有無框架各 2 次 | 規格要求 | 兩組都 4/4 通過，量不出作用；框架組的 commit 訊息題因為多讀 `practices.md`、`writing.md` 貴了六成；固定成本和 S14 差不多 |
+
+**驗證**：Linux 329 個測試通過（7 個依平台略過）、audit 通過；Windows 的 Python 3.13 在完整副本上跑 `test_traces`、`test_guard_hook`、`test_ecosystem`、`test_eval_host`、`test_manage`、`test_audit` 通過。
+
+**要使用者做的**：guard hook 的 MCP 檢查要生效，`/home/user/src/.claude/settings.json` 的 matcher 要改成 `Bash|Edit|Write|MultiEdit|NotebookEdit|mcp__.*`（這個檔依使用者的規定不由 AI 改）。
+
+**沒做的事**：沒有交給另一個模型獨立審查；guard hook 的 MCP 檢查沒在真實 session 接 MCP 試過；不留痕跡的規則在真的 `git commit` 時有沒有作用，量測工具沒有 Bash，量不到。
+
 ## 2026-11-22：S16（分支 `s16-ecosystem`，在 clone `../ai-general-framework-s16` 裡做）
 
 起因：使用者給了兩份長需求，一份談框架接下來怎麼演進，一份要一個可以長期維護的外部資源資料庫。開始時一次問完四個決定：這一輪只做分析、資料庫與路線圖（規則、skill 與既有命令不改）；中等規模、用三個子代理平行研究；允許網頁搜尋、用 `gh` 唯讀查公開 repo、淺層 clone 讀原始碼、在 Docker 裡安裝試跑；四個工作領域都要涵蓋。途中撞到一次用量上限，額度恢復後照交接檔接著做。

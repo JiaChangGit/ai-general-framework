@@ -25,6 +25,20 @@
 
 對框架的意義：框架不做常駐路由（理由見[分析報告第六輪](../analysis-2026-11.md#會衝突或暫不做)），但「換模型會讓快取失效」這點和 workflow 指引的「在里程碑才換模型」一致。
 
+## 專家與組織的建議（2026-11-22 加入）
+
+使用者提供了 Lauren Tan 演講的整理，請框架多參考專家與組織的最新建議。這一節收三份，觀點高度一致：
+
+| 來源 | 重點 | 證據 |
+|---|---|---|
+| Lauren Tan（pstack 作者，SpaceX AI）在 AI Engineer 的演講 | 驗證是最重要的能力；每次糾正都先想能不能變成確定性檢查；壞寫法會被下一個 AI 照抄；註解會過時，也讓 AI 替繞路找理由，改用錯誤訊息清楚的 lint；人工審查是最後一道，不是第一道 | 只讀到轉述與逐字稿網站；PR 數量各轉述不一（每月 2,500～4,000 個），是講者自述 |
+| [OpenAI：Harness engineering](https://openai.com/index/harness-engineering/)（2026-02-11） | AGENTS.md 只當目錄（約 100 行），知識放在 docs/ 裡按需讀；架構分層用自訂 lint 與結構測試強制，lint 的錯誤訊息寫成修正指示；定期由 agent 掃出和程式不符的文件；agent 用截圖、log 與 trace 驗證自己的成果 | 讀過全文；數字是作者自述，作者也說不一定能套用到別的 repo |
+| [Anthropic：Claude Code best practices](https://code.claude.com/docs/en/best-practices) | 給一個會回報通過或失敗的檢查並要求附證據；CLAUDE.md 只放「糾正過兩次」與程式看不出來的事；一句規則加強語氣仍被忽略就改成 hook；糾正兩次失敗就清掉對話重來；審查用新的唯讀子代理 | 讀過前 4 萬字，其餘是工具摘要 |
+
+框架這一輪（S17）依此改了三處：practices 加「驗證與證據」，maintenance 加「錯誤出現第二次就升級成檢查、錯誤訊息寫成修正指示」，workflow 加「兩次糾正都沒改好就重來」。框架本來就有的部分（常駐規則短、細節按需讀、guard hook 擋文字擋不住的事）和這三份的方向相同。
+
+還沒做的：定期比對文件與程式（OpenAI 的 doc-gardening）。框架現有的 `check --profile periodic` 只重跑文件裡的命令，不檢查文件的敘述。
+
 ## 另外讀的一篇
 
 Anthropic 的〈Effective context engineering for AI agents〉：context 是有限資源，長 context 會讓模型表現下降；做法是只放最小、高訊號的內容，長任務用壓縮、筆記與子代理。和框架「常駐文字要少、按需讀指引」的方向一致。

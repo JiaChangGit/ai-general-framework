@@ -29,6 +29,18 @@ Manifest 是記錄受管理檔案、來源和模式的清單。`status` 分別�
 
 配置了 Claude Code 時，`status` 另外列出專案上層有自己 Claude Code 設定的目錄（`parent_claude_dirs`，有 `.claude/settings.json`、`.claude/settings.local.json`、`.claude/skills` 或 `CLAUDE.md`；家目錄不算，`~/.claude` 是使用者層級）。從那種目錄啟動的 session，用的是那裡的設定：2026-11-18 用 Claude Code 2.1.325 的無頭 session 實測，專案自己的 `.claude/settings.json`（權限與 hook）沒有載入，專案的 skill 也不在清單裡；從專案目錄啟動時兩者都有。同一天有一個從上層啟動的桌面版 session 列出了子專案的 skill，並註明「處理那個目錄的檔案時適用」；只看過這一次，但 skill 這部分可能依宿主而異。提醒寫在 `launch_notices`，不算 `warnings`，因為專案本身沒有問題。
 
+### 不留 AI 痕跡
+
+```console
+python scripts/agf.py traces check --target ../my-project
+python scripts/agf.py traces exclude --target ../my-project --apply
+python scripts/agf.py traces remove --target ../my-project --apply
+```
+
+新配置預設不留 AI 痕跡（使用者 2026-11-22 的決定）：`project install --apply` 在專案規則加一行「commit 不加 AI 署名、公開文件不提工具名、AI 工具檔不進版本庫」，並在該 clone 的 `.git/info/exclude` 寫一段有標記的排除清單（CLAUDE.md、AGENTS.md、GEMINI.md、`.claude/`、`.agents/`、`.agf/`、`.ai/` 等）。這個檔案只在本機生效、不會被 commit，也不會影響已經被追蹤的檔案。`--keep-ai-traces` 關掉這個預設；沒有這個欄位的舊配置維持原樣，更新時加 `--exclude-ai-traces` 才開啟。回復（rollback）會依還原後的配置拿掉或保留那段清單。目標目錄不是 Git work tree 的根目錄（例如在另一個 repo 底下）時，不會去改外層 repo 的檔案。
+
+`traces check` 只讀：列出被追蹤的 AI 工具檔（附移出版本庫、但保留檔案的 `git rm --cached` 命令）、commit 訊息裡的 AI 共同作者或「Generated with」字樣、檔案裡的同類字樣，以及排除清單在不在。歷史 commit 只回報、不改寫。人類的共同作者不算痕跡。
+
 ## 來源、檔案與圖解
 
 ```console

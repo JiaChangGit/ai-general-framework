@@ -238,6 +238,38 @@ class GuardHookTests(unittest.TestCase):
                 self.assertEqual(self.bash(command).returncode, 2, command)
         self.assertEqual(self.bash(f"echo x > /{posix[0].lower()}{self.work.as_posix()[2:]}/ok").returncode, 0)
 
+    def test_mcp_commands_are_checked_like_bash(self):
+        for tool, tool_input in [("mcp__fastctx__run", {"command": "git push origin main"}),
+                                 ("mcp__fastctx__run", {"cmd": ["git", "push"]}),
+                                 ("mcp__remote__exec", {"script": "cd x && git push", "machine": "gpu"}),
+                                 # Shell text uses / paths: a backslash is an escape in bash (S15).
+                                 ("mcp__fastctx__run", {"command": f"echo x > {self.protected.as_posix()}/docs/a.md"}),
+                                 ("mcp__fastctx__run", {"command": "touch a.md", "cwd": self.protected.as_posix()}),
+                                 ("mcp__shell__run", {"Command": "pkill -f server"})]:
+            with self.subTest(tool=tool, tool_input=tool_input):
+                result = self.run_hook(tool, tool_input)
+                self.assertEqual(result.returncode, 2, result.stderr)
+
+    def test_mcp_writes_to_a_protected_path_are_refused(self):
+        for tool, tool_input in [("mcp__filesystem__write_file", {"path": str(self.protected / "x.md"), "content": "x"}),
+                                 ("mcp__filesystem__move_file", {"source": "a", "destination": str(self.protected / "b")}),
+                                 ("mcp__files__delete", {"paths": ["ok.txt", str(self.protected / "docs")]}),
+                                 ("mcp__fastctx__run", {"command": "ls", "file": str(self.protected / "x")})]:
+            with self.subTest(tool=tool, tool_input=tool_input):
+                result = self.run_hook(tool, tool_input)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertIn("protected path", result.stderr)
+
+    def test_mcp_reads_and_unfamiliar_tools_pass(self):
+        for tool, tool_input in [("mcp__filesystem__read_file", {"path": str(self.protected / "docs")}),
+                                 ("mcp__context7__get_docs", {"library": "react", "topic": "git push"}),
+                                 ("mcp__filesystem__write_file", {"path": str(self.work / "notes.md"), "content": "git push"}),
+                                 ("mcp__fastctx__run", {"command": "git status"}),
+                                 ("mcp__weird__tool", {"command": 3, "path": None})]:
+            with self.subTest(tool=tool, tool_input=tool_input):
+                result = self.run_hook(tool, tool_input)
+                self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_unexpected_event_shapes_are_handled_without_crashing(self):
         for event in [{"tool_name": "Bash", "tool_input": "git push", "cwd": str(self.work)},
                       {"tool_name": "Bash", "tool_input": {"command": "ls"}, "cwd": 42},

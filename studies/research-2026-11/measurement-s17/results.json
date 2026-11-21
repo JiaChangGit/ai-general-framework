@@ -1,0 +1,272 @@
+{
+ "framework": "/home/user/src/ai-general-framework-s17",
+ "framework_commit": "4603c3b052cee79f02f49135ff044b7a35f32d61",
+ "model": "claude-sonnet-5-5",
+ "switch_model": null,
+ "tools": "Read Grep Glob Edit Write Skill",
+ "skills": [
+  "align-with-me",
+  "debug-root-cause",
+  "guide-learning",
+  "read-research",
+  "review-change",
+  "review-sql",
+  "trace-code"
+ ],
+ "hooks": null,
+ "tasks_sha256": "06a437da3120010e5c5967835c3a6b58c37137ccb68f93e0f00f9ebbf5403e3e",
+ "budget_usd": 0.5,
+ "total_budget_usd": 5.0,
+ "spent_usd": 0.60701,
+ "runs": [
+  {
+   "task": "readme-wrong-retry",
+   "kind": "trace",
+   "group": "framework",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 3,
+     "cost_usd": 0.07099609999999999,
+     "first_context_tokens": 21456,
+     "tools_listed": 23,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 14921,
+     "cache_read_input_tokens": 54601,
+     "output_tokens": 584,
+     "skills_used": [],
+     "files_read": [
+      "./retry.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "readme-wrong-retry",
+   "kind": "trace",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 4,
+     "cost_usd": 0.060670600000000005,
+     "first_context_tokens": 19329,
+     "tools_listed": 23,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 12552,
+     "cache_read_input_tokens": 50106,
+     "output_tokens": 544,
+     "skills_used": [],
+     "files_read": [
+      "./retry.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "no-trace-commit-message",
+   "kind": "bugfix",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 6,
+     "cost_usd": 0.06409870000000001,
+     "first_context_tokens": 19341,
+     "tools_listed": 23,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 12866,
+     "cache_read_input_tokens": 50227,
+     "output_tokens": 760,
+     "skills_used": [],
+     "files_read": [
+      "./AGENTS.md",
+      "./calc.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "no-trace-commit-message",
+   "kind": "bugfix",
+   "group": "framework",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 9,
+     "cost_usd": 0.09668830000000002,
+     "first_context_tokens": 21487,
+     "tools_listed": 23,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 17554,
+     "cache_read_input_tokens": 108223,
+     "output_tokens": 1563,
+     "skills_used": [],
+     "files_read": [
+      "./calc.py",
+      "./.agf/managed/guides/practices.md",
+      "./README.md"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "readme-wrong-retry",
+   "kind": "trace",
+   "group": "framework",
+   "repeat": 1,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 3,
+     "cost_usd": 0.0699514,
+     "first_context_tokens": 21466,
+     "tools_listed": 23,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 14600,
+     "cache_read_input_tokens": 54294,
+     "output_tokens": 611,
+     "skills_used": [],
+     "files_read": [
+      "./retry.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "readme-wrong-retry",
+   "kind": "trace",
+   "group": "control",
+   "repeat": 1,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 4,
+     "cost_usd": 0.060375899999999996,
+     "first_context_tokens": 19327,
+     "tools_listed": 23,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 12546,
+     "cache_read_input_tokens": 50099,
+     "output_tokens": 517,
+     "skills_used": [],
+     "files_read": [
+      "./retry.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "no-trace-commit-message",
+   "kind": "bugfix",
+   "group": "control",
+   "repeat": 1,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 7,
+     "cost_usd": 0.06754170000000001,
+     "first_context_tokens": 19339,
+     "tools_listed": 23,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 13063,
+     "cache_read_input_tokens": 71837,
+     "output_tokens": 809,
+     "skills_used": [],
+     "files_read": [
+      "./AGENTS.md",
+      "./calc.py",
+      "./README.md"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "no-trace-commit-message",
+   "kind": "bugfix",
+   "group": "framework",
+   "repeat": 1,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 10,
+     "cost_usd": 0.11668719999999999,
+     "first_context_tokens": 21482,
+     "tools_listed": 23,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 22083,
+     "cache_read_input_tokens": 117152,
+     "output_tokens": 1662,
+     "skills_used": [],
+     "files_read": [
+      "./calc.py",
+      "./.agf/managed/guides/practices.md",
+      "./.agf/managed/guides/writing.md",
+      "./README.md"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  }
+ ],
+ "stopped": null
+}

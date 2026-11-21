@@ -2,6 +2,8 @@
 
 外部的 skill 集、skill 目錄網站，以及 skill 怎麼組合與觸發的研究。skill 是會被模型讀進去的指令，安裝前照[審查清單](../security.md)第 3 節看過。skill 目錄網站的安全分數只看 SKILL.md，不掃附帶的腳本：davila7 的 clean-code 拿到滿分，卻要求執行其他目錄的腳本。
 
+做遊戲與互動 3D 可以看 Godogen（Godot、Bevy、three.js 等引擎的指南與素材生成；它從「一步步的流程指引」改成「只給建構元件」，和框架的方向一致）；要上架 App 前可以跑 App Store Compliance Playbook 的檢查腳本（117 種被拒模式，授權對營收超過 2,000 萬美元的公司收費、不授權拿來訓練 AI）。聊天機器人的安全邊界見框架的 `templates/domains/support-chatbot.md`。
+
 框架的原則是 skill 少而專（SkillsBench：2～3 個專注的 skill 效果最好），外部 skill 多半借做法，不整包安裝。韌體與 kernel 相關的有 Trail of Bits 的 c-review 等與 embedded-review。
 
 <!-- ecosystem:table agent-skills -->
@@ -11,7 +13,9 @@
 | [Trail of Bits Skills Marketplace](https://github.com/trailofbits/skills) | skill 集 | 1 | 有條件（CC-BY-SA-4.0） | 2026-11-21 | 讀原始碼 | 資安顧問公司 Trail of Bits 的 99 個 skill：c-review、rust-review、modern-cpp、static-analysis（codeql、semgrep、sarif-parsing）、testing-handbook（libFuzzer、AFL++、ASan、coverage、OSS-Fuzz 等）、property-based-testing、mutation-testing、constant-time-analysis、zeroize-audit、variant-analysis、supply-chain-risk-auditor、trailmark 系列等。 |
 | [agnix](https://github.com/agent-sh/agnix) | CLI | 2 | 可使用（MIT OR Apache-2.0） | 2026-11-21 | 讀文件 | agent 設定檔的 linter：宣稱 763 條規則，檢查 CLAUDE.md、AGENTS.md、SKILL.md、hooks、MCP 設定在 Claude Code、Codex、OpenCode、Cursor、Copilot 的相容性，可自動修正，有 GitHub Action 與 VS Code 擴充。 |
 | [anthropics/skills](https://github.com/anthropics/skills) | skill 集 | 2 | 可使用（Apache-2.0） | 2026-11-16 | 讀原始碼 | Anthropic 官方的 skill 範例集（19 個）：文件類 docx／pdf／pptx／xlsx、skill-creator、mcp-builder、webapp-testing、frontend-design、claude-api 等，另附 Agent Skills 規格與範本。README 註明是示範與教育用途。 |
+| [App Store Compliance Playbook](https://github.com/mjmirza/app-store-compliance) | skill | 2 | 有條件（LicenseRef-OpenRoots-ORA-2.3） | 2026-11-19 | 讀原始碼 | 避免 App Store 與 Google Play 審核被拒：整理 117 種被拒模式與修正方式，附一支可單獨執行、也能當 PreToolUse hook 的檢查腳本，掃描 iOS、Android 與 Flutter、React Native、Capacitor 專案，依嚴重度回報並給修正指示。 |
 | [embedded-review](https://github.com/ylongw/embedded-review) | skill | 2 | 可使用（MIT） | 2026-03-13 | 讀文件 | 嵌入式／韌體 code review skill：P0～P3 嚴重度，涵蓋記憶體安全、中斷安全、RTOS 誤用、硬體介面、C/C++ 陷阱；目標 STM32、nRF、ESP32、RP2040、FreeRTOS／Zephyr／ThreadX、嵌入式 Linux。 |
+| [Godogen](https://github.com/htdt/godogen) | skill 集 | 2 | 可使用（MIT） | 2026-11-19 | 讀原始碼 | 讓 Claude Code、Codex、Antigravity 做遊戲與引擎渲染類內容（影片簡報、預告、互動 3D）的兩個 skill：engine-guide 說明 Godot、Bevy、Babylon.js、three.js、HTML 怎麼選、怎麼建、怎麼無頭擷取截圖與影片，以及不會報錯的陷阱；asset-gen 產生圖片、精靈圖、3D 模型、音效與語音。 |
 | [mattpocock/skills](https://github.com/mattpocock/skills) | skill 集 | 2 | 可使用（MIT） | 2026-11-19 | 讀原始碼 | Matt Pocock 的工程 skill：grilling、to-spec、to-tickets、tdd、diagnosing-bugs、handoff、teach 等；把只能由使用者叫用的流程 skill 和模型自動叫用的能力 skill 分開。 |
 | [Vercel：AGENTS.md 在 agent eval 勝過 skills（2026-01-27）](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals) | 文章 | 2 | 需人工確認 | — | 讀文件 | 用 Next.js 16 新 API 的 eval 比較：無文件 53%、skill 預設 53%（56% 的案例 skill 從未被呼叫）、skill 加明確指示 79%、AGENTS.md 放壓縮過的文件索引 100%。 |
 | [apple-design（dickwu）](https://github.com/dickwu/apple-design-skill) | skill | 3 | 需人工確認 | 2026-11-13 | 讀原始碼 | 以 Apple Human Interface Guidelines 為依據的 UI/UX 設計審查 skill：SKILL.md（436 行）＋ references/hig/ 下約 124 份從 developer.apple.com 抓下的 HIG 頁面＋ hig-lookup 對照表，涵蓋 iOS、macOS、Flutter、React Native、Tauri、Electron。 |

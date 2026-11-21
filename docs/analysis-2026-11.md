@@ -318,6 +318,22 @@ guard hook 這一輪裝在工作區上一層的 `.claude/settings.json`（不是
 
 前幾輪留下、要等使用者的：把分支併進 main 之後 push，以及在 GitHub 上跑一次 `skill-triggers.yml`。
 
+## 第七輪（2026-11-22，S17）
+
+做了路線圖的 S17，並加上使用者新提的需求；細節在 [CHANGELOG.md](../CHANGELOG.md) 與 [K 報告](../studies/research-2026-11/K-s17.md)。
+
+1. **把文字擋不住的事交給程式**：guard hook 也檢查 MCP 工具；不留 AI 痕跡做成配置的預設加一個檢查命令，而不是只寫一條規則。開發時自己踩到一個缺陷（巢狀專案會改到外層 repo），正好說明「寫成程式並加測試」比寫成文字可靠。
+2. **專家建議和框架的方向一致**：Lauren Tan、OpenAI、Anthropic 都強調驗證、把糾正變成檢查、指示檔要短。框架已經做到常駐文字短、guard hook；這一輪補上「錯誤出現第二次就升級」的順序與「驗證與證據」。
+3. **量測又量不出好處，成本來自多讀指引。** 兩題對照組也全過；框架組多讀 `practices.md` 與 `writing.md`，commit 訊息題貴了六成。S14 已經看到同樣的現象，這一輪 `practices.md` 還變長了。
+
+更新後的優先順序：
+
+1. （高）使用者把 `s17-common` 併進 main，並把 `/home/user/src/.claude/settings.json` 的 matcher 加上 `mcp__.*`。
+2. （高）S18：有標準答案、沒框架容易做錯的題目（C 的函式指標、只在對話說過的決定、允許 Bash 時的 commit 署名），A～D 分組量；同時量「寫作指引拆短版」能不能把多讀的成本降下來（第五輪就排了）。
+3. （中）S17 的變更交給另一個模型獨立審查。
+4. （中）OpenAI 的 doc-gardening：定期比對文件敘述與程式，目前 `check --profile periodic` 只重跑命令。
+5. 其餘照第六輪的路線圖（S19 C／kernel、S20 研究文件、S21 跨宿主；跨宿主需要先在 WSL 安裝 Codex 或 Gemini CLI，要使用者同意）。
+
 ## 方法與限制
 
 - 這份分析的作者，也是這次修改框架的人；修改已交給沒參與的模型審查（結果見 CHANGELOG 與 `studies/research-2026-11/E-framework-review.md`），但評分與判斷仍偏向作者自己的經驗。

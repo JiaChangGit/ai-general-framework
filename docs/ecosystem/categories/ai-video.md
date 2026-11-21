@@ -1,12 +1,13 @@
 # 影片與動畫
 
-不靠大型影片生成模型、用程式產生影片：AI 寫腳本、分鏡與場景程式碼，本機的 renderer 組成 MP4。最貼近這個流程的是 Stickman Kino（全本機、用 Kokoro 做旁白、旁白長度決定畫面）；Remotion（React，個人與三人以下公司免費）、Hyperframes（HTML 加 GSAP）、Manim（數學與演算法動畫）、Motion Canvas 是不同的場景寫法。
+不靠大型影片生成模型、用程式產生影片：AI 寫腳本、分鏡與場景程式碼，本機的 renderer 組成 MP4。最貼近這個流程的有兩個：Cinematic Skill（旁白紀錄片，一個連續鏡頭掃過照片、地圖與數字，素材從 Wikimedia Commons 下載時就記下授權並拒絕非自由授權的檔案）與 Stickman Kino（火柴人動畫，全本機、用 Kokoro 做旁白、旁白長度決定畫面）；Remotion（React，個人與三人以下公司免費）、Hyperframes（HTML 加 GSAP）、Manim（數學與演算法動畫）、Motion Canvas 是不同的場景寫法。
 
 8 GB 的 WSL 跑得動，瓶頸在 headless Chrome 逐格渲染。Stickman Kino 的安裝腳本會下載並安裝 Chrome 函式庫與 TTS 模型，要先在容器裡評估。
 
 <!-- ecosystem:table ai-video -->
 | 名稱 | 類型 | Tier | 授權 | 最後更新 | 證據 | 說明 |
 |---|---|---|---|---|---|---|
+| [Cinematic Skill](https://github.com/Moh4696/cinematic-skill) | skill | 1 | 可使用（MIT） | 2026-11-09 | 讀原始碼 | 讓 coding agent 用程式做旁白紀錄片：寫腳本、錄旁白、找公有領域的圖片並記下授權，再把照片、文件、地圖與數字放在同一張大看板上，用一個連續的鏡頭移動串起來，每個畫面重點對準旁白的字。不是影片生成模型，每一格都由 Python 的 Skia 畫出來。 |
 | [Remotion](https://github.com/remotion-dev/remotion) | 函式庫 | 1 | 有條件（Remotion License（自訂）） | 2026-11-20 | 讀原始碼 | 用 React 寫影片：程式化的場景與動畫，由 Chrome 逐格渲染，ffmpeg 編碼成 MP4；含 Studio 預覽、CLI、Lambda、字幕與 Whisper 整合、以及一組 agent skills。 |
 | [Stickman Kino（dsauce）](https://github.com/dsauce/stickman-kino) | skill 集 | 1 | 可使用（MIT） | 2026-10-08 | 讀原始碼 | 由 coding agent 導演、以程式碼渲染的火柴人影片：agent 寫 film.json 與 scenes.js，本機 Kokoro 旁白與合成音樂，HyperFrames 逐格渲染成 MP4；不用任何影片生成模型或 API。 |
 | [claude-animated-shorts（mromidev）](https://github.com/mromidev/claude-animated-shorts) | skill | 2 | 有條件（MIT） | 2026-11-01 | 讀原始碼 | 一個 Claude skill（cartoon-3d-short）：用 three.js 與 Remotion 做 55～70 秒直式 2D 角色加 3D 世界的動畫短片；流程為題材與事實、腳本、旁白、story.ts 鏡頭表、靜態影格、渲染、QA。 |
