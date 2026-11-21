@@ -1,19 +1,19 @@
 # 接手文件
 
-更新日期：2026-11-19（S14 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
+更新日期：2026-11-21（S15 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
 
 ## 一開始先做什麼
 
 ```bash
 git -C <框架目錄> status --short          # 預期：沒有輸出
-git -C <框架目錄> log --oneline -3         # 預期：最上面是 S14 的 commit（見 CHANGELOG），或使用者之後的新 commit
+git -C <框架目錄> log --oneline -3         # 預期：最上面是 S15 的 commit（見 CHANGELOG），或使用者之後的新 commit
 python3 -B <框架目錄>/scripts/agf.py audit --root <框架目錄>      # 預期："errors": []、"warnings": []
 (cd <框架目錄> && python3 -B -m unittest discover -s tests)        # 預期：OK（有幾個依平台略過）
 python3 -B <框架目錄>/scripts/agf.py task checkpoint --help        # 預期：列出 --done、--doing、--next、--repo、--append
 ```
 
-`<框架目錄>` 換成實際的位置。S12～S14 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s14`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以 `git -C <框架目錄> log --oneline -5` 為準。
+`<框架目錄>` 換成實際的位置。S12～S15 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s15`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以 `git -C <框架目錄> log --oneline -5` 為準。
 
 ## 目前的位置
 
@@ -52,7 +52,7 @@ S14：常駐規則只留四段，其餘放需要時才讀的 `docs/practices.md`
 
 依分析報告第五輪的優先順序：
 
-1. **使用者**把 `s14-framework` 併進 main：`git -C <框架目錄> pull --ff-only ../ai-general-framework-s14 s14-framework`。
+1. **使用者**把 `s15-windows` 併進 main（`git -C <框架目錄> pull --ff-only ../ai-general-framework-s15 s15-windows`），再 push，確認 GitHub 上 CI 的 Windows job 恢復通過。
 2. （中）寫作指引拆成常用的短版與完整版，量文字品質（照 S14 的盲評方法）與花費。常駐規則的拆分已在 S14 做完：固定成本少了，做事的 session 花費卻差不多。
 3. （已決定）`save_prompts` 在使用者的專案不開，再送一次給模型服務也算上雲端；guard hook 維持裝在工作區上一層（`/home/user/src/.claude/settings.json`），不移到使用者層級。兩者都是 2026-11-19 使用者的決定。
 4. 要等使用者 push 的：在 GitHub 上實際跑一次 `skill-triggers.yml`（並設定 `ANTHROPIC_API_KEY`，會花錢）。
@@ -69,6 +69,8 @@ S14：常駐規則只留四段，其餘放需要時才讀的 `docs/practices.md`
 - **`cd` 會延續到之後的命令**，宿主還會把主要工作目錄跟著改過去。查看別的目錄時用 `git -C` 或絕對路徑。
 - **`pkill -f` 會連自己的 shell 一起殺掉**；用 PID 停行程。
 - **長時間的命令**用 `setsid nohup` 和 session 分開執行，結果寫進檔案；宿主的背景命令可能有時間上限。
+- **CI 的輸出會被截斷。** GitHub 上的「Python core」把測試輸出截在 16,000 字，後面的失敗看不到。Windows 的問題要用本機的 Windows Python 跑完整測試才看得全（WSL 裡：`/mnt/c/Users/user/AppData/Local/Programs/Python/Python313/python.exe -B -m unittest discover -s tests`，在 Windows 檔案系統上的副本裡跑）。
+- **hook 要自己設定 UTF-8。** Windows 預設用系統字碼頁，印中文會失敗；兩個 hook 的 `main()` 一開始就呼叫 `utf8_stdio()`。
 - **使用者環境的 MCP 伺服器會中途連上。** S13 量測時工具從 23 個變 31 個，第一次呼叫多了約 1,730 tokens。比較固定成本時，同時跑對照組，並確認 `tools_listed` 相同。
 - **`/tmp` 在這台 WSL 上是 4.3 GB 的 tmpfs**，重開就清空，也會吃記憶體；要留的證據不要放那裡。
 - **給使用者的命令不要用 `<名稱>` 這種佔位字。** bash 會把 `<` 當成讀檔，整行命令不會執行；寫出實際的值，或明說要換掉哪一段。

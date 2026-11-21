@@ -122,7 +122,7 @@ def commits_after(root: Path, moment: float) -> int:
 def handoff_time(root: Path, path: Path) -> float:
     """When the hand-off was last brought up to date: its file time, or the commit
     that last changed it, whichever is later. Committing the hand-off is updating it."""
-    committed = git(root, "log", "-1", "--format=%ct", "--", str(path.relative_to(root)))
+    committed = git(root, "log", "-1", "--format=%ct", "--", path.relative_to(root).as_posix())
     return max(path.stat().st_mtime, float(committed) if committed.isdigit() else 0.0)
 
 
@@ -212,7 +212,7 @@ def write_checkpoint(root: Path, config: dict, event_name: str, sections: dict[s
     branch, head = git(root, "branch", "--show-current"), git(root, "log", "-1", "--format=%h %s")
     if head:
         lines += [f"- 分支：{branch or '（detached）'}；HEAD：{head}"]
-    lines += [f"- 交接檔：{', '.join(str(p.relative_to(root)) for p in handoffs(root, config)) or '（沒有）'}", ""]
+    lines += [f"- 交接檔：{', '.join(p.relative_to(root).as_posix() for p in handoffs(root, config)) or '（沒有）'}", ""]
     recent, status = git(root, "log", "-5", "--format=%h %ad %s", "--date=format:%m-%d %H:%M"), git(root, "status", "--short")
     if recent:
         lines += ["## 最近的 commit", "", "```", recent, "```", ""]
@@ -255,9 +255,9 @@ def session_start(event: dict, config: dict, root: Path) -> dict | None:
     notes = []
     for path in found:
         after = commits_after(root, handoff_time(root, path))
-        notes.append(f"{path.relative_to(root)}（{when(path)} 更新" + (f"，之後有 {after} 個新 commit）" if after else "）"))
+        notes.append(f"{path.relative_to(root).as_posix()}（{when(path)} 更新" + (f"，之後有 {after} 個新 commit）" if after else "）"))
     if latest.is_file():
-        notes.append(f"{latest.relative_to(root)}（{when(latest)}，hook 自動留下的事實）")
+        notes.append(f"{latest.relative_to(root).as_posix()}（{when(latest)}，hook 自動留下的事實）")
     if not notes:
         return None
     source = event.get("source")
@@ -273,12 +273,24 @@ def session_start(event: dict, config: dict, root: Path) -> dict | None:
 
 
 def pre_compact(event: dict, config: dict, root: Path) -> str:
-    paths = ", ".join(str(p.relative_to(root)) for p in handoffs(root, config)) or "（目前沒有；請在摘要裡建議建立一份）"
+    paths = ", ".join(p.relative_to(root).as_posix() for p in handoffs(root, config)) or "（目前沒有；請在摘要裡建議建立一份）"
     return ("摘要時務必保留：這次任務的目標與怎樣算做完；已做的決定與理由；已完成的 commit 與驗證結果；正在進行、還沒完成的事；"
             f"照順序的下一步；接手時要執行的核對命令；交接檔的位置：{paths}。不要只寫結論，保留檔案路徑、命令與數字。")
 
 
+def utf8_stdio() -> None:
+    """Claude Code sends and reads hook JSON as UTF-8. Without this, Windows uses the
+    locale's code page (cp1252, cp950, ...): printing Chinese raised UnicodeEncodeError,
+    which the hook swallowed, so it printed nothing (S15, the CI's Windows jobs)."""
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
+
+
 def main() -> int:
+    utf8_stdio()
     if len(sys.argv) < 2:
         print(__doc__, file=sys.stderr)
         return 0
@@ -348,7 +360,7 @@ def main() -> int:
                 reminded.write_text("reminded\n", encoding="utf-8")
                 path, count = stale[0]
                 print(json.dumps({"hookSpecificOutput": {"hookEventName": "Stop", "additionalContext": (
-                    f"[agf continuity] 這個 session 做了 {count} 個 commit，{path.relative_to(root)} 還沒跟上。"
+                    f"[agf continuity] 這個 session 做了 {count} 個 commit，{path.relative_to(root).as_posix()} 還沒跟上。"
                     "結束前更新它：已完成的事（附 commit）、還沒完成的事、照順序的下一步、接手者要跑的核對命令。只更新一次即可。")}},
                     ensure_ascii=False))
         else:

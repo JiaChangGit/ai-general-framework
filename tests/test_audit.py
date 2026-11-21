@@ -68,3 +68,18 @@ class AuditTests(unittest.TestCase):
             self.assertEqual(repaired["status"], "PASS")
             self.assertEqual(repaired["errors"], [])
             self.assertEqual(repaired["_exit_code"], 0)
+
+
+class SourcesCompileTests(unittest.TestCase):
+    def test_every_python_file_compiles_without_warnings(self):
+        # S15: an invalid escape ("\\E") in a docstring made every guard-hook run print a
+        # SyntaxWarning; newer Python versions will refuse to compile it.
+        import warnings
+        root = Path(__file__).resolve().parents[1]
+        files = [path for folder in ("agf", "templates", "evals", "scripts", "tests") for path in sorted((root / folder).rglob("*.py"))]
+        self.assertTrue(files)
+        for path in files:
+            with self.subTest(path=path.relative_to(root).as_posix()), warnings.catch_warnings():
+                warnings.simplefilter("error", SyntaxWarning)
+                compile(path.read_text(encoding="utf-8"), str(path), "exec")
+

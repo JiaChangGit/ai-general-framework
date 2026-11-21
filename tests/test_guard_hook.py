@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -78,7 +79,7 @@ class GuardHookTests(unittest.TestCase):
         self.assertEqual(self.run_hook("Write", {"file_path": str(sibling)}).returncode, 0)
 
     def test_shell_writes_into_a_protected_path_are_refused(self):
-        p = str(self.protected)
+        p = self.protected.as_posix()  # shell commands use "/", also on Windows (Git Bash)
         for command in [f"echo x > {p}/docs/a.md", f"echo x >> {p}/a", f"printf x | tee {p}/a",
                         f"cp notes.md {p}/docs/", f"rm -rf {p}/docs", f"mv {p}/a /tmp/a", f"touch {p}/new",
                         f"sed -i s/a/b/ {p}/docs/a.md", f"dd if=/dev/zero of={p}/z", f"git -C {p} commit -m x",
@@ -88,7 +89,7 @@ class GuardHookTests(unittest.TestCase):
                 self.assertEqual(self.bash(command).returncode, 2, command)
 
     def test_reading_from_a_protected_path_is_allowed(self):
-        p = str(self.protected)
+        p = self.protected.as_posix()  # shell commands use "/", also on Windows (Git Bash)
         for command in [f"cat {p}/docs/a.md", f"cp {p}/docs/a.md notes.md", f"git -C {p} status --short",
                         f"git -C {p} log --oneline -3", f"grep -rn x {p}", f"diff {p}/a {p}/b",
                         f"echo x > {self.work}/out.txt", f"ls {p} 2>/dev/null"]:
@@ -109,7 +110,7 @@ class GuardHookTests(unittest.TestCase):
         run = lambda e: subprocess.run([sys.executable, str(HOOK)], input=json.dumps(e), capture_output=True,
                                        text=True, timeout=10, env={"PATH": "/usr/bin:/bin"})
         self.assertEqual(run(event).returncode, 2)
-        event["tool_input"]["command"] = f"echo x > {self.protected}/a"
+        event["tool_input"]["command"] = f"echo x > {self.protected.as_posix()}/a"
         self.assertEqual(run(event).returncode, 0)
 
     # The cases below come from an independent review of the first version
@@ -142,10 +143,10 @@ class GuardHookTests(unittest.TestCase):
                         "git stash list", "git diff", "python3 -c 'print(1>2)'", "grep 'a>b' docs"]:
             with self.subTest(command=command):
                 self.assertEqual(run(command), 0, command)
-        self.assertEqual(self.bash(f"(cd {self.protected} && touch a)").returncode, 2)
+        self.assertEqual(self.bash(f"(cd {self.protected.as_posix()} && touch a)").returncode, 2)
 
     def test_more_shell_writes_into_a_protected_path_are_refused(self):
-        p = str(self.protected)
+        p = self.protected.as_posix()  # shell commands use "/", also on Windows (Git Bash)
         for command in [f"echo x >| {p}/a", f"echo x &> {p}/a", f'echo x > "{p}/quoted"', f"cp -t {p} notes.md",
                         f"cp --target-directory={p} notes.md", f"install -t {p} tool", f"perl -pi -e s/a/b/ {p}/a",
                         f"find {p} -name '*.tmp' -delete", f"tar -xzf a.tgz -C {p}", f"tar xf a.tar --directory={p}",
@@ -155,7 +156,7 @@ class GuardHookTests(unittest.TestCase):
                 self.assertEqual(self.bash(command).returncode, 2, command)
 
     def test_reads_and_mentions_that_looked_like_writes_are_allowed(self):
-        p = str(self.protected)
+        p = self.protected.as_posix()  # shell commands use "/", also on Windows (Git Bash)
         for command in [f'echo "a > {p}/b"', f"echo 'tee {p}/a'", f"git -C {p} branch", f"git -C {p} branch -a",
                         f"git -C {p} branch --show-current", f"git -C {p} tag", f"git -C {p} tag -l 'v*'",
                         f"git -C {p} stash list", f"git -C {p} config --get user.name", f"find {p} -name '*.md'",
@@ -179,7 +180,7 @@ class GuardHookTests(unittest.TestCase):
     def test_text_the_shell_does_run_is_still_checked(self):
         refused = ["cat <<EOF\n$(git push)\nEOF", "cat <<EOF > x\n`git push`\nEOF",
                    'echo "now $(git push origin main)"', "python3 - <<'EOF'\nprint(1)\nEOF\ngit push",
-                   f"cat <<'EOF' > {self.protected}/a\ntext\nEOF"]
+                   f"cat <<'EOF' > {self.protected.as_posix()}/a\ntext\nEOF"]
         for command in refused:
             with self.subTest(command=command):
                 self.assertEqual(self.bash(command).returncode, 2, command)
@@ -202,6 +203,28 @@ class GuardHookTests(unittest.TestCase):
         for command in allowed:
             with self.subTest(command=command):
                 self.assertEqual(self.bash(command).returncode, 0, command)
+
+    def test_a_command_with_chinese_text_is_read_as_utf8_on_any_code_page(self):
+        # S15: on Windows the event was decoded with the locale's code page; raw UTF-8 Chinese
+        # could fail to decode and the hook refuses what it cannot parse.
+        for codepage in ("cp1252", "cp950"):
+            env = dict(os.environ, PYTHONIOENCODING=codepage, PYTHONUTF8="0")
+            for command, expected in (("echo '中文說明：完成'", 0), ("git push  # 推上去", 2)):
+                event = {"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": command}, "cwd": str(self.work)}
+                result = subprocess.run([sys.executable, str(HOOK), str(self.config)], input=json.dumps(event, ensure_ascii=False).encode("utf-8"),
+                                        capture_output=True, env=env, timeout=10)
+                with self.subTest(codepage=codepage, command=command):
+                    self.assertEqual(result.returncode, expected, result.stderr.decode("utf-8", "replace"))
+
+    @unittest.skipUnless(sys.platform == "win32", "Git Bash drive paths exist only on Windows")
+    def test_git_bash_drive_paths_into_a_protected_path_are_refused(self):
+        # S15: on Windows, /c/Users/... is how Git Bash writes C:\\Users\\...; it was let through.
+        posix = self.protected.as_posix()
+        gitbash = "/" + posix[0].lower() + posix[2:]
+        for command in [f"echo x > {gitbash}/a", f"cp a {gitbash}/b", f"rm -rf {gitbash}"]:
+            with self.subTest(command=command):
+                self.assertEqual(self.bash(command).returncode, 2, command)
+        self.assertEqual(self.bash(f"echo x > /{posix[0].lower()}{self.work.as_posix()[2:]}/ok").returncode, 0)
 
     def test_unexpected_event_shapes_are_handled_without_crashing(self):
         for event in [{"tool_name": "Bash", "tool_input": "git push", "cwd": str(self.work)},

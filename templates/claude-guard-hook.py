@@ -110,6 +110,8 @@ def protected(path: str, cwd: Path, config: dict) -> Path | None:
     """The protected root that contains `path` (resolved against cwd), if any."""
     if not path or path.startswith("-"):
         return None
+    if os.name == "nt" and re.match(r"/[A-Za-z](/|$)", path):
+        path = f"{path[1]}:/{path[3:]}"  # Git Bash writes C:\\x as /c/x (S15)
     target = (cwd / Path(path).expanduser()).resolve()
     for root in config["protected_paths"]:
         if target == root or root in target.parents:
@@ -202,7 +204,7 @@ def strip_heredocs(command: str) -> tuple[str, list[str]]:
     A heredoc body is text on the program's standard input. When that program is
     a shell (`bash <<'EOF'`, `cat <<EOF | sh`, `eval "$(cat <<EOF ...)"`), the
     body is commands and stays in the command. Otherwise a body under a quoted
-    delimiter (<<'EOF', <<"EOF", <<\EOF) is never expanded and is dropped; an
+    delimiter (<<'EOF', <<"EOF", <<\\EOF) is never expanded and is dropped; an
     unquoted body is dropped too, but returned so that its $(...) and backticks,
     which do run, are checked. A heredoc without its closing line keeps the rest
     of the command, so nothing is skipped by mistake."""
@@ -468,7 +470,19 @@ def decide(event: dict, config: dict) -> str | None:
     return None
 
 
+def utf8_stdio() -> None:
+    """Claude Code sends and reads hook JSON as UTF-8. Without this, Windows uses the
+    locale's code page (cp1252, cp950, ...): printing Chinese failed, and a command with
+    Chinese text could be misread as one the hook cannot parse, which it refuses (S15)."""
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
+
+
 def main() -> int:
+    utf8_stdio()
     try:
         config = load_config(sys.argv[1] if len(sys.argv) > 1 else None)
     except (OSError, ValueError, TypeError) as error:

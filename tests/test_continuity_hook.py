@@ -28,7 +28,7 @@ class ContinuityHookTests(unittest.TestCase):
     def hook(self, name, event, config=None):
         env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.root))
         argv = [sys.executable, str(HOOK), name] + ([str(config)] if config else [])
-        result = subprocess.run(argv, input=json.dumps(event), capture_output=True, text=True, env=env, timeout=20)
+        result = subprocess.run(argv, input=json.dumps(event), capture_output=True, text=True, encoding="utf-8", env=env, timeout=20)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertNotIn("failed", result.stderr)
         return result.stdout
@@ -65,12 +65,12 @@ class ContinuityHookTests(unittest.TestCase):
     def test_checkpoints_keep_the_summary_the_error_and_git_state(self):
         (self.root / "work.txt").write_text("changed")
         self.hook("post-compact", {"compact_summary": "We were fixing the pager."})
-        latest = (self.root / ".agf/checkpoints/latest.md").read_text()
+        latest = (self.root / ".agf/checkpoints/latest.md").read_text(encoding="utf-8")
         self.assertIn("We were fixing the pager.", latest)
         self.assertIn("work.txt", latest)
         self.assertIn("first", latest)
         self.hook("stop-failure", {"error": "rate_limit", "last_assistant_message": "API Error: Rate limit reached"})
-        latest = (self.root / ".agf/checkpoints/latest.md").read_text()
+        latest = (self.root / ".agf/checkpoints/latest.md").read_text(encoding="utf-8")
         self.assertIn("rate_limit", latest)
         self.assertIn("Rate limit reached", latest)
 
@@ -81,7 +81,7 @@ class ContinuityHookTests(unittest.TestCase):
             {"message": {"role": "user", "content": "hi"}},
             {"message": {"role": "assistant", "content": [{"type": "text", "text": "parse() done; format() next"}]}}]))
         self.hook("session-end", {"reason": "other", "transcript_path": str(transcript)})
-        latest = (self.root / ".agf/checkpoints/latest.md").read_text()
+        latest = (self.root / ".agf/checkpoints/latest.md").read_text(encoding="utf-8")
         self.assertIn("format() next", latest)
         self.assertNotIn("\nold\n", latest)
 
@@ -89,11 +89,11 @@ class ContinuityHookTests(unittest.TestCase):
         self.hook("stop", {"session_id": "s", "last_assistant_message": "parse() works; format() still raises"})
         self.hook("stop", {"session_id": "other", "last_assistant_message": "a different session"})
         self.hook("session-end", {"session_id": "s", "reason": "other"})
-        latest = (self.root / ".agf/checkpoints/latest.md").read_text()
+        latest = (self.root / ".agf/checkpoints/latest.md").read_text(encoding="utf-8")
         self.assertIn("format() still raises", latest)
         self.assertNotIn("a different session", latest, "each session keeps its own last message")
         self.hook("stop-failure", {"session_id": "s"})
-        self.assertIn("事件沒有提供", (self.root / ".agf/checkpoints/latest.md").read_text())
+        self.assertIn("事件沒有提供", (self.root / ".agf/checkpoints/latest.md").read_text(encoding="utf-8"))
 
     def test_committing_the_hand_off_counts_as_updating_it(self):
         # Found by the S11 review: the commit that includes the hand-off is newer than the file.
@@ -167,7 +167,7 @@ class ContinuityHookTests(unittest.TestCase):
         event = {"session_id": "p1", "prompt": "Implement it; the README's format is out of date, use 1h02m03s."}
         self.assertEqual(self.hook("user-prompt", event).strip(), "", "UserPromptSubmit output would join the prompt")
         self.hook("session-end", {"session_id": "p1", "reason": "other"})
-        self.assertNotIn("1h02m03s", (self.root / ".agf/checkpoints/latest.md").read_text(), "off by default")
+        self.assertNotIn("1h02m03s", (self.root / ".agf/checkpoints/latest.md").read_text(encoding="utf-8"), "off by default")
         config = self.root.parent / "prompts.json"
         config.write_text(json.dumps({"save_prompts": True}))
         for index in range(7):
@@ -175,7 +175,7 @@ class ContinuityHookTests(unittest.TestCase):
         self.hook("user-prompt", {"session_id": "p2", "prompt": event["prompt"]}, config)
         self.hook("user-prompt", {"session_id": "other", "prompt": "from another session"}, config)
         self.hook("session-end", {"session_id": "p2", "reason": "other"}, config)
-        latest = (self.root / ".agf/checkpoints/latest.md").read_text()
+        latest = (self.root / ".agf/checkpoints/latest.md").read_text(encoding="utf-8")
         self.assertIn("1h02m03s", latest)
         self.assertIn("message 6", latest)
         self.assertNotIn("message 2", latest, "only the newest five are shown")
@@ -209,12 +209,27 @@ class ContinuityHookTests(unittest.TestCase):
         self.assertTrue((folder / ".prompts-old.jsonl").is_file())
         self.assertTrue((folder / ".last-message-old").is_file())
 
+    def test_output_is_utf8_even_when_the_platform_code_page_is_not(self):
+        # S15: the CI's Windows jobs (cp1252) failed seven tests; the hook printed nothing there.
+        (self.root / ".ai").mkdir()
+        (self.root / ".ai" / "HANDOFF.md").write_text("x")
+        for codepage in ("cp1252", "cp950"):
+            env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.root), PYTHONIOENCODING=codepage, PYTHONUTF8="0")
+            for name, event in (("pre-compact", {}), ("session-start", {"source": "compact", "session_id": "w"})):
+                result = subprocess.run([sys.executable, str(HOOK), name], input=json.dumps(event, ensure_ascii=False).encode("utf-8"),
+                                        capture_output=True, env=env, timeout=20)
+                with self.subTest(codepage=codepage, event=name):
+                    self.assertEqual(result.stderr, b"")
+                    text = result.stdout.decode("utf-8")
+                    self.assertIn(".ai/HANDOFF.md", text, "paths are printed with / on every platform")
+                    self.assertTrue("下一步" in text or "壓縮" in text, text[:80])
+
     def test_broken_input_or_configuration_never_stops_the_session(self):
         env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.root))
         for argv, stdin in [([sys.executable, str(HOOK), "stop"], "not json"),
                             ([sys.executable, str(HOOK), "session-start", "/missing.json"], "{}"),
                             ([sys.executable, str(HOOK), "nonsense"], "{}")]:
-            result = subprocess.run(argv, input=stdin, capture_output=True, text=True, env=env, timeout=20)
+            result = subprocess.run(argv, input=stdin, capture_output=True, text=True, encoding="utf-8", env=env, timeout=20)
             self.assertEqual(result.returncode, 0, argv)
         for content in ["[1, [2]]", '{"keep": 0}', '{"keep": "3"}', '{"handoff_files": "HANDOFF.md"}']:
             config = self.root.parent / "odd.json"
@@ -228,7 +243,7 @@ class ContinuityHookTests(unittest.TestCase):
         plain = self.root.parent / "plain"
         plain.mkdir()
         env = dict(os.environ, CLAUDE_PROJECT_DIR=str(plain))
-        subprocess.run([sys.executable, str(HOOK), "session-end"], input="{}", text=True, env=env, timeout=20, check=True)
+        subprocess.run([sys.executable, str(HOOK), "session-end"], input="{}", text=True, encoding="utf-8", env=env, timeout=20, check=True)
         self.assertTrue((plain / ".agf/checkpoints/latest.md").is_file())
 
 

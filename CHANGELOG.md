@@ -2,6 +2,23 @@
 
 每一輪寫：改了什麼、為什麼、怎麼驗證、還沒驗證什麼。細節在各 commit 的訊息與 [docs/verification.md](docs/verification.md)。
 
+## 2026-11-21：S15（分支 `s15-windows`，在 clone `../ai-general-framework-s15` 裡做）
+
+起因：核對狀態時發現，GitHub 上的 CI「Python core」在 S11、S14 兩次 push 後都失敗，失敗的是 Windows 的兩個 job。CI 的輸出被截在 16,000 字，只看得到續接 hook 的 7 個測試；用這台 Windows 的 Python 3.13 跑完整測試，才看到 guard hook 另外 4 個測試（29 個子案例）也失敗，而且修正前的 main 就是這樣。
+
+| 修改 | 為什麼 | 驗證 |
+|---|---|---|
+| `templates/claude-continuity-hook.py`、`claude-guard-hook.py`：啟動時把 stdin、stdout、stderr 設成 UTF-8 | Claude Code 用 UTF-8 收送 hook 的 JSON。Windows 預設用系統的字碼頁（CI 是 cp1252，這台是 cp950）：續接 hook 一印中文就 `UnicodeEncodeError`，hook 照設計吞掉錯誤、什麼都不輸出，所以在 Windows 上它等於沒有作用 | 新測試在 cp1252、cp950 下檢查輸出是 UTF-8；修正前失敗、修正後通過。guard hook 在 cp1252 下沒重現出誤擋，那部分是預防 |
+| 續接 hook 印路徑一律用 `/` | Windows 上印成 `.ai\HANDOFF.md`，和其他平台不一致 | 同上 |
+| guard hook 在 Windows 上把 Git Bash 的 `/c/Users/...` 當成 `C:/Users/...` | Windows 上 Claude Code 的 Bash 是 Git Bash；`echo x > /c/...受保護的路徑/a` 原本會放行 | 新測試（只在 Windows 跑）；用 Windows 的 Python 實測 |
+| `tests/test_guard_hook.py` 的 shell 命令改用 `/` 的路徑 | 原本把 `C:\Users\...` 放進 bash 命令；反斜線在 bash 裡是跳脫字元，那行命令實際上不會寫到那個路徑，測試在 Windows 上一直失敗 | Windows：308 個測試通過（38 個 POSIX 專用的照設計略過）；Linux：308 個通過（6 個略過） |
+| guard hook 說明文字裡的 `<<\EOF` 改成 `<<\\EOF`；新增「所有 Python 檔在警告視為錯誤時都能編譯」的測試 | S11 寫的說明文字有無效的跳脫字元，每次執行 guard 都印一行 `SyntaxWarning`；之後的 Python 版本會直接拒絕編譯 | `tests/test_audit.py` 新測試 |
+| `tests/test_continuity_hook.py` 讀寫一律指定 UTF-8 | 測試本身在 cp950 的 Windows 上也會讀錯 | 同上 |
+
+**驗證**：Linux 308 個測試、audit 通過；這台 Windows 的 Python 3.13 跑完整測試、audit，以及 CI 實際執行的 `agf check --profile full`，都通過。GitHub 上的 CI 要等使用者 push 之後才知道。
+
+**沒做的事**：沒有在 Windows 的 Claude Code 裡實際裝 hook 試；Windows 的 `/mnt/c` 一類 WSL 路徑不在這次範圍。
+
 ## 2026-11-19：S14（分支 `s14-framework`，在 clone `../ai-general-framework-s14` 裡做）
 
 使用者挑了：把大部分常駐規則改成需要時才讀、量 `debug-root-cause` 新加的兩條規則、重跑沒重跑過的 7 個觸發情境；另外決定續接 hook 的 `save_prompts` 不開（再送一次給模型服務也算上雲端）、guard hook 不移到使用者層級。量測中途使用者叫用了 `/align-with-me`，對齊三個後續決定。結果在 [studies/research-2026-11/J-s14.md](studies/research-2026-11/J-s14.md)。
