@@ -93,6 +93,21 @@ def _manifest(root: Path) -> dict | None:
     return value
 
 
+def _is_home(root: Path) -> bool:
+    try:
+        return root == Path.home().resolve()
+    except (RuntimeError, OSError):  # no home directory to compare with
+        return False
+
+
+def _no_install(root: Path) -> str:
+    if _is_home(root):
+        return (f"No managed installation found at {root}. This is your home directory; do not install there: its rules "
+                "would reach every project below it. Run the command again with --target set to the project's absolute path.")
+    return (f"No managed installation found at {root}. If another project was meant, pass its absolute path with --target; "
+            "if this one, look at project plan first, then use project install.")
+
+
 def _drift(root: Path, manifest: dict | None) -> list[dict]:
     found = []
     for name, entry in (manifest or {}).get("files", {}).items():
@@ -575,7 +590,7 @@ def project(args: argparse.Namespace) -> dict:
     if args.operation == "install" and old is not None:
         raise AgfError("Framework already managed here; use project update or project plan.")
     if args.operation == "update" and old is None:
-        raise AgfError("No managed installation found; use project install first.")
+        raise AgfError(_no_install(root))
     recorded_source = (old or {}).get("source")
     if not args.source and recorded_source and not Path(recorded_source).is_absolute():
         raise AgfError("Recorded framework source is not a native absolute path in this environment. Provide --source with an accessible checkout; no implicit path conversion was attempted.")
@@ -591,6 +606,9 @@ def project(args: argparse.Namespace) -> dict:
     # New projects leave no AI traces by default; older installs keep what they recorded until asked.
     ai_traces = getattr(args, "ai_traces", None) or ((old.get("ai_traces", "keep") if old else "exclude"))
     report, desired = _plan(root, source, hosts, old, selected, tools_mode, ai_traces)
+    if old is None and _is_home(root):
+        report["notices"].append("The target is your home directory: rules installed here reach every project below it. "
+                                 "Pass --target with the project's absolute path instead.")
     if not args.apply or args.operation == "plan":
         report["_exit_code"] = 0 if report["ready"] else 1
         return report

@@ -38,8 +38,16 @@ class DocCheckTests(unittest.TestCase):
         self.assertIn("path `docs/old-name.md`", problems)
         self.assertIn("has no option `--nonexistent`", problems)
 
+    def test_stale_paths_in_folders_that_projects_also_have_are_reported(self):
+        stale = ("skills/renamed/SKILL.md", "examples/gone.py", "tests/test_gone.py", "docs/gone/guide.md", "skills/its-own-skill/")
+        self.write("guide.md", "".join(f"`{path}`\n\n" for path in stale))
+        problems = "\n".join(doccheck.check(self.root))
+        for path in stale:
+            self.assertIn(f"path `{path}`", problems)
+        self.assertIn("PROJECT_PATHS", problems, "the message says how to record a real exception")
+
     def test_project_paths_and_dated_records_are_not_checked(self):
-        self.write("guide.md", "A project may keep `docs/HANDOFF.md` or `skills/its-own-skill/`.\n")
+        self.write("guide.md", "A project may keep `docs/HANDOFF.md` or `skills/microkernel-engineering/`.\n")
         self.write("analysis-2026-11.md", "Back then we proposed `agf task record --checkpoint`.\n")
         self.assertEqual(doccheck.check(self.root), [])
 

@@ -80,6 +80,14 @@ REVIEW_PROMPT = ("另一位工程師剛完成下面的工作。請獨立核對�
 TOKEN_KEYS = ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "output_tokens")
 
 
+def original_work(parts: list[dict]) -> str:
+    """What the reviewer is told was asked: every part's request, in order."""
+    if len(parts) == 1:
+        return parts[0]["prompt"]
+    return f"（這個工作分成 {len(parts)} 段、依序交代；以下是各段原本的指示）\n\n" + "\n\n".join(
+        f"第 {number} 段：\n{part['prompt']}" for number, part in enumerate(parts, 1))
+
+
 def load_tasks(path: Path) -> tuple[str, dict[str, dict]]:
     data = json.loads(path.read_text(encoding="utf-8"))
     tasks = {task["id"]: task for task in data["tasks"]}
@@ -319,7 +327,7 @@ def run_one(args, framework, base, out, cli, env, startup, task, task_dir, group
         if group == "reviewed":
             # D group: a different model checks the finished work, fixes it and gives the final answer;
             # the hidden checks judge what it leaves behind.
-            planned.append(("review", args.review_model, {"prompt": task["parts"][-1]["prompt"], "review": True}))
+            planned.append(("review", args.review_model, {"prompt": original_work(task["parts"]), "review": True}))
         answer, failed = "", None
         for label, model, part in planned:
             where = f"{task['id']}-{group} {label}"

@@ -42,6 +42,24 @@ class ProjectTests(unittest.TestCase):
         self.assertEqual(list(self.root.iterdir()), [])
         self.assertFalse(result["applied"])
 
+    def test_update_without_an_install_names_the_target(self):
+        with self.assertRaises(AgfError) as caught:
+            self.run_project("update", True)
+        self.assertIn(str(self.root.resolve()), str(caught.exception))
+        self.assertIn("project plan", str(caught.exception))
+
+    def test_the_home_directory_is_not_suggested_as_a_place_to_install(self):
+        with patch.object(manage.Path, "home", return_value=self.root.resolve()):
+            with self.assertRaises(AgfError) as caught:
+                self.run_project("update", True)
+            notices = self.run_project("plan")["notices"]
+        message = str(caught.exception)
+        self.assertIn("home directory", message)
+        self.assertIn("--target", message)
+        self.assertNotIn("use project install", message)
+        self.assertTrue(any("home directory" in notice for notice in notices), notices)
+        self.assertFalse((self.root / ".agf").exists())
+
     def test_install_is_dry_run_without_apply(self):
         self.run_project("install")
         self.assertFalse((self.root / ".agf").exists())

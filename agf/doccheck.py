@@ -13,11 +13,12 @@ from pathlib import Path
 import re
 
 FOLDERS = ("docs/", "templates/", "skills/", "evals/", "agf/", "scripts/", "adapters/", "examples/", "tests/")
-SHARED_NAMES = ("docs/", "skills/", "examples/", "tests/")
 CODE = re.compile(r"```[^\n]*\n(.*?)```|`([^`\n]+)`", re.S)
 COMMAND = re.compile(r"(?:scripts/agf\.py|(?<![\w./-])agf)[ \t]+((?:[a-z][a-z-]*)(?:[ \t]+(?:[a-z][a-z-]*))?)((?:[ \t]+[^\s`|;&]+)*)")
 OPTION = re.compile(r"(?<![\w-])(--[a-z][a-z0-9-]*)")
-PROJECT_DOCS = {"docs/HANDOFF.md"}  # named in the docs as a file of the user's project
+# Named in the docs as paths of a user's project. These folders exist in projects and in the framework,
+# so each such path is listed here; everything else must exist.
+PROJECT_PATHS = {"docs/HANDOFF.md", "skills/microkernel-engineering"}
 CONTINUED = re.compile(r"\\\r?\n[ \t]*")
 SKIP_PATH = re.compile(r"[<>*{}…$\s]|\.\.\.")
 # Dated records describe the state when they were written; they are not kept in step with the code.
@@ -90,13 +91,8 @@ def check(root) -> list[str]:
             if match.group(2):
                 candidate = code.strip().split("#", 1)[0].rstrip(":,.;")
                 if candidate.startswith(FOLDERS) and not SKIP_PATH.search(candidate) and not (directory / candidate).exists():
-                    head = "/".join(candidate.split("/")[:2])
-                    # docs/, skills/, examples/ and tests/ also exist in user projects: only a path whose
-                    # first two parts are this framework's (e.g. docs/ecosystem/...) is checked, and any
-                    # docs/<name>.md, the commonest kind to go stale, except the known project files.
-                    own_doc = (candidate.startswith("docs/") and candidate.count("/") == 1
-                               and candidate.endswith(".md") and candidate not in PROJECT_DOCS)
-                    if candidate.startswith(SHARED_NAMES) and not own_doc and not (directory / head).exists():
+                    if candidate.rstrip("/") in PROJECT_PATHS:
                         continue
-                    problems.append(f"{relative}:{line}: path `{candidate}` does not exist")
+                    problems.append(f"{relative}:{line}: path `{candidate}` does not exist "
+                                    "(if it is a path of the user's project, add it to PROJECT_PATHS in agf/doccheck.py)")
     return problems

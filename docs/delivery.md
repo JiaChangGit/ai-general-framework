@@ -28,7 +28,7 @@ Git push、建立／更新 PR、寄送 patch、部署及其他遠端寫入，確
 
 用框架開發的專案預設不留 AI 痕跡（使用者 2026-11-22 的決定，`project install` 會在專案規則加一段說明，在 Git 專案寫 `.git/info/exclude` 並裝 commit-msg hook）：AI 工具檔留在硬碟、不進版本庫；commit 訊息不加 AI 共同作者或「Generated with」一類的字樣；公開文件不提 AI 工具名稱；README 保留專案既有的那一段 AI 使用說明。這是為了讓成品讀起來是一般的工程成果，不是規避揭露：學校、期刊、公司或開源專案要求揭露 AI 使用時，照它們的規定。
 
-`agf traces check --target <專案>` 列出被追蹤的 AI 工具檔、commit 訊息裡的 AI 署名與檔案裡的「Generated with」字樣。已經 commit 的歷史只回報、不改寫；還沒推送的歷史要不要改寫，由使用者決定。已追蹤的工具檔用它給的 `git rm --cached` 命令移出版本庫，檔案仍留在硬碟。`agf traces hook --apply` 裝的 commit-msg hook 會在 commit 時擋下 AI 署名，並說明怎麼改。
+`agf traces check --target <專案>` 列出被追蹤的 AI 工具檔、commit 訊息裡的 AI 署名與檔案裡的「Generated with」字樣。已經 commit 的歷史只回報、不改寫（使用者已決定保留時，加 `--after <commit>` 只看之後的）；還沒推送的歷史要不要改寫，由使用者決定。已追蹤的工具檔用它給的 `git rm --cached` 命令移出版本庫，檔案仍留在硬碟。`agf traces hook --apply` 裝的 commit-msg hook 會在 commit 時擋下 AI 署名，並說明怎麼改。
 
 ## 保留給使用者的操作
 

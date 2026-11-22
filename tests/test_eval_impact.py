@@ -16,6 +16,10 @@ FAKE_CLI = '''#!{python}
 import json, os, sys
 from pathlib import Path
 mode = os.environ.get("FAKE_MODE", "fix")
+if mode == "echo":
+    print(json.dumps({{"type": "result", "is_error": False, "subtype": "success", "total_cost_usd": 0.01,
+                      "result": sys.argv[sys.argv.index("-p") + 1]}}))
+    sys.exit(0)
 if mode == "hang":
     import time; time.sleep(30)
 if mode in ("budget", "limit"):
@@ -284,6 +288,17 @@ class ImpactTests(unittest.TestCase):
         summary = impact.summarize_runs(data)
         self.assertEqual(summary["tasks"]["edit"]["skills-only"]["median_first_context_tokens"], 16)
         self.assertEqual(summary["tasks"]["edit"]["skills-only"]["tools_listed"], [1], "the fake CLI lists one tool")
+
+    def test_the_reviewer_gets_every_part_of_a_task_and_a_single_part_unchanged(self):
+        tasks = json.loads(self.tasks.read_text())
+        tasks["tasks"][0]["parts"] = [{"prompt": "the only request"}]
+        tasks["tasks"][1]["parts"] = [{"prompt": "decided: use seconds"}, {"prompt": "carry on"}]
+        self.tasks.write_text(json.dumps(tasks))
+        self.run_impact("--ids", "edit,cut", "--runs", "1", "--group", "reviewed", "--review-model", "fake-reviewer", mode="echo")
+        asked = {name: (self.temp / "out" / "outputs" / f"{name}-reviewed-0.md").read_text(encoding="utf-8") for name in ("edit", "cut")}
+        original = {name: text.split("原本的工作：\n", 1)[1].split("\n\n他的最後回覆：", 1)[0] for name, text in asked.items()}
+        self.assertEqual(original["edit"], "the only request")
+        self.assertLess(original["cut"].index("decided: use seconds"), original["cut"].index("carry on"))
 
     def test_the_reviewed_group_adds_a_review_session_by_another_model(self):
         result, data = self.run_impact("--ids", "edit,cut", "--runs", "1", "--group", "reviewed", "--review-model", "fake-reviewer")

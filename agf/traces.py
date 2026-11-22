@@ -35,7 +35,10 @@ COMMIT_MARKERS = re.compile(
     rf"|generated (?:with|by) \[?(?:{TOOLS})(?=[ \t]*(?:$|[\])(.!,:;<*]|\d|via\b|opus\b|sonnet\b|haiku\b|fable\b))"
     r"|\U0001F916 ?generated",
     re.IGNORECASE | re.MULTILINE)
-FILE_MARKERS = r"generated with \[?claude code|co-authored-by: *claude|🤖 generated with"
+# git grep only finds candidate lines; _file_marker decides with the tool list that commits use.
+FILE_CANDIDATES = r"generated (with|by) |co-authored-by:|🤖 ?generated"
+# Claude's own lines also count when quoted in the middle of a sentence or cut short.
+CLAUDE_IN_FILES = re.compile(r"generated with \[?claude code|co-authored-by: *claude\b", re.IGNORECASE)
 HOOK_MARK = "# agf: commit-msg hook that rejects AI co-author lines (agf traces hook)"
 HOOK = '''#!/bin/sh
 {mark}
@@ -57,15 +60,16 @@ PYEOF
 '''
 
 
-def _git(root: Path, *arguments: str, check: bool = True) -> str:
+def _git(root: Path, *arguments: str, check: bool = True, raw: bool = False) -> str:
+    """Git's output with LF line ends, or with `raw` exactly as printed (for -z records)."""
     try:
-        completed = subprocess.run(["git", "-C", str(root), *arguments], capture_output=True, text=True,
-                                   encoding="utf-8", errors="replace", timeout=60)
+        completed = subprocess.run(["git", "-C", str(root), *arguments], capture_output=True, timeout=60)
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise AgfError(f"git failed: {exc}") from exc
     if check and completed.returncode != 0:
-        raise AgfError(f"git {' '.join(arguments)} failed: {completed.stderr.strip()[:300]}")
-    return completed.stdout
+        raise AgfError(f"git {' '.join(arguments)} failed: {completed.stderr.decode('utf-8', 'replace').strip()[:300]}")
+    text = completed.stdout.decode("utf-8", "replace")
+    return text if raw else text.replace("\r\n", "\n").replace("\r", "\n")
 
 
 def is_repository(root: Path) -> bool:
@@ -171,16 +175,38 @@ def hook(target, apply: bool = False, remove: bool = False) -> dict:
     return {"status": "UPDATED" if ours else "ADDED", "hook": str(path), "applied": apply}
 
 
-def check(target, max_commits: int = 5000, max_items: int = 20) -> dict:
+def _file_marker(line: str) -> bool:
+    if CLAUDE_IN_FILES.search(line) or COMMIT_MARKERS.search(line):
+        return True
+    start = line.lower().find("co-authored-by:")  # a trailer behind "# ", "// " and the like
+    return start > 0 and bool(COMMIT_MARKERS.search(line[start:]))
+
+
+def _settled(root: Path, after: str) -> str:
+    """The full id of `after`, which must be a commit that HEAD contains."""
+    commit = _git(root, "rev-parse", "--verify", "--quiet", "--end-of-options", f"{after}^{{commit}}", check=False).strip()
+    if not commit:
+        raise AgfError(f"--after needs an existing commit, got {after!r}.")
+    if _git(root, "merge-base", commit, "HEAD", check=False).strip() != commit:
+        raise AgfError(f"--after {after!r} is not an ancestor of HEAD, so it cannot mark settled history.")
+    return commit
+
+
+def check(target, max_commits: int = 5000, max_items: int = 20, after: str | None = None) -> dict:
     root = Path(target).resolve()
     if not is_repository(root):
         return {"status": "NOT_GIT", "target": str(root), "meaning": "Not a Git work tree; nothing was checked.", "_exit_code": 0}
     tracked = [p for p in _git(root, "ls-files", "-z").split("\0") if p and ai_file(p)]
-    log = _git(root, "log", f"-n{max_commits}", "--format=%h%x1f%B%x1e", check=False)
+    settled = _settled(root, after) if after is not None else None
+    revisions = [f"{settled}..HEAD"] if settled else []
+    log = _git(root, "log", f"-n{max_commits}", "--format=%h%x1f%B%x1e", *revisions, "--", check=False)
+    not_checked = int(_git(root, "rev-list", "--count", settled).strip()) if settled else 0
     commits = [entry.split("\x1f", 1)[0].strip() for entry in log.split("\x1e")
                if "\x1f" in entry and COMMIT_MARKERS.search(entry.split("\x1f", 1)[1])]
-    grep = _git(root, "grep", "-I", "-n", "-i", "-E", FILE_MARKERS, check=False)
-    markers = [line[:200] for line in grep.splitlines() if line and not ai_file(line.split(":", 1)[0])]
+    grep = _git(root, "grep", "-I", "-z", "-n", "-i", "-E", FILE_CANDIDATES, check=False, raw=True)
+    markers = [f"{path}:{number}:{line.rstrip()}"[:200]
+               for path, number, line in re.findall(r"([^\0]+)\0(\d+)\0([^\n]*)\n", grep)
+               if not ai_file(path) and _file_marker(line.rstrip())]
     exclude_path = _exclude_file(root)
     excluded = BEGIN in _read(exclude_path)
     found = bool(tracked or commits or markers)
@@ -188,7 +214,8 @@ def check(target, max_commits: int = 5000, max_items: int = 20) -> dict:
         "status": "FOUND" if found else "CLEAN", "target": str(root),
         "tracked_ai_files": {"count": len(tracked), "paths": tracked[:max_items]},
         "untrack_command": ["git", "rm", "-r", "--cached", "--", *tracked[:max_items]] if tracked else None,
-        "commits_with_ai_markers": {"count": len(commits), "checked": min(max_commits, log.count("\x1e")), "examples": commits[:max_items]},
+        "commits_with_ai_markers": {"count": len(commits), "checked": min(max_commits, log.count("\x1e")), "examples": commits[:max_items],
+                                    "after": settled, "not_checked": not_checked},
         "file_markers": {"count": len(markers), "lines": markers[:max_items]},
         "exclude_block": excluded, "exclude_file": str(exclude_path),
         "commit_msg_hook": (_hook_file(root).is_file() and HOOK_MARK in _hook_file(root).read_text(encoding="utf-8", errors="replace")),
@@ -240,7 +267,9 @@ def register(subparsers) -> None:
     probe = operations.add_parser("check", help="Read-only report: tracked AI files, AI commit markers, markers in files, exclude block")
     probe.add_argument("--target", default=".")
     probe.add_argument("--max-commits", type=int, default=5000)
-    probe.set_defaults(func=lambda args: check(args.target, max(1, args.max_commits)))
+    probe.add_argument("--after", metavar="COMMIT", help="Settled history: check only the commit messages after COMMIT, "
+                       "an ancestor of HEAD. Tracked files and markers in files are still checked in full")
+    probe.set_defaults(func=lambda args: check(args.target, max(1, args.max_commits), after=args.after))
     installer = operations.add_parser("hook", help="Install the commit-msg hook that rejects AI co-author lines (preview unless --apply)")
     installer.add_argument("--target", default=".")
     installer.add_argument("--apply", action="store_true")
