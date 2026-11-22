@@ -8,6 +8,7 @@
 | `run_claude.py` | 開一次 session，摘要事件串流。環境只留 `HOME`、`PATH`、`LANG`、`TERM` 和明確給的 `--env`，宿主的訊息通道與 session id 不會傳下去 |
 | `preflight.py` | 開跑前檢查受試目錄：檔案裡有沒有不該出現的路徑、有沒有指到外面的連結、上層目錄有沒有會被一起載入的規則或 skill、旁邊有沒有讀得到的別次材料、會不會傳下像宿主通道的環境變數 |
 | `trigger.py` | 每次執行建一個私有目錄，只在框架組安裝框架，預檢後執行並記錄，最後刪掉目錄；`stop` 用 PID 停止，`report` 彙總 |
+| `grading.py`、`judge.py`、`taskcheck.py` | 分項評分、從分項到判定、花錢之前驗題（見最下面「分項評分與判定」） |
 | `sandbox.py` | 受試者程式唯一會執行的地方：斷網、唯讀、沒有權限與憑證、限制資源的 Docker 容器；也產生受試 session 的限制（檔案工具只能在工作目錄、不能改宿主會載入的檔、hook 與 skill 的 shell 關閉） |
 | `usage.py` | 從本機的 Claude Code 對話紀錄，統計框架的 skill 與 `agf` 子命令實際被用了幾次；只輸出總數 |
 
@@ -67,6 +68,15 @@ python evals/host/impact.py report /tmp/agf-impact-out
 - 逾時與用完單次預算算失敗；額度、Docker 故障等會停下，不算失敗。每次執行記錄材料與隱藏測試的雜湊，`report` 不合併雜湊不同的同一格。
 - `--env NAME` 不帶值時，從目前的環境複製那個變數，例如在 CI 裡傳 API key，不必把它寫在命令列上。
 - 每個條件只跑一兩次時，差異可能是雜訊。要比較時固定模型、任務與 CLI 版本；Claude Code 的快取在訂閱方案內是 1 小時、其他情況 5 分鐘，跑的先後會影響 cache read 的多寡，所以 token 要分開看，不只看總數。
+
+### 分項評分與判定（S22）
+
+任務用 `checks.items` 列出分開判定的項目（條件寫在 [`grading.py`](grading.py) 開頭），`judge.py` 把每題的分項換成分數、區間與判定。
+
+- **花錢之前**：`taskcheck.py TASKS --cases CASES --framework DIR` 在容器裡確認標準解每項都過、什麼都不做最多過一項、換句話說與近似錯誤都判對，並列出題目和安裝後的規則重疊的字句。重疊代表對照組會先拿到框架的內容。
+- **執行**：`--seed` 把題目順序與誰先固定成可重現的亂數，`--jobs` 同時跑幾題，`--resume` 只補缺的並把先前花的算進上限，`--cli-version` 釘住版本。服務的模型或版本不對就停下。
+- **先查再算**：`judge.py sample` 抽出隱去組別的執行給人核對判定，看完才跑 `judge.py judge`。評分錯了用 `impact.py regrade` 以保存的成品重算，不必再花錢。
+- **公開**：只公開 `judge.py export` 的輸出（分項、次數與花費）。串流、回覆與成品都留在本機。
 
 `.github/workflows/skill-triggers.yml` 讓同一套觸發檢查在 GitHub Actions 上跑：只在手動按下時執行，需要 `ANTHROPIC_API_KEY` secret，結果上傳成 artifact，不讓 build 失敗。
 
