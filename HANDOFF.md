@@ -57,7 +57,7 @@ python3 -B ~/src/ai-general-framework/scripts/agf.py task checkpoint --help
 
 ## 目前的位置
 
-修改與驗證在 [CHANGELOG.md](CHANGELOG.md)；分析與排好順序的待辦在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md)（第六輪的路線圖、第七～十輪的更新在最後，S20 只有 CHANGELOG）；研究與量測在 [studies/](studies/README.md)；外部資源資料庫在 [docs/ecosystem/](docs/ecosystem/README.md)。
+修改與驗證在 [CHANGELOG.md](CHANGELOG.md)；分析與排好順序的待辦在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md)（第六輪的路線圖、第七～十一輪的更新在最後，S20 只有 CHANGELOG）；研究與量測在 [studies/](studies/README.md)；外部資源資料庫在 [docs/ecosystem/](docs/ecosystem/README.md)。
 
 S12 的重點：
 
@@ -90,6 +90,8 @@ S20（2026-11-22）：刪減清單最後留下 P1～P4（P5 複測後由使用�
 
 S21（2026-11-22）：五個已知缺口修完；獨立審查找到 guard 的三種繞過與評測的誤判，都重現後修正（[審查](studies/research-2026-11/P-review-s19-s20.md)）；完整版寫作指引的改寫規則獨立成段，盲評通過；shm_ipc 裝了 commit-msg hook。
 
+S22 設計（2026-11-23）：查到以前量測的 startup 與多數題目把框架規則也給了對照組，所以 S11～S21 的「兩組沒差」不能當成框架沒用的證據。新設計與樣本數、花費在 [Q 報告](studies/research-2026-11/Q-s22-benchmark-design.md)。
+
 ## 拿框架到別的專案測試
 
 使用者會在其他聊天室用這個框架做別的專案，順便測它的表現。建議的做法：
@@ -109,11 +111,11 @@ S21（2026-11-22）：五個已知缺口修完；獨立審查找到 guard 的三
 
 路線圖（舊的 S19～S21 編號已被用掉，順延重編；花費都要先問）：
 
-1. **S22 benchmark 換設計。** 量比較敏感的東西（呼叫關係答對幾條、規則有沒有被遵守、花費）。先算樣本數、偵測能力與花費給使用者看，再開跑；算法在 `studies/research-2026-11/bench-s19/power.py`。不要直接補跑 S19 沒判完的兩題。S19 的題目與 image 先留著。
+1. **S22 benchmark。** 設計在 [Q 報告](studies/research-2026-11/Q-s22-benchmark-design.md)：30 題分項計分、以題為樣本、Opus 5.5 兩階段。**它第十節的四個決定要有使用者的核准**（核准會寫在 Q 報告最後一節；沒有那一節就是還沒核准）。核准之前不寫題目、不開受試 session、不開子代理。核准後的順序：實作第七節 → 題目與規格凍結並 commit → 0a、0b、0c → 正式階段。不要直接補跑 S19 沒判完的兩題。
 2. **S23 C 與 kernel 的程式追蹤。** 把確定性工具接進 `trace-code` 的 reference，用 S22 的方法在一個 kernel 子目錄比較。codegraph 的 image 先留著。
 3. **S24 研究文件。** PDF 解析與引用回查，用真實論文與中文 PDF 核對頁碼和數字。解析用的 image 要重建（Dockerfile 在 `studies/ecosystem-2026-11/trials/docparse/docker/`）。
 4. **S25 跨宿主接手。** 需要先在 WSL 安裝 Codex 或 Gemini CLI，要使用者同意。
-   S22 要一起處理：隱藏測試命令擋不住受試者改 conftest 或建置設定；S21 本身還沒有獨立審查。
+   S22 一起處理（Q 報告第七節）：隱藏測試命令擋不住受試者改 conftest 或建置設定；S21 與 S22 的獨立審查。
 5. 之後：其他領域各用一個真實任務驗收；教學文件格式的個人化與子命令退場（低）。
 
 要使用者決定、不急的：
@@ -139,6 +141,7 @@ S21（2026-11-22）：五個已知缺口修完；獨立審查找到 guard 的三
 - **刪除之前先盤點只存在那裡的東西。** `-s18` 有 S18 報告唯一的原始串流；判斷能不能刪要比對內容，不能只看名字：S21 看到 commit 標題寫「user WIP」就警告不要 gc，其實它和已 commit 的 `c020447` 一行不差（使用者 2026-11-22 已清掉那些物件）。開複本用 `git clone --no-local`，不把到不了的舊物件帶過去（S21）。
 - **給使用者的命令要帶真實路徑。** `--target .` 被原樣貼在家目錄執行過（S20）。先在本機找出 `.agf/manifest.json`，每個專案給一行絕對路徑的命令；框架回的「use project install first」在家目錄照做會把規則裝進家目錄。
 - **「已經有了」要逐句查。** S19 說 P5 拿掉的內容常駐規則已有，其實兩句只在 practices。刪任何觸發條件之前，列出那個檔每一句還能從哪裡被讀到（S20）。
+- **對照組不能拿到處理。** 題目與共同的 startup 只寫使用者會講的話：「只改必要的地方」「怎麼驗證」「不推送」都是框架的規則，寫進去就等於兩組都裝了（S22）。
 - **花錢之前先算樣本數。** 每組 20 次時，20 個百分點的真實差距只有約 15% 的機率達到 p<0.05。先算再問使用者預算（S19）。
 - **題目敘述也要拿標準答案的來源核對。** S19 有一題的敘述和 Git 的實際行為相反，只能作廢。
 - **題目先試跑。** 對照組全過、或處理組沒有資訊能通過的題目，分組量幾次都沒有用（S18）。
