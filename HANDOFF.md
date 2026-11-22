@@ -3,7 +3,12 @@
 更新日期：2026-11-22（S18 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
 
-> **S19 進行中（2026-11-22）。** 在 `../ai-general-framework-s19` 的 `s19-benchmark` 分支；使用者的決定、選題與判定門檻在 `studies/research-2026-11/M-s19.md`（看到結果後不改）。S18 的乾淨歷史已在 main 並推上 GitHub（`fad222f`，CI 四個 job 通過）。被額度打斷時：先看 `M-s19.md` 最後的執行經過、`~/.cache/agf-ecosystem/bench-s19/`（第三方題目與原始結果，不 commit）與各 `measurement-s19*/results.json` 做到哪，只補缺的；量測的 `--base` 要在家目錄外；原始串流不 commit；總上限 15 美元要累計。
+> **S19 進行中（2026-11-22）。** 在 `../ai-general-framework-s19` 的 `s19-benchmark` 分支；使用者的決定、門檻與執行經過在 [M-s19](studies/research-2026-11/M-s19.md)（看到結果後不改規格）。
+>
+> - 做完：隔離（容器＋宿主限制）、S18 審查的修正、10 題凍結並驗證、短版複測材料凍結、判定腳本。
+> - 進行中：對照組試跑（`~/.cache/agf-ecosystem/bench-s19/pilot-r*/results.json`）。每題先 2 次，已通過 2 次的不跑第 3 次；通過不超過 1 次的才留，最多 4 題，少於 2 題就不分組。
+> - 還沒做：A/B/C 各 5 次（上限 8 美元）、短版複測（1.2 美元）與盲評、報告與刪減清單、合併前的測試與隱私掃描。
+> - 續做時：`cat ~/.cache/agf-ecosystem/bench-s19/pilot-r*/results.json` 看做到哪，只補缺的並寫到新的 `--out`；`--base` 要在家目錄外且是空目錄；第三方題目與原始串流不 commit；總花費累計不超過 15 美元；分組期間 HEAD 與會部署的檔不動；判定用 `python3 -I studies/research-2026-11/bench-s19/judge.py`。
 
 ## 一開始先做什麼
 

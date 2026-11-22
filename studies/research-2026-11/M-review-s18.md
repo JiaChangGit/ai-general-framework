@@ -111,3 +111,21 @@ Recomputed from the committed `results.json` files (7 dirs, 56 rows, 54 complete
 - **P2 (nit)** `measurement-s18/results.json:636-639` and `measurement-s18-old/results.json:47-50` contain the quota message with the reset time and a timezone. Replace the text with "usage limit reached".
 - No session IDs, tokens or raw streams in `studies/research-2026-11/`; no personal emails (only `example.invalid` fixtures). Paths in the `results.json` files are already `~`. Checked, fine.
 - Directory name `measurement-s18/` and others contain no secrets.
+
+---
+
+## 處置（S19 主 session，逐項重現之後）
+
+| 項目 | 重現 | 處置 |
+|---|---|---|
+| R1 commit-msg 誤擋與漏擋 | 是 | 改成整個名字或帳號屬於工具才算，「generated with」要以工具名結尾；補測試。`FILE_MARKERS` 只認 Claude 的部分這輪沒改 |
+| R2 共用或被追蹤的 hooksPath、symlink | 是 | 不寫，回報 `CUSTOM_HOOKS_PATH`／`FOREIGN_HOOK` |
+| R3 壞掉的 `python3` 擋住所有 commit | 是（用假的 `python3`；沒有在 Microsoft Store 的替身上試） | 先試能不能執行，都不行就不擋 |
+| R4 `--remove` 刪掉使用者改過的 hook | 沒試 | 沒改：只比對內容會讓舊版 hook 移不掉 |
+| R5、R6 guard 的小寫複合名稱與深度 | 是 | 補複合字；上限 64 層，超過就拒絕 |
+| R7 受試者與審查 session 沒有隔離 | 是 | 容器加宿主限制，兩次越界測試與真實冒煙測試驗證 |
+| R8 合併與最後一段的定義 | 讀程式確認 | 記錄材料雜湊並拒絕合併不同的；最後一段不含審查。審查仍只拿最後一段的指示，沒改 |
+| R9 已發布檔案的檢查 | 是 | 掃整個被追蹤的樹，加 `.stderr`、`.meta.json` |
+| R10 文件檢查的漏洞 | 是 | `docs/<名稱>.md` 與跨行命令都檢查；`skills/`、`examples/`、`tests/` 的缺口仍在 |
+| S1～S6 | 對照資料 | L 報告加「事後更正」；之後的執行記錄 `files_changed` |
+| P1、P2 | 是 | CHANGELOG 與分析的家目錄改成 `~`；額度訊息去掉時間與時區 |
