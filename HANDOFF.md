@@ -1,13 +1,9 @@
 # 接手文件
 
-更新日期：2026-11-22（S21 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
+更新日期：2026-11-23（S22 設計）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
 
-> **S21 做完（2026-11-22）。等使用者三件事，命令都在「還沒做的事」，順序不能反：**
->
-> 1. 把 `s21-wrapup` 併進 main 並 push（併入時 guard 的修正才生效）。
-> 2. 更新兩個已安裝的專案（寫作與工具指引有改）。
-> 3. 清理舊複本與磁碟（自願；先備份再刪。在那之前不要從 `-s17`、`-s18` push：它們的分支還含私人串流的舊 commit）。
+> **現況一律用下面的命令核對。** 這份文件不寫「等使用者做什麼」，也不放會改動東西的一次性命令（合併、push、更新、刪除）：那些寫在當輪給使用者的回覆裡，留在這裡只會過時又被貼第二次（`tests/test_handoff.py` 會擋）。
 
 ## 一開始先做什麼
 
@@ -35,13 +31,29 @@ python3 -B ~/src/ai-general-framework/scripts/agf.py audit --root ~/src/ai-gener
 (cd ~/src/ai-general-framework && python3 -B -m unittest discover -s tests)
 ```
 
+預期只列出 main 本身；多出來的 `-sNN` 是還沒收掉的一輪：
+
+```bash
+ls -d ~/src/ai-general-framework*
+```
+
+預期 `"drift": []`，而且 operations 全是 `keep`；有 `update` 或 `create` 表示專案還沒跟上 main：
+
+```bash
+python3 -B ~/src/ai-general-framework/scripts/agf.py project plan --target ~/src/Distributed_Key-Value_Store_with_Raft
+```
+
+```bash
+python3 -B ~/src/ai-general-framework/scripts/agf.py project plan --target ~/src/shm_ipc
+```
+
 預期列出 `--done`、`--doing`、`--next`、`--repo`、`--append`：
 
 ```bash
 python3 -B ~/src/ai-general-framework/scripts/agf.py task checkpoint --help
 ```
 
-框架放在別處時才要換路徑。S12～S18 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s21`，舊的可能已被使用者清掉），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以上面第二個命令為準。
+框架放在別處時才要換路徑。S12 起每一輪都在框架目錄旁的 clone 做（S16～S21 的已在 2026-11-22 清掉），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以上面第二個命令為準。
 
 ## 目前的位置
 
@@ -65,7 +77,7 @@ S16（2026-11-21～22）：使用者給了兩份長需求（框架怎麼演進�
 
 - **分析第六輪**：第一份需求逐項對照現有框架，路線圖是 S17 共通能力（按需讀的文件）→ S18 有標準答案的 benchmark 題目 → S19 C 與 kernel 的程式理解 → S20 研究文件 → S21 跨宿主交接。
 - **資料庫**：`docs/ecosystem/` 237 筆，`entries.json` 是唯一資料來源，分類頁的表格由 `python -m agf.ecosystem render` 產生，`agf audit` 會檢查表格與資料一致。新增一筆的方法在資料庫的 README。
-- **兩組試跑**（`studies/ecosystem-2026-11/trials/`）：文件解析與 C 程式理解，都用自己做的、答案已知的材料。映像檔 `agf-parse-*:s16`、`agf-codegraph-*:s16` 留在本機 Docker，原始輸出與 clone 下來的 repo 在 `~/.cache/agf-ecosystem/`（不在版本庫）。
+- **兩組試跑**（`studies/ecosystem-2026-11/trials/`）：文件解析與 C 程式理解，都用自己做的、答案已知的材料。映像檔 `agf-codegraph-*:s16` 留在本機 Docker，原始輸出在 `~/.cache/agf-ecosystem/`（不在版本庫）。解析用的映像檔與 clone 下來的 repo 已在 2026-11-22 清掉，都能重建或重抓。
 - **研究方式的教訓**：子代理用 `gh api` 抓維護狀態、clone 只讀，結果先寫進檔案，撞到額度時沒有丟；但子代理的事件表來自搜尋摘要，寫進資料庫前要主 session 自己回一手來源核對（這輪核對的四件都屬實，另外發現一件子代理沒找到）。
 
 S17（2026-11-22）：共通能力與使用者的新需求。guard hook 也檢查 MCP 工具；`agf traces` 與配置預設不留 AI 痕跡；按需讀的指引補上證據順序、驗證與證據、資料分級、模型與強度、核准過的教訓；`templates/spec.md`、`templates/domains/support-chatbot.md`；`usage.py --tokens`；資料庫 245 筆。量測兩題兩組都全過，量不出作用（[K 報告](studies/research-2026-11/K-s17.md)）。
@@ -95,56 +107,6 @@ S21（2026-11-22）：五個已知缺口修完；獨立審查找到 guard 的三
 
 ## 還沒做的事
 
-把 S21 併進 main（使用者執行）：
-
-```bash
-git -C ~/src/ai-general-framework pull --ff-only ~/src/ai-general-framework-s21 s21-wrapup
-```
-
-```bash
-git -C ~/src/ai-general-framework push origin main
-```
-
-併入之後更新兩個已安裝的專案：
-
-```bash
-python3 -B ~/src/ai-general-framework/scripts/agf.py project update --target ~/src/Distributed_Key-Value_Store_with_Raft --apply
-```
-
-```bash
-python3 -B ~/src/ai-general-framework/scripts/agf.py project update --target ~/src/shm_ipc --apply
-```
-
-清理（使用者執行；理由與盤點在 [O 報告](studies/research-2026-11/O-s21.md)，AI 不替使用者刪）。第一行先備份、比對相同才刪：
-
-```bash
-cp -a ~/src/ai-general-framework-s18/studies/research-2026-11 ~/.cache/agf-ecosystem/private-s18-research && diff -r ~/src/ai-general-framework-s18/studies/research-2026-11 ~/.cache/agf-ecosystem/private-s18-research && rm -rf ~/src/ai-general-framework-s18
-```
-
-```bash
-rm -rf ~/src/ai-general-framework-s16 ~/src/ai-general-framework-s17 ~/src/ai-general-framework-s19 ~/src/ai-general-framework-s20
-```
-
-```bash
-rm -rf ~/.cache/agf-ecosystem/repos
-```
-
-S21 的複本等併入之後再刪：
-
-```bash
-git -C ~/src/ai-general-framework merge-base --is-ancestor "$(git -C ~/src/ai-general-framework-s21 rev-parse HEAD)" main && rm -rf ~/src/ai-general-framework-s21
-```
-
-```bash
-docker image rm agf-parse-light:s16 agf-parse-docling:s16 agf-parse-marker:s16 agf-parse-ocrmypdf:s16
-```
-
-下一行清的是全機所有專案的 build cache（只是快取，會重建）：
-
-```bash
-docker builder prune --all
-```
-
 路線圖（舊的 S19～S21 編號已被用掉，順延重編；花費都要先問）：
 
 1. **S22 benchmark 換設計。** 量比較敏感的東西（呼叫關係答對幾條、規則有沒有被遵守、花費）。先算樣本數、偵測能力與花費給使用者看，再開跑；算法在 `studies/research-2026-11/bench-s19/power.py`。不要直接補跑 S19 沒判完的兩題。S19 的題目與 image 先留著。
@@ -170,10 +132,11 @@ docker builder prune --all
 - **不要把量測資料夾整個 `git add`。** 原始串流有 session id、本機路徑與使用者裝的工具清單，這個 repo 是公開的。S17 因此改寫過一次歷史；現在有忽略規則與 `tests/test_published_files.py`，commit 前還是要看暫存的檔案清單。
 - **量測途中不要改會部署的檔案，也不要移動 HEAD。** 要試修改時複製一份框架，用 `--framework` 指過去。額度用完會留下一列未完成的紀錄，補跑寫到新的 `--out` 再合併。
 - **假的 CLI 與假的 Docker 測不出隔離。** S19 的兩個隔離錯誤（全域 `CLAUDE.md` 進到對照組、容器讀不到 0600 的安裝檔）都是真跑一次才看到。改了量測的隔離，先用真 Docker 與便宜的模型各組跑一次。
+- **S17、S18 唯一的原始串流只有一份備份**：`~/.cache/agf-ecosystem/private-s18-research`。它只能留本機，不進任何 repo、不上雲端；清快取時要避開。
 - **`/tmp` 會不見。** WSL 重開就清掉。要留的材料、腳本與結果放 `~/.cache/agf-ecosystem/` 或 repo，`/tmp` 只放量測的 `--base`。
 - **盲評分數不能跨輪比。** 同一個短版兩位評審差了 0.4～0.8 分；舊版一定要和新版混在同一批重跑、重評（S20）。
 - **在受保護目錄裡跑命令，路徑不要用變數。** guard hook 展不開 `${F}-s21`，會當成目前目錄（main）而拒絕（S21）。先 cd 出去、寫完整路徑，讓它判斷真正的目標；仍被擋就問使用者，不要換寫法繞。
-- **刪除之前先盤點只存在那裡的東西。** `-s18` 有 S18 報告唯一的原始串流；main 到不了的物件裡有使用者暫存過的 WIP，所以不要 `gc --prune=now`。開複本用 `git clone --no-local`，不把到不了的舊物件帶過去（S21）。
+- **刪除之前先盤點只存在那裡的東西。** `-s18` 有 S18 報告唯一的原始串流；判斷能不能刪要比對內容，不能只看名字：S21 看到 commit 標題寫「user WIP」就警告不要 gc，其實它和已 commit 的 `c020447` 一行不差（使用者 2026-11-22 已清掉那些物件）。開複本用 `git clone --no-local`，不把到不了的舊物件帶過去（S21）。
 - **給使用者的命令要帶真實路徑。** `--target .` 被原樣貼在家目錄執行過（S20）。先在本機找出 `.agf/manifest.json`，每個專案給一行絕對路徑的命令；框架回的「use project install first」在家目錄照做會把規則裝進家目錄。
 - **「已經有了」要逐句查。** S19 說 P5 拿掉的內容常駐規則已有，其實兩句只在 practices。刪任何觸發條件之前，列出那個檔每一句還能從哪裡被讀到（S20）。
 - **花錢之前先算樣本數。** 每組 20 次時，20 個百分點的真實差距只有約 15% 的機率達到 p<0.05。先算再問使用者預算（S19）。
