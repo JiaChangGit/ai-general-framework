@@ -10,6 +10,7 @@ which have to hold:
     unchanged                  globs: no matching file was changed, created or deleted since the start
     changed_only               globs: every change since the start matches one of them
     python                     a snippet, which only the caller's runner executes
+    one_of                     a list of such dicts (without python or one_of): all conditions of one of them hold
 
 What is too long to read whole cannot prove an absence. The regexes see text a subject wrote, so they run in
 a child process with a deadline: not finishing is the grader's failure (Undecided), not the subject's.
@@ -25,7 +26,7 @@ import re
 import subprocess
 import sys
 
-CONDITIONS = ("answer", "answer_not", "claims", "claims_not", "files", "files_not", "unchanged", "changed_only", "python")
+CONDITIONS = ("answer", "answer_not", "claims", "claims_not", "files", "files_not", "unchanged", "changed_only", "python", "one_of")
 SENTENCE_END = re.compile(r"[。！？!?；;\n]|\.\s")
 CLAUSE_END = re.compile(r"[，,](?!\d)")
 TEXT_LIMIT = 100_000  # what the regexes see of one text
@@ -96,6 +97,13 @@ def _validate_types(item: dict) -> None:
                 raise TypeError(f"{key} is not a list")
             for claim in item[key]:
                 patterns += [claim["match"], *([claim["unless"]] if claim.get("unless") else [])]
+    if "one_of" in item:
+        if not isinstance(item["one_of"], list) or not item["one_of"]:
+            raise TypeError("one_of is not a list")
+        for option in item["one_of"]:
+            if not option or not set(option) <= set(CONDITIONS) - {"python", "one_of"}:
+                raise TypeError(f"one_of cannot have {sorted(option)}")
+            _validate_types(option)
     if "python" in item and not isinstance(item["python"], str):
         raise TypeError("python is not a string")
     for pattern in patterns:
@@ -131,6 +139,8 @@ def _claimed(answer: str, claim: dict) -> bool:
 
 def _holds(item: dict, work: Path, answer: str, whole: bool, changed: list[str]) -> bool:
     flags = re.IGNORECASE | re.MULTILINE
+    if "one_of" in item and not any(_holds(option, work, answer, whole, changed) for option in item["one_of"]):
+        return False
     if not whole and ("answer_not" in item or "claims_not" in item):
         return False
     if not all(re.search(pattern, answer, flags) for pattern in item.get("answer", [])):
@@ -168,7 +178,8 @@ def _apart(given: dict) -> list[bool]:
 def grade(items: list[dict], work: Path, answer: str, start: dict[str, str], run) -> dict[str, bool]:
     """Each item's id and whether it holds. run(item id, code) says whether a snippet passed."""
     validate(items)
-    needs_start = any("unchanged" in item or "changed_only" in item for item in items)
+    parts = [part for item in items for part in (item, *item.get("one_of", []))]
+    needs_start = any("unchanged" in part or "changed_only" in part for part in parts)
     answer = answer or ""
     held = _apart({"items": items, "work": str(work), "answer": answer[:TEXT_LIMIT], "whole": len(answer) <= TEXT_LIMIT,
                    "changed": changes(start, work) if needs_start else []})

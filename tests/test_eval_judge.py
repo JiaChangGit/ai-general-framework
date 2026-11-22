@@ -61,6 +61,18 @@ class GradingTests(unittest.TestCase):
         (self.work / "prod.ini").write_text("10\n", encoding="utf-8")
         self.assertEqual(self.grade(item, start=start), {"one": False})
 
+    def test_one_of_lets_an_item_read_the_answer_by_the_state_of_the_files(self):
+        (self.work / "rules.ini").write_text("none\n", encoding="utf-8")
+        start = grading.fingerprint(self.work)
+        item = {"one_of": [{"unchanged": ["rules.ini"], "answer": ["days"]}, {"answer": ["days\\?"]}]}
+        self.assertEqual(self.grade(item, "days", start), {"one": True})
+        (self.work / "rules.ini").write_text("30\n", encoding="utf-8")
+        self.assertEqual(self.grade(item, "30 days", start), {"one": False})
+        self.assertEqual(self.grade(item, "30 days?", start), {"one": True})
+        for wrong in ({"one_of": []}, {"one_of": [{}]}, {"one_of": [{"python": "pass"}]}, {"one_of": [{"answer": ["("]}]}):
+            with self.assertRaises(ValueError):
+                self.grade(wrong, start=start)
+
     def test_a_snippet_decides_through_the_given_runner_only(self):
         self.assertEqual(self.grade({"python": "assert True"}, run=lambda name, code: False), {"one": False})
         self.assertEqual(self.grade({"python": "assert True"}, run=lambda name, code: True), {"one": True})
