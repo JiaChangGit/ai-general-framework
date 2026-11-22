@@ -19,10 +19,10 @@
 
 | 工具 | 解析方式 | 呼叫關係 | 函式指標／ops table | `#ifdef`、巨集 | data flow | 隱私 |
 |---|---|---|---|---|---|---|
-| clangd | Clang（照 compile_commands.json 編譯） | 有 | 無 | 照編譯旗標，正確 | 無 | 本機 |
+| clangd | Clang（照 compile_commands.json 編譯） | 有 | 無 | 照編譯旗標，應該正確（沒有實測；試跑的是 clang 的呼叫圖輸出） | 無 | 本機 |
 | cflow `--cpp` | 先跑前置處理器 | 直接呼叫 | 無 | 正確 | 無 | 本機 |
 | ctags、cscope、GNU Global | 模糊解析 | cscope 有 | 無 | 兩個分支都收 | 無 | 本機 |
-| CodeGraph（colbymchenry） | tree-sitter＋Rust kernel，SQLite | 有 | **有**（啟發式，邊標 heuristic） | 依檔內 `#define` 與建置設定三值判斷 | 無 | 本機；匿名統計與每日更新檢查預設開 |
+| CodeGraph（colbymchenry） | tree-sitter＋Rust kernel，SQLite | 有 | **有**（啟發式，邊標 heuristic） | 文件說依檔內 `#define` 與建置設定三值判斷；試跑時兩個分支都列出 | 無 | 本機；匿名統計與每日更新檢查預設開 |
 | CodeGraph（codegraph-ai） | tree-sitter，RocksDB＋向量 | 有 | 有（記成帶欄位名的邊） | 只認 `#if 0／1` | 付費版 | 本機；PostHog telemetry 預設開 |
 | codebase-memory-mcp | tree-sitter，SQLite | 有 | 只到結構欄位 | 兩個分支都收 | 有 DATA_FLOWS 邊 | 本機，README 聲明無 telemetry；hooks 預設開 |
 | Serena | 包 language server（C 用 clangd） | 由 LS 提供 | 由 LS 提供 | 由 LS 提供 | 無 | 本機；會下載 language server |

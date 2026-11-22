@@ -1,0 +1,47 @@
+{
+ "text-01.md": {
+  "measurement": "measurement-s18-old2",
+  "group": "framework",
+  "repeat": 1
+ },
+ "text-02.md": {
+  "measurement": "measurement-s18-short2",
+  "group": "framework",
+  "repeat": 1
+ },
+ "text-03.md": {
+  "measurement": "measurement-s18-rewrite",
+  "group": "framework",
+  "repeat": 0
+ },
+ "text-04.md": {
+  "measurement": "measurement-s18-old2",
+  "group": "framework",
+  "repeat": 0
+ },
+ "text-05.md": {
+  "measurement": "measurement-s18-rewrite",
+  "group": "framework",
+  "repeat": 1
+ },
+ "text-06.md": {
+  "measurement": "measurement-s18-short2",
+  "group": "framework",
+  "repeat": 2
+ },
+ "text-07.md": {
+  "measurement": "measurement-s18-rewrite",
+  "group": "framework",
+  "repeat": 2
+ },
+ "text-08.md": {
+  "measurement": "measurement-s18-short2",
+  "group": "framework",
+  "repeat": 0
+ },
+ "text-09.md": {
+  "measurement": "measurement-s18-old2",
+  "group": "framework",
+  "repeat": 2
+ }
+}

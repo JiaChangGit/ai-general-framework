@@ -15,3 +15,5 @@ dist/
 *.egg-info/
 .coverage
 .pytest_cache/
+# Raw host event streams: session ids, local paths, installed plugins and skills, quota state.
+studies/**/streams/

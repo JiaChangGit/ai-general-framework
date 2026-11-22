@@ -1,0 +1,51 @@
+{
+ "framework": "~/src/ai-general-framework",
+ "framework_commit": "35e6b342e4fb4dcf6d1cefb348ed4a805e72bf29",
+ "model": "claude-sonnet-5-5",
+ "switch_model": null,
+ "review_model": null,
+ "tools": "Read Grep Glob Edit Write Skill",
+ "skills": [
+  "align-with-me",
+  "debug-root-cause",
+  "guide-learning",
+  "read-research",
+  "review-change",
+  "review-sql",
+  "trace-code"
+ ],
+ "hooks": null,
+ "tasks_sha256": "16d4c1d0d1d440253c7be6e1685355118b45b5411c02c5a2862e14a0cdaed53f",
+ "budget_usd": 0.5,
+ "total_budget_usd": 1.5,
+ "spent_usd": 0.0,
+ "runs": [
+  {
+   "task": "rewrite-zh",
+   "kind": "writing",
+   "group": "framework",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 1,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 1,
+     "cost_usd": 0,
+     "first_context_tokens": null,
+     "tools_listed": 23,
+     "input_tokens": 0,
+     "cache_creation_input_tokens": 0,
+     "cache_read_input_tokens": 0,
+     "output_tokens": 0,
+     "skills_used": [],
+     "files_read": [],
+     "outside_paths": []
+    }
+   ],
+   "stop": "rewrite-zh-framework part 1: exit 1, You've hit your 5-hour limit · resets 6:50am (Asia/Taipei)"
+  }
+ ],
+ "stopped": "rewrite-zh-framework part 1: exit 1, You've hit your 5-hour limit · resets 6:50am (Asia/Taipei)"
+}

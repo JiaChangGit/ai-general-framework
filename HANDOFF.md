@@ -1,23 +1,25 @@
 # 接手文件
 
-更新日期：2026-11-22（S17 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
+更新日期：2026-11-22（S18 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
+
+> **push 之前先核對歷史。** S17 原本的 commit `35e6b34` 含私人的原始串流檔；使用者 2026-11-22 決定清掉，乾淨的 S17 是 `1541006`。`git -C /home/user/src/ai-general-framework merge-base --is-ancestor 35e6b34 main` 若回傳 0，表示 main 還是舊歷史，**不要 push**：先由使用者 `git fetch /home/user/src/ai-general-framework-s18 s18-benchmark` 再 `git reset --keep FETCH_HEAD`（AI 不改 main；不要用 pull，歷史已分岔）。推的時候只推 main，不用 `--all`；s17 的 clone 與 main 的 reflog 還留著舊 commit。
 
 ## 一開始先做什麼
 
 ```bash
 git -C <框架目錄> status --short          # 預期：沒有輸出
-git -C <框架目錄> log --oneline -3         # 預期：最上面是 S17 的 commit（見 CHANGELOG），或使用者之後的新 commit
+git -C <框架目錄> log --oneline -3         # 預期：最上面是 S18 的 commit（見 CHANGELOG），或使用者之後的新 commit
 python3 -B <框架目錄>/scripts/agf.py audit --root <框架目錄>      # 預期："errors": []、"warnings": []
 (cd <框架目錄> && python3 -B -m unittest discover -s tests)        # 預期：OK（有幾個依平台略過）
 python3 -B <框架目錄>/scripts/agf.py task checkpoint --help        # 預期：列出 --done、--doing、--next、--repo、--append
 ```
 
-`<框架目錄>` 換成實際的位置。S12～S17 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s17`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以 `git -C <框架目錄> log --oneline -5` 為準。
+`<框架目錄>` 換成實際的位置。S12～S18 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s18`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以 `git -C <框架目錄> log --oneline -5` 為準。
 
 ## 目前的位置
 
-修改與驗證在 [CHANGELOG.md](CHANGELOG.md)；分析與排好順序的待辦在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md)（第六輪的路線圖、第七輪的更新在最後）；研究與量測在 [studies/](studies/README.md)；外部資源資料庫在 [docs/ecosystem/](docs/ecosystem/README.md)。
+修改與驗證在 [CHANGELOG.md](CHANGELOG.md)；分析與排好順序的待辦在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md)（第六輪的路線圖、第七與第八輪的更新在最後）；研究與量測在 [studies/](studies/README.md)；外部資源資料庫在 [docs/ecosystem/](docs/ecosystem/README.md)。
 
 S12 的重點：
 
@@ -42,6 +44,8 @@ S16（2026-11-21～22）：使用者給了兩份長需求（框架怎麼演進�
 
 S17（2026-11-22）：共通能力與使用者的新需求。guard hook 也檢查 MCP 工具；`agf traces` 與配置預設不留 AI 痕跡；按需讀的指引補上證據順序、驗證與證據、資料分級、模型與強度、核准過的教訓；`templates/spec.md`、`templates/domains/support-chatbot.md`；`usage.py --tokens`；資料庫 245 筆。量測兩題兩組都全過，量不出作用（[K 報告](studies/research-2026-11/K-s17.md)）。
 
+S18（2026-11-22）：寫作短版與讀取時機、commit-msg hook、文件對照程式的 audit、獨立審查 S16～S17 的修正、量測工具的 reviewed 組。A～D 四組在三個有效題目都全過，只量得出成本差；短版第一版讓忠實度退步，第二版過了門檻，但「對新手的用處」仍低於完整版（[L 報告](studies/research-2026-11/L-s18.md)）。
+
 ## 拿框架到別的專案測試
 
 使用者會在其他聊天室用這個框架做別的專案，順便測它的表現。建議的做法：
@@ -59,20 +63,25 @@ S17（2026-11-22）：共通能力與使用者的新需求。guard hook 也檢�
 
 ## 還沒做的事
 
-依分析報告第七輪的優先順序：
+依分析報告第八輪的優先順序：
 
-1. **使用者**把 `s17-common` 併進 main（`git -C <框架目錄> pull --ff-only ../ai-general-framework-s17 s17-common`），再 push。並把 `/home/user/src/.claude/settings.json` 裡 guard hook 的 `"matcher"` 改成 `"Bash|Edit|Write|MultiEdit|NotebookEdit|mcp__.*"`；這個檔依使用者的規定不由 AI 改。
-2. （S18）有標準答案的 benchmark 題目與 A～D 分組；同時量寫作指引拆短版。不留痕跡的規則要在允許 Bash 的環境才量得到。
-3. （中）S16、S17 的變更交給另一個模型獨立審查。
-4. （中）doc-gardening：定期比對文件敘述與程式。
-5. S19～S21 照第六輪的路線圖；S21 需要先在 WSL 安裝 Codex 或 Gemini CLI（目前沒有），要使用者同意。
-6. 第五輪留下的：在 GitHub 上跑一次 `skill-triggers.yml`（要 `ANTHROPIC_API_KEY`，會花錢）；教學文件格式的個人化與子命令退場（低）。
-7. 其餘待確認的外部名稱在 `docs/ecosystem/recommendations.md`。
-8. （已決定）`save_prompts` 在使用者的專案不開；只存使用者核准過的教訓（2026-11-22）；guard hook 維持裝在工作區上一層。
+1. **使用者**照本檔開頭把乾淨的歷史換進 main，再 push。guard hook 的 matcher 已於 2026-11-22 改好；它讀的是 main 的檔案，S18 進了 main 才有新的 MCP 檢查。
+2. （高）重做 benchmark 題目：先只跑對照組 3 次，留下會做錯、而且處理組有資訊能做對的題目，再分組量。
+3. （中）短版用另一種文字再盲評一次，重點看對新手的用處。
+4. （中）S18 的變更交給另一個模型審查。
+5. 不留痕跡的專案做真實開發時，在里程碑跑 `agf traces check`，觀察 commit-msg hook 有沒有被觸發或被 `--no-verify` 繞過。
+6. S19～S21 照第六輪的路線圖；S21 需要先在 WSL 安裝 Codex 或 Gemini CLI，要使用者同意。
+7. 第五輪留下的：在 GitHub 上跑一次 `skill-triggers.yml`（會花錢）；教學文件格式的個人化與子命令退場（低）。
+8. 其餘待確認的外部名稱在 `docs/ecosystem/recommendations.md`。
+9. （已決定）`save_prompts` 不開，量測也不為了讓題目通過而開；只存使用者核准過的教訓；guard hook 維持裝在工作區上一層。
 
 沒有在真實 session 觸發過的：續接 hook 的 PreCompact、PostCompact、StopFailure、PreModelSwitch。`align-with-me` 在 2026-11-19 第一次被使用者實際叫用，照 skill 寫的流程走完。`debug-root-cause` 新加的「先驗證前提、附證據」量過一次（`debug-wrong-premise`），兩組都做對，量不出作用。
 
 ## 踩過的坑
+
+- **不要把量測資料夾整個 `git add`。** 原始串流有 session id、本機路徑與使用者裝的工具清單，這個 repo 是公開的。S17 因此改寫過一次歷史；現在有忽略規則與 `tests/test_published_files.py`，commit 前還是要看暫存的檔案清單。
+- **量測途中不要改會部署的檔案，也不要移動 HEAD。** 要試修改時複製一份框架，用 `--framework` 指過去。額度用完會留下一列未完成的紀錄，補跑寫到新的 `--out` 再合併。
+- **題目先試跑。** 對照組全過、或處理組沒有資訊能通過的題目，分組量幾次都沒有用（S18）。
 
 - **試跑工具時，答案檔不要放在被分析的資料夾裡。** S16 的 C 試跑第一次把 `truth.json` 一起交給 code graph 工具，codebase-memory-mcp 把它收進索引，查詢先回答案檔的內容。只複製要分析的檔案。
 - **「本機執行」的工具要斷網跑一次才算數。** S16 的 Docling、Marker 在下載過模型之後，第一次斷網執行仍然失敗（還要另外的參數或暖機）。試跑都加 `--network none`。

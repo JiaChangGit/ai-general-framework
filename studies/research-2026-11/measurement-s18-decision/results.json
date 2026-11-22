@@ -1,0 +1,495 @@
+{
+ "framework": "~/src/ai-general-framework-s18",
+ "framework_commit": "35e6b342e4fb4dcf6d1cefb348ed4a805e72bf29",
+ "model": "claude-sonnet-5-5",
+ "switch_model": null,
+ "review_model": "claude-opus-5-5",
+ "tools": "Read Grep Glob Edit Write Skill",
+ "skills": [
+  "align-with-me",
+  "debug-root-cause",
+  "guide-learning",
+  "read-research",
+  "review-change",
+  "review-sql",
+  "trace-code"
+ ],
+ "hooks": null,
+ "tasks_sha256": "16d4c1d0d1d440253c7be6e1685355118b45b5411c02c5a2862e14a0cdaed53f",
+ "budget_usd": 0.5,
+ "total_budget_usd": 2.5,
+ "spent_usd": 1.505372,
+ "runs": [
+  {
+   "task": "decision-only-in-chat",
+   "kind": "continuation",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 1,
+     "subtype": "error_max_turns",
+     "planned_cut": true,
+     "turns": 2,
+     "cost_usd": 0.0418185,
+     "first_context_tokens": 19381,
+     "tools_listed": 23,
+     "input_tokens": 2,
+     "cache_creation_input_tokens": 10094,
+     "cache_read_input_tokens": 9285,
+     "output_tokens": 51,
+     "skills_used": [],
+     "files_read": [],
+     "outside_paths": []
+    },
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 6,
+     "cost_usd": 0.0604763,
+     "first_context_tokens": 19304,
+     "tools_listed": 23,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 11058,
+     "cache_read_input_tokens": 73383,
+     "output_tokens": 889,
+     "skills_used": [],
+     "files_read": [
+      "./README.md",
+      "./durations.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": false,
+   "failures": [
+    "python check 0: ['AssertionError: 1:02:03']"
+   ],
+   "handoff_files": []
+  },
+  {
+   "task": "decision-only-in-chat",
+   "kind": "continuation",
+   "group": "rules-only",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 1,
+     "subtype": "error_max_turns",
+     "planned_cut": true,
+     "turns": 2,
+     "cost_usd": 0.049126500000000003,
+     "first_context_tokens": 20878,
+     "tools_listed": 23,
+     "input_tokens": 2,
+     "cache_creation_input_tokens": 11591,
+     "cache_read_input_tokens": 9285,
+     "output_tokens": 183,
+     "skills_used": [],
+     "files_read": [
+      "./durations.py",
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    },
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 8,
+     "cost_usd": 0.08364649999999998,
+     "first_context_tokens": 20801,
+     "tools_listed": 23,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 14895,
+     "cache_read_input_tokens": 81205,
+     "output_tokens": 1593,
+     "skills_used": [],
+     "files_read": [
+      "./.agf/managed/guides/practices.md",
+      "./durations.py",
+      "./README.md",
+      "./.agf/history/a0e92554040240a993bbc55a5f7a3906.json"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": false,
+   "failures": [
+    "python check 0: ['AssertionError: 1:02:03']"
+   ],
+   "handoff_files": []
+  },
+  {
+   "task": "decision-only-in-chat",
+   "kind": "continuation",
+   "group": "framework",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 1,
+     "subtype": "error_max_turns",
+     "planned_cut": true,
+     "turns": 2,
+     "cost_usd": 0.0522685,
+     "first_context_tokens": 21606,
+     "tools_listed": 23,
+     "input_tokens": 2,
+     "cache_creation_input_tokens": 12319,
+     "cache_read_input_tokens": 9285,
+     "output_tokens": 206,
+     "skills_used": [],
+     "files_read": [
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    },
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 8,
+     "cost_usd": 0.1021486,
+     "first_context_tokens": 21529,
+     "tools_listed": 23,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 19346,
+     "cache_read_input_tokens": 112746,
+     "output_tokens": 1347,
+     "skills_used": [],
+     "files_read": [
+      "./.agf/managed/guides/practices.md",
+      "./durations.py",
+      "./README.md",
+      "./.agf/history/235692d3870e48238d74f07d9558f66a.json"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": false,
+   "failures": [
+    "python check 0: ['AssertionError: 1:02:03']"
+   ],
+   "handoff_files": []
+  },
+  {
+   "task": "decision-only-in-chat",
+   "kind": "continuation",
+   "group": "reviewed",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 1,
+     "subtype": "error_max_turns",
+     "planned_cut": true,
+     "turns": 2,
+     "cost_usd": 0.0517085,
+     "first_context_tokens": 21606,
+     "tools_listed": 23,
+     "input_tokens": 2,
+     "cache_creation_input_tokens": 12319,
+     "cache_read_input_tokens": 9285,
+     "output_tokens": 150,
+     "skills_used": [],
+     "files_read": [
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    },
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 8,
+     "cost_usd": 0.1034544,
+     "first_context_tokens": 21529,
+     "tools_listed": 23,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 19384,
+     "cache_read_input_tokens": 117984,
+     "output_tokens": 1410,
+     "skills_used": [],
+     "files_read": [
+      "./.agf/managed/guides/practices.md",
+      "./durations.py",
+      "./README.md",
+      "./.agf/history/3ca1a3d8e62349568d52631aeedee266.json"
+     ],
+     "outside_paths": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "review": true,
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 9,
+     "cost_usd": 0.21732559999999998,
+     "first_context_tokens": 22166,
+     "tools_listed": 23,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 18567,
+     "cache_read_input_tokens": 56828,
+     "output_tokens": 2870,
+     "skills_used": [],
+     "files_read": [
+      "./durations.py",
+      "./README.md",
+      "./.agf/managed/guides/practices.md",
+      "./.agf/history/3ca1a3d8e62349568d52631aeedee266.json"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": false,
+   "failures": [
+    "python check 0: ['AssertionError: 1:02:03']"
+   ],
+   "handoff_files": []
+  },
+  {
+   "task": "decision-only-in-chat",
+   "kind": "continuation",
+   "group": "reviewed",
+   "repeat": 1,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 1,
+     "subtype": "error_max_turns",
+     "planned_cut": true,
+     "turns": 2,
+     "cost_usd": 0.0516485,
+     "first_context_tokens": 21596,
+     "tools_listed": 23,
+     "input_tokens": 2,
+     "cache_creation_input_tokens": 12309,
+     "cache_read_input_tokens": 9285,
+     "output_tokens": 148,
+     "skills_used": [],
+     "files_read": [
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    },
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 8,
+     "cost_usd": 0.0996391,
+     "first_context_tokens": 21519,
+     "tools_listed": 23,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 19333,
+     "cache_read_input_tokens": 87711,
+     "output_tokens": 1352,
+     "skills_used": [],
+     "files_read": [
+      "./.agf/managed/guides/practices.md",
+      "./README.md",
+      "./durations.py",
+      "./.agf/history/0a6c83b8aceb4782b1fa0b2d7934560e.json"
+     ],
+     "outside_paths": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "review": true,
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 7,
+     "cost_usd": 0.20436020000000002,
+     "first_context_tokens": 22138,
+     "tools_listed": 23,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 17974,
+     "cache_read_input_tokens": 57721,
+     "output_tokens": 2450,
+     "skills_used": [],
+     "files_read": [
+      "./durations.py",
+      "./README.md",
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": false,
+   "failures": [
+    "python check 0: ['AssertionError: 1:02:03']"
+   ],
+   "handoff_files": []
+  },
+  {
+   "task": "decision-only-in-chat",
+   "kind": "continuation",
+   "group": "framework",
+   "repeat": 1,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 1,
+     "subtype": "error_max_turns",
+     "planned_cut": true,
+     "turns": 2,
+     "cost_usd": 0.0516485,
+     "first_context_tokens": 21596,
+     "tools_listed": 23,
+     "input_tokens": 2,
+     "cache_creation_input_tokens": 12309,
+     "cache_read_input_tokens": 9285,
+     "output_tokens": 148,
+     "skills_used": [],
+     "files_read": [
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    },
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 8,
+     "cost_usd": 0.0992642,
+     "first_context_tokens": 21519,
+     "tools_listed": 23,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 19305,
+     "cache_read_input_tokens": 87682,
+     "output_tokens": 1326,
+     "skills_used": [],
+     "files_read": [
+      "./.agf/managed/guides/practices.md",
+      "./durations.py",
+      "./README.md",
+      "./.agf/history/ae7dc86ee7c74820becc985da39b1466.json"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": false,
+   "failures": [
+    "python check 0: ['AssertionError: 1:02:03']"
+   ],
+   "handoff_files": []
+  },
+  {
+   "task": "decision-only-in-chat",
+   "kind": "continuation",
+   "group": "rules-only",
+   "repeat": 1,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 1,
+     "subtype": "error_max_turns",
+     "planned_cut": true,
+     "turns": 2,
+     "cost_usd": 0.0488065,
+     "first_context_tokens": 20883,
+     "tools_listed": 23,
+     "input_tokens": 2,
+     "cache_creation_input_tokens": 11596,
+     "cache_read_input_tokens": 9285,
+     "output_tokens": 149,
+     "skills_used": [],
+     "files_read": [
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    },
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 8,
+     "cost_usd": 0.0851937,
+     "first_context_tokens": 20806,
+     "tools_listed": 23,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 14865,
+     "cache_read_input_tokens": 106937,
+     "output_tokens": 1502,
+     "skills_used": [],
+     "files_read": [
+      "./.agf/managed/guides/practices.md",
+      "./durations.py",
+      "./README.md",
+      "./.agf/history/a11d07e3879843008e5ad57fda0d5db9.json"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": false,
+   "failures": [
+    "python check 0: ['AssertionError: 1:02:03']"
+   ],
+   "handoff_files": []
+  },
+  {
+   "task": "decision-only-in-chat",
+   "kind": "continuation",
+   "group": "control",
+   "repeat": 1,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 1,
+     "subtype": "error_max_turns",
+     "planned_cut": true,
+     "turns": 2,
+     "cost_usd": 0.0418105,
+     "first_context_tokens": 19379,
+     "tools_listed": 23,
+     "input_tokens": 2,
+     "cache_creation_input_tokens": 10092,
+     "cache_read_input_tokens": 9285,
+     "output_tokens": 51,
+     "skills_used": [],
+     "files_read": [],
+     "outside_paths": []
+    },
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 6,
+     "cost_usd": 0.0610259,
+     "first_context_tokens": 19302,
+     "tools_listed": 23,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 11068,
+     "cache_read_input_tokens": 73379,
+     "output_tokens": 940,
+     "skills_used": [],
+     "files_read": [
+      "./README.md",
+      "./durations.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": false,
+   "failures": [
+    "python check 0: ['AssertionError: 1:02:03']"
+   ],
+   "handoff_files": []
+  }
+ ],
+ "stopped": null
+}

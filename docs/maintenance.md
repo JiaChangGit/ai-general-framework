@@ -8,7 +8,7 @@
 
 同一類錯誤出現第二次就是訊號（Anthropic 的建議是「被糾正兩次的事」才寫進 CLAUDE.md；一句規則一再加強語氣仍被忽略，就該改成 hook）。依序考慮：用架構讓錯誤無法發生，型別，檢查（lint、guard hook、`agf audit`），行為測試，最後才是文字。檢查的錯誤訊息寫成修正指示，讓讀到的 agent 知道該怎麼改，而不只知道錯了（OpenAI 的 harness engineering 做法）。來源與更多做法見 `docs/ecosystem/comparisons/agent-workflows.md` 與 `docs/ecosystem/articles.md`。
 
-改框架的某項能力或引入外部工具之前，先查 `docs/ecosystem/` 有沒有研究過（`python -m agf.ecosystem find 關鍵字`），沿用已查過的結論，只補新資訊。文件裡寫的命令與行為會悄悄過期：放進 `check --profile periodic` 重跑，或改框架時順手核對相關段落。
+改框架的某項能力或引入外部工具之前，先查 `docs/ecosystem/` 有沒有研究過（`python -m agf.ecosystem find 關鍵字`），沿用已查過的結論，只補新資訊。文件裡寫的命令與行為會悄悄過期：`agf audit` 會檢查文件提到的 `agf` 子命令、選項與框架內路徑是否還存在（`agf/doccheck.py`；分析報告、驗證紀錄這類有日期的紀錄不檢查）；行為的描述要靠 `check --profile periodic` 重跑命令，或改框架時順手核對相關段落。
 
 一般開發交給宿主能力。採納或新增 skill 前，先查已有哪個入口負責相同工作，優先改好現有位置；通用方法能用短偏好或既有工具完成時，不新增 skill、alias、router 或 provider。領域知識按需求連到官方專案要求，不維護另一份容易過期的規格／工具手冊。
 

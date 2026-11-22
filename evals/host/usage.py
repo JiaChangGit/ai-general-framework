@@ -60,8 +60,8 @@ USAGE_FIELDS = {"input_tokens": "input", "output_tokens": "output", "cache_read_
 
 def count(projects: Path, skills: set[str], since: datetime | None = None, tokens: bool = False) -> dict:
     calls, reads, copies, commands = Counter(), Counter(), Counter(), Counter()
-    by_model, by_day = {}, {}
-    seen, seen_messages = set(), set()
+    replies = {}  # message id -> (model, day, largest value of each usage field)
+    seen = set()
     sessions = 0
     for transcript in sorted(projects.rglob("*.jsonl")):
         sessions += 1
@@ -81,14 +81,16 @@ def count(projects: Path, skills: set[str], since: datetime | None = None, token
                 continue
             message = entry.get("message") or {}
             usage = message.get("usage") if tokens else None
-            if isinstance(usage, dict) and message.get("id") not in seen_messages:  # one API reply can span several entries
-                seen_messages.add(message.get("id"))
-                day = when.date().isoformat() if when else "undated"
-                for bucket in (by_model.setdefault(str(message.get("model") or "unknown"), Counter()), by_day.setdefault(day, Counter())):
-                    for field, label in USAGE_FIELDS.items():
-                        value = usage.get(field)
-                        if isinstance(value, int):
-                            bucket[label] += value
+            if isinstance(usage, dict):
+                # One API reply is written as several entries (one per content block), and streamed
+                # entries can carry partial counts: keep the largest value per reply (S18 review).
+                key = message.get("id") or ("no-id", len(replies))
+                model, day, fields = replies.setdefault(key, (str(message.get("model") or "unknown"),
+                                                              when.date().isoformat() if when else "undated", Counter()))
+                for field, label in USAGE_FIELDS.items():
+                    value = usage.get(field)
+                    if isinstance(value, int) and value > fields[label]:
+                        fields[label] = value
             content = message.get("content")
             for part in content if isinstance(content, list) else []:
                 if not isinstance(part, dict) or part.get("type") != "tool_use":
@@ -113,9 +115,14 @@ def count(projects: Path, skills: set[str], since: datetime | None = None, token
             "skill_file_copies": dict(sorted(copies.items())), "agf_commands": dict(sorted(commands.items())),
             "meaning": "Counts of calls found in local transcripts; not evidence that a call helped."}
     if tokens:
+        by_model, by_day = {}, {}
+        for model, day, fields in replies.values():
+            by_model.setdefault(model, Counter()).update(fields)
+            by_day.setdefault(day, Counter()).update(fields)
         result["tokens_by_model"] = {model: dict(values) for model, values in sorted(by_model.items())}
         result["tokens_by_day"] = {day: dict(values) for day, values in sorted(by_day.items())}
-        result["tokens_meaning"] = "Usage fields the host wrote into local transcripts, summed once per API message id; not a bill."
+        result["tokens_meaning"] = ("Approximate: usage fields the host wrote into local transcripts, the largest value per "
+                                   "API reply, summed. Not a bill.")
     return result
 
 

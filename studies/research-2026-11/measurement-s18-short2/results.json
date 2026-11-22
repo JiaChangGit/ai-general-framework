@@ -1,0 +1,120 @@
+{
+ "framework": "~/.cache/agf-ecosystem/measure-s18/fw-short2-KQMA",
+ "framework_commit": null,
+ "model": "claude-sonnet-5-5",
+ "switch_model": null,
+ "review_model": null,
+ "tools": "Read Grep Glob Edit Write Skill",
+ "skills": [
+  "align-with-me",
+  "debug-root-cause",
+  "guide-learning",
+  "read-research",
+  "review-change",
+  "review-sql",
+  "trace-code"
+ ],
+ "hooks": null,
+ "tasks_sha256": "16d4c1d0d1d440253c7be6e1685355118b45b5411c02c5a2862e14a0cdaed53f",
+ "budget_usd": 0.5,
+ "total_budget_usd": 1.2,
+ "spent_usd": 0.273536,
+ "runs": [
+  {
+   "task": "rewrite-zh",
+   "kind": "writing",
+   "group": "framework",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 4,
+     "cost_usd": 0.0867463,
+     "first_context_tokens": 21611,
+     "tools_listed": 23,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 16500,
+     "cache_read_input_tokens": 55743,
+     "output_tokens": 1516,
+     "skills_used": [],
+     "files_read": [
+      "./draft.md",
+      "./.agf/managed/guides/writing-short.md"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "rewrite-zh",
+   "kind": "writing",
+   "group": "framework",
+   "repeat": 1,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 5,
+     "cost_usd": 0.09362380000000001,
+     "first_context_tokens": 21611,
+     "tools_listed": 23,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 17615,
+     "cache_read_input_tokens": 56718,
+     "output_tokens": 1748,
+     "skills_used": [],
+     "files_read": [
+      "./draft.md",
+      "./.agf/managed/guides/writing-short.md",
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "rewrite-zh",
+   "kind": "writing",
+   "group": "framework",
+   "repeat": 2,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "turns": 5,
+     "cost_usd": 0.09316580000000001,
+     "first_context_tokens": 21611,
+     "tools_listed": 23,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 17596,
+     "cache_read_input_tokens": 56698,
+     "output_tokens": 1710,
+     "skills_used": [],
+     "files_read": [
+      "./draft.md",
+      "./.agf/managed/guides/writing-short.md",
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  }
+ ],
+ "stopped": null
+}

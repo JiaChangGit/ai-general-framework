@@ -18,7 +18,9 @@ first model call read, so the groups' fixed cost can be compared directly. A tas
 one or more parts: every part is a new session in the same directory, so a part
 with max_turns that is cut off, followed by a fresh part, stands for "the usage
 limit stopped the session and a new one has to continue". A part with
-"model": "switch" runs with --switch-model.
+"model": "switch" runs with --switch-model. The reviewed group installs the whole framework like
+"framework", then a fresh session with --review-model gets the request and the
+last answer, checks the files itself, fixes them and gives the final answer.
 
 Success is decided by hidden checks that run after the last part and are never
 in the subject's directory: Python snippets (with a 20-second limit), regular
@@ -62,7 +64,9 @@ import run_claude  # noqa: E402
 import trigger  # noqa: E402
 
 TOOLS = "Read Grep Glob Edit Write Skill"
-GROUPS = ("framework", "control", "rules-only", "skills-only")
+GROUPS = ("framework", "control", "rules-only", "skills-only", "reviewed")
+REVIEW_PROMPT = ("另一位工程師剛完成下面的工作。請獨立核對：讀相關的程式與檔案，不要只相信他的說法；發現錯誤就直接修正檔案。"
+                 "最後用你自己的話完整回答原本的問題，或說明完成的結果。\n\n原本的工作：\n{prompt}\n\n他的最後回覆：\n{answer}")
 TOKEN_KEYS = ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "output_tokens")
 
 
@@ -129,6 +133,8 @@ def run(args: argparse.Namespace) -> int:
         raise SystemExit(f"unknown tasks: {unknown}")
     if any(part.get("model") == "switch" for value in ids for part in tasks[value]["parts"]) and not args.switch_model:
         raise SystemExit("a selected task switches model; pass --switch-model")
+    if "reviewed" in (args.group or []) and not args.review_model:
+        raise SystemExit("the reviewed group needs --review-model")
     skills = args.skill or sorted(path.parent.name for path in (framework / "skills").glob("*/SKILL.md"))
     groups = args.group or ["framework", "control"]
     base.mkdir(parents=True, exist_ok=True)
@@ -137,7 +143,7 @@ def run(args: argparse.Namespace) -> int:
     out.mkdir(parents=True, exist_ok=True)
     cli, env = run_claude.find_cli(args.cli), run_claude._pairs(args.env)
     results = {"framework": str(framework), "framework_commit": trigger._commit(framework), "model": args.model,
-               "switch_model": args.switch_model, "tools": TOOLS, "skills": skills, "hooks": str(args.hooks) if args.hooks else None,
+               "switch_model": args.switch_model, "review_model": args.review_model, "tools": TOOLS, "skills": skills, "hooks": str(args.hooks) if args.hooks else None,
                "tasks_sha256": hashlib.sha256(task_file.read_bytes()).hexdigest(),
                "budget_usd": args.budget, "total_budget_usd": args.total_budget, "spent_usd": 0.0, "runs": [], "stopped": None}
     save = lambda: (out / "results.json").write_text(json.dumps(results, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
@@ -178,6 +184,7 @@ def run_one(args, framework, base, out, cli, env, startup, task, group, repeat, 
         work = parent / "work"
         work.mkdir()
         for name, text in task["files"].items():
+            (work / name).parent.mkdir(parents=True, exist_ok=True)
             (work / name).write_text(text, encoding="utf-8")
         if group != "control":
             trigger._install(framework, work, [] if group == "rules-only" else skills)
@@ -185,7 +192,7 @@ def run_one(args, framework, base, out, cli, env, startup, task, group, repeat, 
                 for name in ("CLAUDE.md", "AGENTS.md"):
                     (work / name).unlink(missing_ok=True)
                 shutil.rmtree(work / ".agf", ignore_errors=True)
-            if args.hooks and group == "framework":
+            if args.hooks and group in ("framework", "reviewed"):
                 _install_hooks(framework, work, args.hooks.resolve())
         checked = preflight.check(work, args.forbid, env, set(args.allow_env))
         if not checked["ok"]:
@@ -217,6 +224,31 @@ def run_one(args, framework, base, out, cli, env, startup, task, group, repeat, 
                 row["stop"] = f"{task['id']}-{group} part {number}: exit {code}, {str(result.get('text'))[:200]}"
                 return row
             answer = result.get("text") or ""
+        if group == "reviewed":
+            # D group: a different model checks the finished work, fixes it and gives the final answer;
+            # the hidden checks judge what it leaves behind.
+            if results["spent_usd"] + args.budget > args.total_budget:
+                row["stop"] = f"total budget: {results['spent_usd']:.2f} spent before the review of {task['id']}"
+                return row
+            stream = out / "streams" / f"{task['id']}-{group}-{repeat}-review.jsonl"
+            print(f"run {task['id']} {group} #{repeat} review", flush=True)
+            prompt = REVIEW_PROMPT.format(prompt=task["parts"][-1]["prompt"], answer=answer)
+            code = run_claude.run(cli, work, args.review_model, startup + "\n\n" + prompt, stream, allowed=TOOLS,
+                                  disallowed=("Bash",), env=env, budget=args.budget, timeout=args.timeout)
+            summary = run_claude.summarize(stream, work)
+            result = summary["result"] or {}
+            results["spent_usd"] = round(results["spent_usd"] + (result.get("cost_usd") or 0), 6)
+            row["parts"].append({"model": args.review_model, "review": True, "exit": code, "subtype": result.get("subtype"),
+                                 "planned_cut": False, "turns": result.get("turns"), "cost_usd": result.get("cost_usd"),
+                                 "first_context_tokens": summary.get("first_context_tokens"), "tools_listed": summary.get("tools_listed"),
+                                 **{key: result.get(key) for key in TOKEN_KEYS},
+                                 "skills_used": trigger.measure(summary, None)["skills_used"],
+                                 "files_read": [path.replace(str(work), ".") for path in summary["files_read"]],
+                                 "outside_paths": summary["outside_paths"]})
+            if not result or code != 0 or result.get("is_error"):
+                row["stop"] = f"{task['id']}-{group} review: exit {code}, {str(result.get('text'))[:200]}"
+                return row
+            answer = result.get("text") or ""
         (out / "outputs").mkdir(exist_ok=True)
         (out / "outputs" / f"{task['id']}-{group}-{repeat}.md").write_text(answer + "\n", encoding="utf-8")
         row.update(check(task, work, answer))
@@ -241,7 +273,8 @@ def summarize_runs(data: dict) -> dict:
                                                                             "first_context": [], "tools_listed": set()})
         cell["runs"] += 1
         cell["passed"] += bool(row["passed"])
-        for part in row["parts"][:-1]:
+        task_parts = [part for part in row["parts"] if not part.get("review")]
+        for part in task_parts[:-1]:
             # Every part before the last is meant to be cut off; one that finished early did not test a hand-over.
             cell["cuts_planned"] += 1
             cell["cuts_happened"] += bool(part.get("planned_cut"))
@@ -277,7 +310,7 @@ def summarize_runs(data: dict) -> dict:
             "incomplete_runs": len(data["runs"]) - len(done)}
 
 
-SAME_SETUP = ("model", "switch_model", "tools", "skills", "hooks", "tasks_sha256")
+SAME_SETUP = ("model", "switch_model", "review_model", "tools", "skills", "hooks", "tasks_sha256")
 
 
 def combine(named: list[tuple[str, dict]]) -> dict:
@@ -330,6 +363,7 @@ def main() -> int:
     one.add_argument("--out", type=Path, required=True)
     one.add_argument("--model", required=True, help="model ID for the subject sessions; there is no default")
     one.add_argument("--switch-model", help="model for parts marked \"model\": \"switch\"")
+    one.add_argument("--review-model", help="model that reviews and fixes the finished work in the reviewed group")
     one.add_argument("--tasks", type=Path, help="task file (default: the framework's evals/impact/tasks.json)")
     one.add_argument("--ids", action="append", help="task ids, comma-separated or repeated (default: all)")
     one.add_argument("--runs", type=int, default=2, help="repeats per task and group")

@@ -316,6 +316,54 @@
           "import pathlib, re\ntext = pathlib.Path('COMMIT_MSG.txt').read_text(encoding='utf-8')\nassert text.strip()\nassert not re.search(r'co-authored-by:.*(claude|anthropic|ai\\b)|generated (with|by)|\\U0001F916', text, re.I), text"
         ]
       }
+    },
+    {
+      "id": "c-ops-callback",
+      "kind": "trace",
+      "files": {
+        "Makefile": "CFLAGS ?= -Wall -Wextra -Iinclude\nSRC = src/main.c src/dev.c src/uart.c src/spi.c src/timer.c src/submit.c\ndemo: $(SRC) include/dev.h\n\t$(CC) $(CFLAGS) -o $@ $(SRC)\n",
+        "include/dev.h": "#ifndef DEV_H\n#define DEV_H\n\nstruct device;\n\nstruct dev_ops {\n\tint (*open)(struct device *dev);\n\tvoid (*close)(struct device *dev);\n};\n\nstruct device {\n\tconst char *name;\n\tconst struct dev_ops *ops;\n};\n\nint dev_open(struct device *dev);\nvoid dev_close(struct device *dev);\n\nextern const struct dev_ops uart_ops;\nextern const struct dev_ops spi_ops;\n\ntypedef void (*timer_cb)(void *arg);\nstruct timer {\n\ttimer_cb cb;\n\tvoid *arg;\n};\nvoid timer_setup(struct timer *t, timer_cb cb, void *arg);\nvoid timer_fire(struct timer *t);\n\nint fast_submit(struct device *dev);\nint slow_submit(struct device *dev);\n\n#endif\n",
+        "src/main.c": "#include \"dev.h\"\n\n#define DEFINE_HANDLER(name)                         \\\n\tint handle_##name(struct device *dev)        \\\n\t{                                            \\\n\t\treturn dev_open(dev);                \\\n\t}\n\nDEFINE_HANDLER(uart)\nDEFINE_HANDLER(spi)\n\nstatic void heartbeat(void *arg)\n{\n\tdev_close(arg);\n}\n\n#ifdef CONFIG_FAST_PATH\nstatic int submit(struct device *dev)\n{\n\treturn fast_submit(dev);\n}\n#else\nstatic int submit(struct device *dev)\n{\n\treturn slow_submit(dev);\n}\n#endif\n\nint main(void)\n{\n\tstruct device uart = { \"uart0\", &uart_ops };\n\tstruct device spi = { \"spi0\", &spi_ops };\n\tstruct timer t;\n\n\thandle_uart(&uart);\n\thandle_spi(&spi);\n\ttimer_setup(&t, heartbeat, &uart);\n\ttimer_fire(&t);\n\treturn submit(&uart);\n}\n",
+        "src/dev.c": "#include \"dev.h\"\n\nint dev_open(struct device *dev)\n{\n\treturn dev->ops->open(dev);\n}\n\nvoid dev_close(struct device *dev)\n{\n\tdev->ops->close(dev);\n}\n",
+        "src/uart.c": "#include \"dev.h\"\n\nstatic void uart_reset(struct device *dev)\n{\n\t(void)dev;\n}\n\nstatic int uart_open(struct device *dev)\n{\n\tuart_reset(dev);\n\treturn 0;\n}\n\nstatic void uart_close(struct device *dev)\n{\n\tuart_reset(dev);\n}\n\nconst struct dev_ops uart_ops = {\n\t.open = uart_open,\n\t.close = uart_close,\n};\n",
+        "src/spi.c": "#include \"dev.h\"\n\nstatic int spi_open(struct device *dev)\n{\n\t(void)dev;\n\treturn 1;\n}\n\nstatic void spi_close(struct device *dev)\n{\n\t(void)dev;\n}\n\nconst struct dev_ops spi_ops = {\n\t.open = spi_open,\n\t.close = spi_close,\n};\n",
+        "src/timer.c": "#include \"dev.h\"\n\nvoid timer_setup(struct timer *t, timer_cb cb, void *arg)\n{\n\tt->cb = cb;\n\tt->arg = arg;\n}\n\nvoid timer_fire(struct timer *t)\n{\n\tt->cb(t->arg);\n}\n",
+        "src/submit.c": "#include \"dev.h\"\n\nint fast_submit(struct device *dev)\n{\n\t(void)dev;\n\treturn 2;\n}\n\nint slow_submit(struct device *dev)\n{\n\t(void)dev;\n\treturn 3;\n}\n",
+        "include/config.h": "#ifndef CONFIG_H\n#define CONFIG_H\n\n/* Build options. */\n#define CONFIG_FAST_PATH 1\n\n#endif\n",
+        "README.md": "# devdemo\n\n小型的裝置框架示範。預設啟用 fast path（`CONFIG_FAST_PATH`，見 `include/config.h`），送出時走 `fast_submit`。\n\n建置：`make`。\n"
+      },
+      "parts": [
+        {
+          "prompt": "這個 C 程式照 Makefile 建置並執行時：(1) main 裡的 `handle_uart(&uart)` 與 `handle_spi(&spi)` 最後各會呼叫到哪個 open 函式？(2) `timer_fire(&t)` 實際執行的是哪個函式？(3) `submit(&uart)` 呼叫的是 fast_submit 還是 slow_submit？每題附檔案與行號。最後把答案寫進 answers.json，格式：{\"open\": [\"函式名\", ...], \"timer_fire\": \"函式名\", \"submit\": \"函式名\"}。"
+        }
+      ],
+      "checks": {
+        "python": [
+          "import json\na = json.load(open('answers.json', encoding='utf-8'))\nassert sorted(a['open']) == ['spi_open', 'uart_open'], a\nassert a['timer_fire'] == 'heartbeat', a\nassert a['submit'] == 'slow_submit', a"
+        ]
+      }
+    },
+    {
+      "id": "docs-all-wrong",
+      "kind": "trace",
+      "files": {
+        "duration.py": "\"\"\"Parse durations such as \"1h30m\" into minutes.\"\"\"\nimport re\n\nUNITS = {\"h\": 3600, \"m\": 60, \"s\": 1}\n\n\ndef parse_duration(text):\n    \"\"\"Return the number of minutes in text, e.g. \"2m\" -> 2.\"\"\"\n    total = 0\n    for amount, unit in re.findall(r\"(\\d+)([hms])\", text):\n        total += int(amount) * UNITS[unit]\n    return total\n",
+        "test_duration.py": "from duration import parse_duration\n\n\ndef test_returns_minutes():\n    assert parse_duration(\"2m\") == 120\n\n\ndef test_hours_in_minutes():\n    assert parse_duration(\"1h\") == 3600\n",
+        "README.md": "# duration\n\n`parse_duration` 把 \"1h30m\" 這類字串轉成**分鐘數**，例如 `parse_duration(\"1h30m\")` 回傳 90。\n"
+      },
+      "parts": [
+        {
+          "prompt": "我要在設定檔裡用 parse_duration 設定逾時。parse_duration(\"1h30m\") 會回傳多少、單位是什麼？請直接回答，並把答案寫進 answer.json，格式：{\"value\": 數字, \"unit\": \"seconds\" 或 \"minutes\"}。"
+        }
+      ],
+      "checks": {
+        "python": [
+          "import json\na = json.load(open('answer.json', encoding='utf-8'))\nassert a['value'] == 5400 and a['unit'] == 'seconds', a"
+        ],
+        "answer_patterns": [
+          "(?s)(?:README|文件|docstring|說明|註解|測試名稱|函式名稱|test_).{0,120}(?:不一致|不符|有誤|錯誤|錯|過時|不同|矛盾|不正確|誤導)|(?:不一致|不符|矛盾|不正確|誤導).{0,120}(?:README|文件|docstring|說明|註解|測試)"
+        ]
+      }
     }
   ]
 }

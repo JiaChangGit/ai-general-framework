@@ -22,10 +22,11 @@ reason to the model and does not run the tool):
     tar -x -C, curl -o, wget -O/-P, unzip -d, and git subcommands that write when
     the repository (-C, --git-dir, --work-tree or the current directory) is protected;
   - the same checks inside MCP tools (mcp__<server>__<tool>), when the settings matcher
-    includes them: an argument named like a command (command, cmd, script, ...) is checked
-    as a Bash command, and a path argument (path, file, destination, ...) as a write when
-    the tool's name says it changes something (write, edit, delete, move, run, ...).
-    Arguments it cannot recognise pass.
+    includes them: an argument named like a command (command, cmd, script, ..., with a
+    sibling args list), at any depth, is checked as a Bash command, and a path argument
+    (path, file, source, destination, uri, ...) as a write when a word of the tool's name
+    says it changes something (write, edit, delete, move, run, ...). Relative paths count
+    only against an absolute working directory given in the call. Unrecognised arguments pass.
 
 Text that the shell never runs is not read as commands: words inside single
 quotes, and a heredoc body read by a program that is not a shell (the text
@@ -83,12 +84,15 @@ PULL_REQUESTS = {"gh": [("pr", "create"), ("pr", "merge"), ("release", "create")
                  "glab": [("mr", "create"), ("mr", "merge"), ("release", "create")]}
 GH_OPTIONS_WITH_VALUE = {"-R", "--repo", "--hostname"}
 # MCP tool arguments, matched by name (case-insensitive). See check_mcp.
-MCP_COMMAND_KEYS = {"command", "cmd", "script", "shell", "bash", "commandline", "command_line"}
-MCP_WORKDIR_KEYS = {"cwd", "workdir", "working_directory", "workingdirectory"}
-MCP_PATH_KEYS = {"path", "paths", "file", "files", "file_path", "filepath", "filename", "target", "target_path",
-                 "destination", "dest", "dst", "to", "output", "output_path", "new_path", "directory", "dir"}
-MCP_WRITES = re.compile(r"write|edit|create|delete|remove|move|rename|update|put|append|mkdir|patch|apply|save|"
-                        r"copy|upload|replace|insert|run|exec")
+MCP_COMMAND_KEYS = {"command", "cmd", "script", "shell", "bash", "commandline", "command_line", "commands"}
+MCP_ARGV_KEYS = {"args", "argv", "arguments"}  # next to a command: the rest of its argv
+MCP_WORKDIR_KEYS = {"cwd", "workdir", "working_directory", "workingdirectory", "working_dir", "currentworkingdirectory"}
+MCP_PATH_KEYS = {"path", "paths", "file", "files", "file_path", "file_paths", "filepath", "filename", "target", "target_path",
+                 "destination", "dest", "dst", "to", "output", "output_path", "new_path", "directory", "dir",
+                 "source", "source_path", "src", "from", "old_path", "uri"}
+# Whole words of the tool name (split on _, -, . and camelCase), so get_output is not "put".
+MCP_WRITES = {"write", "edit", "create", "delete", "remove", "rm", "move", "mv", "rename", "update", "put", "append",
+              "mkdir", "patch", "apply", "save", "copy", "cp", "upload", "replace", "insert", "run", "exec", "execute"}
 
 
 class Refuse(Exception):
@@ -465,35 +469,54 @@ def check_simple(name: str, argv: list[str], cwd: Path, config: dict) -> None:
             raise Refuse(f"runs {name} on the protected path {root}")
 
 
-def _strings(value) -> list[str]:
-    if isinstance(value, str):
-        return [value]
-    if isinstance(value, list) and all(isinstance(item, str) for item in value):
-        return list(value)
-    return []
+def _words(name: str) -> set[str]:
+    return {word.lower() for word in re.findall(r"[A-Z]?[a-z0-9]+|[A-Z]+(?![a-z])", name)}
+
+
+def _mcp_fields(value, depth: int = 0):
+    """(key, value) pairs of an MCP tool input, including nested objects and lists of objects."""
+    if depth > 6:
+        return
+    if isinstance(value, dict):
+        for key, item in value.items():
+            yield str(key).lower(), item, value
+            yield from _mcp_fields(item, depth + 1)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _mcp_fields(item, depth + 1)
 
 
 def check_mcp(tool: str, data: dict, cwd: Path, config: dict) -> None:
     """An MCP tool (named mcp__<server>__<tool>) can run commands or write files that the
     Bash/Edit/Write checks never see, e.g. a remote `run` tool (S17). Arguments whose names
-    say they hold a command are checked like a Bash command; path arguments are checked like
-    a file write when the tool's own name says it changes something. Anything else passes:
-    the hook cannot know what an unfamiliar tool does."""
-    name = tool.rsplit("__", 1)[-1].lower()
-    workdir = next((v for k, v in data.items() if k.lower() in MCP_WORKDIR_KEYS and isinstance(v, str) and v), None)
-    run_in = (cwd / Path(workdir).expanduser()) if workdir else cwd
-    for key, value in data.items():
-        if key.lower() in MCP_COMMAND_KEYS:
-            if isinstance(value, list) and all(isinstance(item, str) for item in value):
-                value = shlex.join(value)  # argv form
-            if isinstance(value, str):
-                check_bash(value, run_in, config)
-    if MCP_WRITES.search(name):
-        for key, value in data.items():
-            if key.lower() in MCP_PATH_KEYS:
-                for path in _strings(value):
-                    if (root := protected(path, run_in, config)):
-                        raise Refuse(f"uses the MCP tool {tool} on the protected path {root}")
+    say they hold a command are checked like a Bash command, at any depth and with a sibling
+    args/argv list joined in; path arguments are checked like a file write when a word of the
+    tool's own name says it changes something. The server may run on another machine, so a
+    relative path is only judged against an absolute working directory given in the same
+    call, never against this session's directory. Anything else passes: the hook cannot know
+    what an unfamiliar tool does (S18 review)."""
+    writes = bool(_words(tool.rsplit("__", 1)[-1]) & MCP_WRITES)
+    unknown = Path("/agf-guard-unknown-mcp-cwd")  # nothing is protected under it
+    for key, value, holder in _mcp_fields(data):
+        workdir = next((v for k, v in holder.items() if str(k).lower() in MCP_WORKDIR_KEYS and isinstance(v, str) and v), None)
+        base = Path(workdir).expanduser() if workdir and Path(workdir).expanduser().is_absolute() else unknown
+        if key in MCP_COMMAND_KEYS:
+            commands = value if isinstance(value, list) and all(isinstance(item, str) for item in value) and key == "commands" else [value]
+            for command in commands:
+                if isinstance(command, list) and all(isinstance(item, str) for item in command):
+                    command = shlex.join(command)  # argv form
+                if not isinstance(command, str):
+                    continue
+                extra = next((v for k, v in holder.items() if str(k).lower() in MCP_ARGV_KEYS and isinstance(v, list)
+                              and all(isinstance(item, str) for item in v)), None)
+                check_bash(command + (" " + shlex.join(extra) if extra else ""), base, config)
+        elif writes and key in MCP_PATH_KEYS:
+            for path in ([value] if isinstance(value, str) else value if isinstance(value, list) else []):
+                if not isinstance(path, str):
+                    continue
+                path = path[len("file://"):] if path.startswith("file://") else path
+                if (root := protected(path, base, config)):
+                    raise Refuse(f"uses the MCP tool {tool} on the protected path {root}")
 
 
 def decide(event: dict, config: dict) -> str | None:

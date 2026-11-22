@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import re
 
-from . import ecosystem
+from . import doccheck, ecosystem
 
 
 def _description(value):
@@ -85,6 +85,7 @@ def audit(root):
             local = target.split("#", 1)[0]
             if local and not (path.parent / local).is_file():
                 errors.append(f"{path}: missing linked file {local}")
+    errors.extend(doccheck.check(directory))
     catalog = ecosystem.check(directory)
     errors.extend(catalog["errors"])
     warnings.extend(catalog["warnings"])

@@ -149,6 +149,21 @@ class ImpactTests(unittest.TestCase):
         self.assertEqual(summary["tasks"]["edit"]["skills-only"]["median_first_context_tokens"], 16)
         self.assertEqual(summary["tasks"]["edit"]["skills-only"]["tools_listed"], [1], "the fake CLI lists one tool")
 
+    def test_the_reviewed_group_adds_a_review_session_by_another_model(self):
+        result, data = self.run_impact("--ids", "edit,cut", "--runs", "1", "--group", "reviewed", "--review-model", "fake-reviewer")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(data["review_model"], "fake-reviewer")
+        rows = {row["task"]: row for row in data["runs"]}
+        for name in ("edit", "cut"):
+            review = rows[name]["parts"][-1]
+            self.assertTrue(review["review"])
+            self.assertEqual(review["model"], "fake-reviewer")
+            self.assertTrue(rows[name]["passed"])
+        table = impact.summarize_runs(data)
+        self.assertEqual(table["tasks"]["cut"]["reviewed"]["cuts"], "1/1")  # the review is not a cut-off part
+        missing, _ = self.run_impact("--ids", "edit", "--group", "reviewed", base_name="base2")
+        self.assertIn("--review-model", missing.stderr)
+
     def test_a_switch_task_needs_the_second_model(self):
         tasks = json.loads(self.tasks.read_text())
         tasks["tasks"][1]["parts"][1]["model"] = "switch"

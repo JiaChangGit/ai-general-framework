@@ -64,7 +64,7 @@ def _entry_errors(entry, ids, categories, root=None):
     errors += [f"{where}: unknown category in also: {name}" for name in entry.get("also", []) if name not in categories]
     if entry["type"] not in TYPES:
         errors.append(f"{where}: unknown type {entry['type']}")
-    if entry["tier"] not in (1, 2, 3, 4):
+    if type(entry["tier"]) is not int or entry["tier"] not in (1, 2, 3, 4):
         errors.append(f"{where}: tier must be 1-4")
     if entry["evidence"] not in EVIDENCE:
         errors.append(f"{where}: unknown evidence {entry['evidence']}")
@@ -267,6 +267,9 @@ def refresh(root, only=None, runner=_gh, today=None):
                             "{full_name,pushed_at,archived,stars:.stargazers_count,license:.license.spdx_id}"])
         except (AgfError, ValueError, OSError, subprocess.TimeoutExpired) as exc:
             failed.append({"id": entry["id"], "error": str(exc)[:200]})
+            continue
+        if not isinstance(facts, dict):
+            failed.append({"id": entry["id"], "error": "unexpected answer from gh"})
             continue
         facts["fetched"] = today
         entry["github"] = facts

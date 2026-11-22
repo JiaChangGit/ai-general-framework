@@ -195,7 +195,8 @@ class TriggerTests(unittest.TestCase):
         (framework / "templates").mkdir()
         shutil.copy(ROOT / "templates/project-rules.md", framework / "templates/project-rules.md")
         (framework / "docs").mkdir()
-        for name in ("workflow.md", "writing.md", "tools.md", "delivery.md", "practices.md"):
+        from agf.manage import GUIDES  # every guide the installer requires
+        for name in GUIDES:
             shutil.copy(ROOT / "docs" / name, framework / "docs" / name)
         (framework / "evals/paired").mkdir(parents=True)
         (framework / "evals/paired/tasks.json").write_text(json.dumps({"startup": "Work here."}), encoding="utf-8")
@@ -312,12 +313,15 @@ class UsageTests(unittest.TestCase):
             usage_a = {"input_tokens": 3, "output_tokens": 7, "cache_read_input_tokens": 100, "cache_creation_input_tokens": 20}
             lines = [{"type": "assistant", "timestamp": "2026-11-21T10:00:00Z", "message": {"id": "msg_1", "model": "m-big", "content": [], "usage": usage_a}},
                      {"type": "assistant", "timestamp": "2026-11-21T10:00:01Z", "message": {"id": "msg_1", "model": "m-big", "content": [], "usage": usage_a}},
+                     {"type": "assistant", "timestamp": "2026-11-21T10:00:02Z", "message": {"id": "msg_1", "model": "m-big", "content": [], "usage": dict(usage_a, output_tokens=40)}},
                      {"type": "assistant", "timestamp": "2026-11-22T09:00:00Z", "message": {"id": "msg_2", "model": "m-small", "content": [], "usage": {"output_tokens": 5}}},
+                     {"type": "assistant", "timestamp": "2026-11-22T09:00:00Z", "message": {"model": "m-small", "content": [], "usage": {"output_tokens": 2}}},
+                     {"type": "assistant", "timestamp": "2026-11-22T09:00:01Z", "message": {"model": "m-small", "content": [], "usage": {"output_tokens": 3}}},
                      {"type": "user", "timestamp": "2026-11-22T09:00:00Z", "message": {"content": "my secret question"}}]
             (Path(temp) / "s.jsonl").write_text("\n".join(json.dumps(line) for line in lines) + "\n", encoding="utf-8")
             result = usage.count(Path(temp), set(), tokens=True)
-            self.assertEqual(result["tokens_by_model"]["m-big"], {"input": 3, "output": 7, "cache_read": 100, "cache_write": 20})
-            self.assertEqual(result["tokens_by_day"]["2026-11-22"], {"output": 5})
+            self.assertEqual(result["tokens_by_model"]["m-big"], {"input": 3, "output": 40, "cache_read": 100, "cache_write": 20})
+            self.assertEqual(result["tokens_by_day"]["2026-11-22"], {"output": 10})  # entries without an id each count
             self.assertNotIn("secret", json.dumps(result))
             self.assertNotIn("tokens_by_model", usage.count(Path(temp), set()))
 

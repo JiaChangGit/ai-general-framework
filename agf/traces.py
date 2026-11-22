@@ -21,9 +21,27 @@ PATTERNS = ("CLAUDE.md", "AGENTS.md", "GEMINI.md", ".cursorrules", ".claude/", "
 NAMES = {"CLAUDE.md", "AGENTS.md", "GEMINI.md", ".cursorrules"}
 FOLDERS = {".claude", ".agents", ".agf", ".ai", ".codex", ".gemini", ".opencode", ".cursor"}
 TOOLS = r"claude|anthropic|codex|openai|chatgpt|gpt|gemini|copilot|cursor|aider|devin|windsurf"
-COMMIT_MARKERS = re.compile(rf"^\s*co-authored-by:[^\n]*\b({TOOLS})\b|generated (with|by) \[?({TOOLS})|\U0001F916",
+# Co-author lines name tool accounts, not people: "Devin Smith" or "Cursor Lee" must not match (S18 review).
+AUTHORS = r"\b(?:claude|anthropic|openai|codex|chatgpt|copilot|aider|windsurf)\b|noreply@anthropic\.com|cursoragent|devin[- ]ai|gemini code assist"
+COMMIT_MARKERS = re.compile(rf"^\s*co-authored-by:[^\n]*(?:{AUTHORS})|generated (?:with|by) \[?(?:{TOOLS})\b|\U0001F916 ?generated",
                             re.IGNORECASE | re.MULTILINE)
 FILE_MARKERS = r"generated with \[?claude code|co-authored-by: *claude|🤖 generated with"
+HOOK_MARK = "# agf: commit-msg hook that rejects AI co-author lines (agf traces hook)"
+HOOK = '''#!/bin/sh
+{mark}
+# Installed by `agf traces hook --apply`; `agf traces hook --remove --apply` takes it out.
+PY=$(command -v python3 || command -v python || command -v py)
+[ -n "$PY" ] || exit 0  # no Python: do not block commits, the check simply does not run
+exec "$PY" - "$1" <<'PYEOF'
+import re, sys
+text = open(sys.argv[1], encoding="utf-8", errors="replace").read()
+body = "\\n".join(line for line in text.splitlines() if not line.startswith("#"))
+if re.search(r"""{pattern}""", body, re.IGNORECASE | re.MULTILINE):
+    sys.stderr.write("commit-msg: 這個專案不留 AI 痕跡，commit 訊息裡有 AI 共同作者或「Generated with」一類的字樣。"
+                     "刪掉那幾行再 commit；真的要保留，用 git commit --no-verify。\\n")
+    sys.exit(1)
+PYEOF
+'''
 
 
 def _git(root: Path, *arguments: str, check: bool = True) -> str:
@@ -68,9 +86,62 @@ def _block() -> str:
 
 
 def _without_block(text: str) -> tuple[str, bool]:
-    pattern = re.compile(re.escape(BEGIN) + r".*?" + re.escape(END) + r"\n?", re.DOTALL)
+    if text.count(BEGIN) != text.count(END) or text.count(BEGIN) > 1:
+        raise AgfError("The agf block in .git/info/exclude is damaged (a marker line was edited or duplicated); "
+                       "fix or delete it by hand, then run this again.")
+    pattern = re.compile(re.escape(BEGIN) + r".*?" + re.escape(END) + r"\r?\n?", re.DOTALL)
     stripped, count = pattern.subn("", text)
     return stripped, bool(count)
+
+
+def _read(path: Path) -> str:
+    if not path.is_file():
+        return ""
+    with path.open(encoding="utf-8", errors="replace", newline="") as stream:  # keep CRLF files as they are
+        return stream.read()
+
+
+def _write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as stream:
+        stream.write(text)
+
+
+def _hook_text() -> str:
+    return HOOK.replace("{mark}", HOOK_MARK).replace("{pattern}", COMMIT_MARKERS.pattern)
+
+
+def _hook_file(root: Path) -> Path:
+    path = Path(_git(root, "rev-parse", "--git-path", "hooks/commit-msg").strip())
+    return path if path.is_absolute() else root / path
+
+
+def hook(target, apply: bool = False, remove: bool = False) -> dict:
+    """Install (or remove) the commit-msg hook. A hook this command did not write is never touched."""
+    root = Path(target).resolve()
+    if not is_repository(root):
+        return {"status": "NOT_GIT", "target": str(root), "applied": False}
+    if not is_toplevel(root):
+        return {"status": "NESTED", "target": str(root), "applied": False}
+    path = _hook_file(root)
+    current = path.read_text(encoding="utf-8", errors="replace") if path.is_file() else None
+    ours = current is not None and HOOK_MARK in current
+    if remove:
+        if not ours:
+            return {"status": "UNCHANGED", "hook": str(path), "applied": False}
+        if apply:
+            path.unlink()
+        return {"status": "REMOVED", "hook": str(path), "applied": apply}
+    if current is not None and not ours:
+        return {"status": "FOREIGN_HOOK", "hook": str(path), "applied": False,
+                "meaning": "The repository already has its own commit-msg hook; it was left alone. Add the check to it by hand if wanted."}
+    if current == _hook_text():
+        return {"status": "UNCHANGED", "hook": str(path), "applied": False}
+    if apply:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(_hook_text(), encoding="utf-8", newline="\n")
+        path.chmod(0o755)
+    return {"status": "UPDATED" if ours else "ADDED", "hook": str(path), "applied": apply}
 
 
 def check(target, max_commits: int = 5000, max_items: int = 20) -> dict:
@@ -84,7 +155,7 @@ def check(target, max_commits: int = 5000, max_items: int = 20) -> dict:
     grep = _git(root, "grep", "-I", "-n", "-i", "-E", FILE_MARKERS, check=False)
     markers = [line[:200] for line in grep.splitlines() if line and not ai_file(line.split(":", 1)[0])]
     exclude_path = _exclude_file(root)
-    excluded = exclude_path.is_file() and BEGIN in exclude_path.read_text(encoding="utf-8", errors="replace")
+    excluded = BEGIN in _read(exclude_path)
     found = bool(tracked or commits or markers)
     return {
         "status": "FOUND" if found else "CLEAN", "target": str(root),
@@ -93,6 +164,7 @@ def check(target, max_commits: int = 5000, max_items: int = 20) -> dict:
         "commits_with_ai_markers": {"count": len(commits), "checked": min(max_commits, log.count("\x1e")), "examples": commits[:max_items]},
         "file_markers": {"count": len(markers), "lines": markers[:max_items]},
         "exclude_block": excluded, "exclude_file": str(exclude_path),
+        "commit_msg_hook": (_hook_file(root).is_file() and HOOK_MARK in _hook_file(root).read_text(encoding="utf-8", errors="replace")),
         "meaning": "Read-only. untrack_command keeps the files on disk and only removes them from the index. "
                    "Commit history is reported, never rewritten; whether to rewrite unpushed history is the user's decision.",
         "_exit_code": 1 if found or not excluded else 0,
@@ -107,14 +179,14 @@ def exclude(target, apply: bool = False) -> dict:
         return {"status": "NESTED", "target": str(root), "applied": False,
                 "meaning": "Inside another repository; its exclude file was not changed. Run this at that repository's root if wanted."}
     path = _exclude_file(root)
-    text = path.read_text(encoding="utf-8", errors="replace") if path.is_file() else ""
+    text = _read(path)
     stripped, present = _without_block(text)
-    updated = (stripped if not stripped or stripped.endswith("\n") else stripped + "\n") + _block()
+    newline = "\r\n" if "\r\n" in text else "\n"
+    updated = (stripped if not stripped or stripped.endswith("\n") else stripped + newline) + _block().replace("\n", newline)
     if updated == text:
         return {"status": "UNCHANGED", "target": str(root), "exclude_file": str(path), "applied": False}
     if apply:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(updated, encoding="utf-8", newline="\n")
+        _write(path, updated)
     return {"status": "UPDATED" if present else "ADDED", "target": str(root), "exclude_file": str(path),
             "patterns": list(PATTERNS), "applied": apply}
 
@@ -127,12 +199,11 @@ def remove(target, apply: bool = False) -> dict:
         return {"status": "NESTED", "target": str(root), "applied": False,
                 "meaning": "Inside another repository; its exclude file was not changed. Run this at that repository's root if wanted."}
     path = _exclude_file(root)
-    text = path.read_text(encoding="utf-8", errors="replace") if path.is_file() else ""
-    stripped, present = _without_block(text)
+    stripped, present = _without_block(_read(path))
     if not present:
         return {"status": "UNCHANGED", "target": str(root), "exclude_file": str(path), "applied": False}
     if apply:
-        path.write_text(stripped, encoding="utf-8", newline="\n")
+        _write(path, stripped)
     return {"status": "REMOVED", "target": str(root), "exclude_file": str(path), "applied": apply}
 
 
@@ -143,6 +214,11 @@ def register(subparsers) -> None:
     probe.add_argument("--target", default=".")
     probe.add_argument("--max-commits", type=int, default=5000)
     probe.set_defaults(func=lambda args: check(args.target, max(1, args.max_commits)))
+    installer = operations.add_parser("hook", help="Install the commit-msg hook that rejects AI co-author lines (preview unless --apply)")
+    installer.add_argument("--target", default=".")
+    installer.add_argument("--apply", action="store_true")
+    installer.add_argument("--remove", action="store_true", help="Remove the hook this command installed")
+    installer.set_defaults(func=lambda args: hook(args.target, args.apply, args.remove))
     for name, function in (("exclude", exclude), ("remove", remove)):
         parser = operations.add_parser(name, help=f"{'Add' if name == 'exclude' else 'Remove'} the marked block in .git/info/exclude (preview unless --apply)")
         parser.add_argument("--target", default=".")

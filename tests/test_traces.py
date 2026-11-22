@@ -75,6 +75,49 @@ class TracesTests(unittest.TestCase):
         self.assertEqual(traces.remove(self.root, apply=True)["status"], "REMOVED")
         self.assertEqual(self.exclude_text(), "*.o\n")
 
+    def commit(self, message):
+        (self.root / "n.txt").write_text(message, encoding="utf-8")
+        subprocess.run(["git", "-C", str(self.root), "add", "n.txt"], check=True)
+        return subprocess.run(["git", "-C", str(self.root), "commit", "-q", "-m", message], capture_output=True, text=True)
+
+    def test_the_commit_msg_hook_rejects_ai_trailers_with_a_fix_hint(self):
+        self.assertEqual(traces.hook(self.root, apply=True)["status"], "ADDED")
+        refused = self.commit("Fix average\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>")
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn("--no-verify", refused.stderr)
+        self.assertNotEqual(self.commit("Docs\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)").returncode, 0)
+        self.assertEqual(self.commit("Fix average on empty input\n\nCo-Authored-By: Jane Doe <jane@example.invalid>").returncode, 0)
+        self.assertTrue(traces.check(self.root)["commit_msg_hook"])
+        self.assertEqual(traces.hook(self.root, apply=True)["status"], "UNCHANGED")
+        self.assertEqual(traces.hook(self.root, apply=True, remove=True)["status"], "REMOVED")
+        self.assertEqual(self.commit("Again\n\nCo-Authored-By: Claude <noreply@anthropic.com>").returncode, 0)
+
+    def test_a_hook_the_project_already_has_is_left_alone(self):
+        own = self.root / ".git" / "hooks" / "commit-msg"
+        own.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        self.assertEqual(traces.hook(self.root, apply=True)["status"], "FOREIGN_HOOK")
+        self.assertEqual(traces.hook(self.root, apply=True, remove=True)["status"], "UNCHANGED")
+        self.assertEqual(own.read_text(encoding="utf-8"), "#!/bin/sh\nexit 0\n")
+
+    def test_human_co_authors_and_a_lone_emoji_are_not_traces(self):
+        for message in ("Pair\n\nCo-Authored-By: Devin Smith <devin@example.invalid>",
+                        "Pair\n\nCo-Authored-By: Cursor Lee <lee@example.invalid>", "Ship it 🤖"):
+            (self.root / "m.txt").write_text(message, encoding="utf-8")
+            git(self.root, "add", "m.txt")
+            git(self.root, "commit", "-q", "-m", message)
+        self.assertEqual(traces.check(self.root)["commits_with_ai_markers"]["count"], 0)
+
+    def test_a_damaged_block_is_reported_and_crlf_is_kept(self):
+        info = self.root / ".git" / "info" / "exclude"
+        info.write_bytes(b"*.o\r\n")
+        traces.exclude(self.root, apply=True)
+        self.assertIn(b"\r\n.claude/\r\n", info.read_bytes())
+        traces.remove(self.root, apply=True)
+        self.assertEqual(info.read_bytes(), b"*.o\r\n")
+        info.write_text(traces.BEGIN + "\nCLAUDE.md\n", encoding="utf-8")  # END line deleted by hand
+        with self.assertRaises(traces.AgfError):
+            traces.exclude(self.root, apply=True)
+
     def test_a_project_inside_another_repository_is_left_alone(self):
         nested = self.root / "sub"
         nested.mkdir()
@@ -116,6 +159,7 @@ class InstallDefaultTests(unittest.TestCase):
         self.assertEqual(result["ai_traces_exclude"]["status"], "ADDED")
         self.assertIn("不留 AI 痕跡", self.rules())
         self.assertEqual(git(self.root, "status", "--porcelain"), "")  # CLAUDE.md, AGENTS.md, .agf/, .claude/ stay out of Git
+        self.assertEqual(result["ai_traces_hook"]["status"], "ADDED")
         self.assertEqual(manage.project(argparse.Namespace(operation="status", target=str(self.root)))["ai_traces"], "exclude")
 
     def test_opting_out_writes_neither_the_block_nor_the_rule(self):
@@ -123,11 +167,32 @@ class InstallDefaultTests(unittest.TestCase):
         self.assertNotIn("不留 AI 痕跡", self.rules())
         self.assertIn("CLAUDE.md", git(self.root, "status", "--porcelain"))
 
+    def test_keep_mode_leaves_a_block_the_user_added_and_switching_removes_ours(self):
+        self.run_project("install", ai_traces="keep")
+        traces.exclude(self.root, apply=True)
+        (self.source / "docs" / "workflow.md").write_text("changed\n", encoding="utf-8")
+        self.run_project("update")  # a real update with changed files, still in keep mode
+        self.assertIn(traces.BEGIN, (self.root / ".git" / "info" / "exclude").read_text(encoding="utf-8"))
+        self.run_project("update", ai_traces="exclude")
+        self.run_project("update", ai_traces="keep")
+        self.assertNotIn(traces.BEGIN, (self.root / ".git" / "info" / "exclude").read_text(encoding="utf-8"))
+
+    def test_outside_git_the_rule_does_not_claim_the_files_are_excluded(self):
+        plain = Path(self.temp.name) / "plain"
+        plain.mkdir()
+        manage.project(argparse.Namespace(operation="install", target=str(plain), source=str(self.source), host=["claude"],
+                                          skill=["trace"], tools="shared", apply=True, ai_traces=None))
+        rules = (plain / ".agf" / "managed" / "project-rules.md").read_text(encoding="utf-8")
+        self.assertIn("不留 AI 痕跡", rules)
+        self.assertNotIn("已由", rules)
+        self.assertIn("agf traces exclude --apply", rules)
+
     def test_rollback_of_the_first_install_removes_the_block(self):
         self.run_project("install")
         self.run_project("rollback")
         exclude = self.root / ".git" / "info" / "exclude"
         self.assertNotIn(traces.BEGIN, exclude.read_text(encoding="utf-8") if exclude.is_file() else "")
+        self.assertFalse((self.root / ".git" / "hooks" / "commit-msg").exists())
 
 
 if __name__ == "__main__":

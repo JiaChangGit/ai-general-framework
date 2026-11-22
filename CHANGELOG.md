@@ -2,6 +2,27 @@
 
 每一輪寫：改了什麼、為什麼、怎麼驗證、還沒驗證什麼。細節在各 commit 的訊息與 [docs/verification.md](docs/verification.md)。
 
+## 2026-11-22：S18（分支 `s18-benchmark`，在 clone `../ai-general-framework-s18` 裡做）
+
+使用者的決定：A～D 四組、每組每題 3 次；commit 署名用 commit-msg hook 擋；寫作指引拆短版；順便獨立審查 S16、S17 與做文件對照程式的檢查。規格、偏差與結果在 [L 報告](studies/research-2026-11/L-s18.md)。
+
+**更正 S17：原始串流被 commit。** S17 原本的 commit `35e6b34` 含 `measurement-s17/streams/` 的 24 個原始串流檔（session id、本機路徑、使用者裝的 skill 與 plugin、額度狀態），是 AI 整個資料夾一起暫存造成的；發現時還沒推到公開的遠端。使用者決定清掉歷史：S17 改用不含這些檔的 `1541006`，S18 接在它後面，main 由使用者自己 reset。量測結果裡的 `framework_commit: 35e6b34` 指的是改寫前的同一份內容。
+
+| 修改 | 為什麼 | 驗證 |
+|---|---|---|
+| `docs/writing-short.md` 與讀取時機：一般文件讀短版；長篇、創作、校閱讀完整版；commit 訊息與短回報不用讀 | 寫文字前讀 11 KB 的完整版是主要的額外花費 | 第一版省 12% 但忠實度 4.67 → 3.33，沒有採用；補上「改寫只用原稿的事實」後 4.33（舊版 4.67），省約 10%，過了事先寫下的門檻。對新手的用處 4.33 → 3.67，是退步 |
+| `agf traces hook`：commit-msg hook 擋 AI 署名並說明怎麼改；不留痕跡的配置一起裝，不覆蓋專案原有的 hook | 文字規則擋不住宿主預設的署名 | Linux 與 Git for Windows 上真的 commit 測過；沒有在真實的 Claude Code session 觀察過 |
+| `agf/doccheck.py`，audit 會呼叫：文件提到的 `agf` 子命令、選項與框架內路徑要存在 | 文件會悄悄過期 | 3 個測試；看不出描述的行為對不對 |
+| guard hook 的 MCP 檢查：巢狀參數、`command` 加 `args`、來源路徑與 `uri`；工具名稱比對整個單字；遠端相對路徑不以本機目錄判斷 | 獨立審查找到繞過與誤擋 | 審查列的寫法都成為測試；沒有接真的 MCP 試過 |
+| 配置的 keep 模式不動使用者自己加的排除清單；非 Git 專案不宣稱「已排除」；標記損壞時拒絕；人名不當成 AI 署名 | 獨立審查 | [審查與處理結果](studies/research-2026-11/L-review-s16-s17.md) |
+| `usage.py --tokens` 同一則回覆取最大值；資料庫 `refresh` 與 tier 檢查；幾處寫得比證據強的文件 | 獨立審查 | 測試與 audit |
+| 量測工具：`reviewed` 組與 `--review-model`、題目可以有子目錄、兩個新題目 | A～D 分組 | 假 CLI 測試；新題目的答案用實際建置與執行確認 |
+| `.gitignore` 的 `studies/**/streams/` 與 `tests/test_published_files.py` | 不讓原始串流再被 commit | 在 `35e6b34` 上抓到全部 24 個檔 |
+
+**量測的結論**：C 追蹤、文件誤導、改寫三題四組都 3/3，用成敗量不出框架的好處；完整框架比對照組貴，D 組貴數倍，只在改寫題的忠實度看得到好處。`decision-only-in-chat` 是選錯題（沒開 `save_prompts` 時不可能通過），不列入比較。
+
+**沒做的事**：S18 本身沒有獨立審查；短版只用一題驗過；沒有跨宿主。
+
 ## 2026-11-22：S17（分支 `s17-common`，在 clone `../ai-general-framework-s17` 裡做）
 
 使用者再給一份需求（和 S16 的第一份大致相同，多了三個種子、聊天機器人、抹除 AI 痕跡、個人化與自我優化），途中又請框架多參考專家與組織的建議（附 Lauren Tan 演講的整理）。開始時一次問完四個決定，都採建議：做路線圖的 S17 加上新需求；用框架開發的專案預設不留 AI 痕跡（照 Raft）；只存使用者核准過的教訓、用量只記數字；guard hook 也檢查 MCP 工具。規格與結果在 [studies/research-2026-11/K-s17.md](studies/research-2026-11/K-s17.md)。

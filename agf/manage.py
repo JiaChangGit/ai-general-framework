@@ -25,7 +25,7 @@ HOSTS = ("codex", "claude", "gemini", "opencode")
 SOURCE = Path(__file__).resolve().parent.parent
 MANIFEST = ".agf/manifest.json"
 SCHEMA = 1
-GUIDES = ("workflow.md", "writing.md", "tools.md", "delivery.md", "practices.md")
+GUIDES = ("workflow.md", "writing.md", "writing-short.md", "tools.md", "delivery.md", "practices.md")
 RULES = ".agf/managed/project-rules.md"
 # Claude Code and Gemini CLI load these files and follow their @-imports.
 # Codex and OpenCode read AGENTS.md, which can only point to the rules.
@@ -288,11 +288,12 @@ def _desired(source: Path, root: Path, hosts: list[str], old: dict | None, selec
     where = "" if tools_mode == "shared" else "在專案根目錄"
     instructions += (f"工具模式：`{tools_mode}`（{mode_note}）。執行 `agf`：{where}用 Python 跑 `\"{script}\"`（`python3 -B`；沒有 python3 時用 `python` 或 `py -3`）；"
                      "skill 裡的 `scripts/agf.py` 換成這個路徑，其餘參數不變。\n")
-    instructions += "其他指引在 `.agf/managed/guides/`（workflow、writing、tools、delivery），需要時才讀。\n"
+    instructions += "其他指引在 `.agf/managed/guides/`（workflow、writing-short、writing、tools、delivery），需要時才讀。\n"
     if ai_traces == "exclude":
+        excluded = ("AI 工具檔已由 `.git/info/exclude` 排除，不要加進版本庫" if traces.is_toplevel(root) else
+                    "AI 工具檔不要加進版本庫（成為 Git 專案後執行 `agf traces exclude --apply` 與 `agf traces hook --apply`）")
         instructions += ("這個專案不留 AI 痕跡：commit 訊息不加 AI 共同作者或「Generated with」一類的字樣；公開文件不提 AI 工具名稱，"
-                         "README 的 AI 使用說明照專案既有的那一段；AI 工具檔已由 `.git/info/exclude` 排除，不要加進版本庫。"
-                         "commit 前用 `agf traces check` 檢查。\n")
+                         f"README 的 AI 使用說明照專案既有的那一段；{excluded}。commit 前用 `agf traces check` 檢查。\n")
     add(".agf/managed/project-rules.md", instructions.encode("utf-8"), "templates/project-rules.md")
     for name in GUIDES:
         file = source / "docs" / name
@@ -632,8 +633,23 @@ def project(args: argparse.Namespace) -> dict:
         raise AgfError(f"Configuration failed; completed writes were reverted where unchanged: {exc}. Snapshot: {history_path}") from exc
     report.update({"applied": True, "transaction": transaction, "manifest": str(manifest_path)})
     # The exclude block lives in the clone's own .git/info/exclude, outside the managed files; keep it in step.
-    report["ai_traces_exclude"] = traces.exclude(root, apply=True) if ai_traces == "exclude" else traces.remove(root, apply=True)
+    report.update(_sync_traces(root, ai_traces, (old or {}).get("ai_traces")))
     return report
+
+
+def _sync_traces(root: Path, mode: str, before: str | None) -> dict:
+    """Keep the exclude block and commit-msg hook in step with the no-trace mode. "keep" leaves
+    them alone, so a block the user added by hand survives updates; only a switch away from
+    "exclude" removes what this mode put there (S18 review). These live outside the managed
+    files, so a failure here is reported, not raised after the managed files already changed."""
+    try:
+        if mode == "exclude":
+            return {"ai_traces_exclude": traces.exclude(root, apply=True), "ai_traces_hook": traces.hook(root, apply=True)}
+        if before == "exclude":
+            return {"ai_traces_exclude": traces.remove(root, apply=True), "ai_traces_hook": traces.hook(root, apply=True, remove=True)}
+        return {}
+    except (AgfError, OSError) as exc:
+        return {"ai_traces_warning": f"Managed files were written, but the AI-trace exclude block or hook was not: {exc}"}
 
 
 def _rollback(root: Path, old: dict | None, apply: bool) -> dict:
@@ -693,8 +709,7 @@ def _rollback(root: Path, old: dict | None, apply: bool) -> dict:
         restored = json.loads(previous_bytes) if previous_bytes else {}
     except ValueError:
         restored = {}
-    report["ai_traces_exclude"] = (traces.exclude(root, apply=True) if restored.get("ai_traces") == "exclude"
-                                   else traces.remove(root, apply=True))
+    report.update(_sync_traces(root, restored.get("ai_traces", "keep"), old.get("ai_traces")))
     return report
 
 

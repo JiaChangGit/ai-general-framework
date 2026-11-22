@@ -62,7 +62,7 @@ python scripts/agf.py project rollback --target ../my-project
 | `review-sql` | 分析慢 SQL／計畫、索引或資料庫變更，保留測試、審查與部署界線；普通資料查詢不需要 |
 | `align-with-me` | 只由你叫用（Claude Code 打 `/align-with-me`）：動手前一輪一輪把會改變成果的決定講定，每題附建議。模型不能自己叫用它：S14 量測裡模型看到它的檔案、試著叫用一次，Claude Code 照設定擋下 |
 
-一般開發、需求對齊、寫作、多模型合作與工具選擇使用精簡的[工作指引](docs/workflow.md)、[表達與創作指引](docs/writing.md)、[工具指引](docs/tools.md)及[交付指引](docs/delivery.md)；從常駐規則移出的改程式、工具、續接、文字四段在很短的 [practices](docs/practices.md)。不為 APP、股市程式、kernel、Boost、STM32、小說、作曲或影片各建一套重複技能；領域條件等具體任務出現再查。
+一般開發、需求對齊、寫作、多模型合作與工具選擇使用精簡的[工作指引](docs/workflow.md)、[寫作短版](docs/writing-short.md)與完整的[表達與創作指引](docs/writing.md)、[工具指引](docs/tools.md)及[交付指引](docs/delivery.md)；從常駐規則移出的改程式、工具、續接、文字四段在很短的 [practices](docs/practices.md)。不為 APP、股市程式、kernel、Boost、STM32、小說、作曲或影片各建一套重複技能；領域條件等具體任務出現再查。
 
 預設先利用已有資料對齊想法，只追問會影響結果的未知；理解後直接做。問題中的專有名詞要用白話解釋。你已定的創作設定與工程限制都要尊重，驗收方式則依任務目的選擇。
 
@@ -106,7 +106,7 @@ python scripts/agf.py integration template claude-guard-settings
 
 它也檢查 MCP 工具：設定的 matcher 含 `mcp__.*` 時，參數裡看得懂的命令（command、cmd、script 等）照 Bash 的規則檢查，寫入類工具的路徑參數照寫檔規則檢查，看不懂的放行。把前者存成檔案，依後者把它加進 `~/.claude/settings.json`（每個 session 都生效）或專案的 `.claude/settings.json`（只在從那個目錄啟動時生效），再用一個 JSON 列出受保護的路徑：`{"protected_paths": ["/path/to/repo"]}`。它只看命令列，看不到程式執行之後做了什麼（例如 `python3 -c` 寫檔），限制見檔案開頭的說明。
 
-用框架開發的專案預設不留 AI 痕跡：AI 工具檔不進版本庫、commit 不加 AI 署名；`agf traces check` 檢查殘留，做法與理由見[交付指引](docs/delivery.md)的「不留 AI 痕跡的專案」。
+用框架開發的專案預設不留 AI 痕跡：AI 工具檔不進版本庫、commit 不加 AI 署名（commit-msg hook 會擋）；`agf traces check` 檢查殘留，做法與理由見[交付指引](docs/delivery.md)的「不留 AI 痕跡的專案」。
 
 完整命令、權限範圍、共用工具與 hooks 見 [CLI 操作](docs/cli.md)。[設計說明](docs/design.md)與[研究紀錄](docs/research.md)交代採納和刪減理由。改善框架或挑選外部工具之前，先查[外部資源資料庫](docs/ecosystem/README.md)：約兩百多個專案、skill、MCP 與工具的授權、資料流向、限制與查核日期，另有同類工具的比較與試跑結果；在框架根目錄執行 `python -m agf.ecosystem find 關鍵字` 可以依關鍵字查。共用創作指引可協助小說、音樂與投影片式影片；真正使用時再選可用工具，分清企劃、草稿與可播放成品。
 
@@ -121,7 +121,7 @@ python -X utf8 -m unittest discover -s tests -v
 python scripts/agf.py audit
 ```
 
-`audit` 只查結構、連結與語法。[行為案例](evals/README.md)另看選用是否合適及是否增加負擔。修本框架時再讀[維護指引](docs/maintenance.md)，保留真正有用的保護與測試；不以檔數、skill 數或未量測的 token 比例當品質證明。本專案採 MIT 授權。
+`audit` 只查結構、連結與語法，以及文件裡寫到的 `agf` 子命令、選項與框架內路徑是否還存在（過期的名稱會讓 audit 失敗；描述的行為對不對它看不出來）。[行為案例](evals/README.md)另看選用是否合適及是否增加負擔。修本框架時再讀[維護指引](docs/maintenance.md)，保留真正有用的保護與測試；不以檔數、skill 數或未量測的 token 比例當品質證明。本專案採 MIT 授權。
 
 ## 公開前檢查
 

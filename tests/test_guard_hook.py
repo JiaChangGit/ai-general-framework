@@ -260,6 +260,33 @@ class GuardHookTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 2, result.stderr)
                 self.assertIn("protected path", result.stderr)
 
+    def test_mcp_bypasses_found_by_the_review_are_refused(self):
+        p = self.protected.as_posix()
+        for tool, tool_input in [("mcp__proc__spawn_process", {"command": "rm", "args": ["-rf", p]}),
+                                 ("mcp__proc__run", {"input": {"command": f"rm -rf {p}"}}),
+                                 ("mcp__proc__run", {"arguments": {"cmd": "git push"}}),
+                                 ("mcp__proc__run", {"commands": ["ls", "git push origin main"]}),
+                                 ("mcp__fs__move_file", {"source": f"{p}/a.md", "destination": "/tmp/a.md"}),
+                                 ("mcp__fs__move_file", {"from": f"{p}/a.md", "to": "b.md"}),
+                                 ("mcp__fs__write_files", {"files": [{"path": "ok.md"}, {"path": f"{p}/x.md", "content": "x"}]}),
+                                 ("mcp__fs__writeFile", {"uri": f"file://{p}/x.md"}),
+                                 ("mcp__proc__run", {"command": "touch x", "working_dir": p})]:
+            with self.subTest(tool=tool, tool_input=tool_input):
+                result = self.run_hook(tool, tool_input)
+                self.assertEqual(result.returncode, 2, result.stderr)
+
+    def test_mcp_false_refusals_found_by_the_review_pass(self):
+        p = self.protected.as_posix()
+        for tool, tool_input in [("mcp__s__get_output", {"path": f"{p}/a"}),           # "put" inside "output" is not a write
+                                 ("mcp__s__dispatch_event", {"path": f"{p}/a"}),       # nor "patch" inside "dispatch"
+                                 ("mcp__github__create_or_update_file", {"path": "README.md", "content": "x"}),  # remote repo path
+                                 ("mcp__fastctx__run", {"command": "touch notes.md", "machine": "gpu"})]:        # remote relative path
+            with self.subTest(tool=tool, tool_input=tool_input):
+                event_cwd = {"hook_event_name": "PreToolUse", "tool_name": tool, "tool_input": tool_input, "cwd": p}
+                result = subprocess.run([sys.executable, str(HOOK), str(self.config)], input=json.dumps(event_cwd),
+                                        capture_output=True, text=True, timeout=10)
+                self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_mcp_reads_and_unfamiliar_tools_pass(self):
         for tool, tool_input in [("mcp__filesystem__read_file", {"path": str(self.protected / "docs")}),
                                  ("mcp__context7__get_docs", {"library": "react", "topic": "git push"}),

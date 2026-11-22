@@ -58,7 +58,7 @@ python evals/host/impact.py report /tmp/agf-impact-out
 - `--total-budget` 是整次實驗的上限：下一個 session 可能讓總花費超過它時就停下，已完成的結果保留。`report` 另寫一份 `report.md`。
 - 被用量上限打斷時，用 `--ids` 只補跑缺的任務、寫到新的 `--out`，再用 `impact.py report <目錄一> <目錄二> --md <檔案>` 合併；模型、工具、skill、hook 或任務檔不同的目錄不會合併。受試 session 和你自己的對話用同一個額度。
 - 報告的表格另有兩欄：有計畫截斷的任務，第一段實際被截斷了幾次（沒截斷就沒測到「接手」）；受試者讀了幾次工作目錄以外的檔。
-- `--group` 另有 `rules-only`（框架安裝但不帶 skill）與 `skills-only`（只帶 skill，刪掉 `CLAUDE.md`、`AGENTS.md`、`.agf/`），兩組都不裝 hook，用來拆開固定成本。每一段記錄 `first_context_tokens`，也就是第一次呼叫模型時讀進去的 token 數；`probe-context` 任務只要求回覆 OK，最適合拿來比較。
+- `--group` 另有 `rules-only`（框架安裝但不帶 skill）與 `skills-only`（只帶 skill，刪掉 `CLAUDE.md`、`AGENTS.md`、`.agf/`），兩組都不裝 hook，用來拆開固定成本。還有 `reviewed`（S18）：和 `framework` 一樣安裝，做完之後再開一個 `--review-model` 的新 session，給它原本的指示與上一段的最後回覆，請它自己讀檔核對、修正並給出最後答案；隱藏檢查看審查之後的結果，花費也算進去。每一段記錄 `first_context_tokens`，也就是第一次呼叫模型時讀進去的 token 數；`probe-context` 任務只要求回覆 OK，最適合拿來比較。
 - `decision-only-in-chat` 與 `decision-only-in-chat-switch` 的關鍵決定只在第一段的對話裡，量的是續接 hook 的 `save_prompts`（`evals/impact/continuity-hooks.json` 已開啟）。
 - `--hooks` 用到的框架檔案會複製進受試目錄，設定檔不寫框架的路徑。但 shared 模式的安裝仍會把框架路徑寫進規則檔（見上面「框架本身的路徑」），所以每次都要看讀取工作目錄以外的次數。
 - 受試者能用 Read、Grep、Glob、Edit、Write、Skill，Bash 整個拿掉；隔離與預檢和 `trigger.py` 相同。
