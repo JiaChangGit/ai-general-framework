@@ -1,0 +1,407 @@
+{
+ "framework": "~/src/ai-general-framework-s19",
+ "framework_commit": "3d195ff30dba187f7af5c615dfd9e5fc510b4b48",
+ "model": "claude-sonnet-5-5",
+ "switch_model": null,
+ "review_model": null,
+ "tools": "Read Grep Glob Edit Write Skill",
+ "confinement": "s19",
+ "skills": [
+  "align-with-me",
+  "debug-root-cause",
+  "guide-learning",
+  "read-research",
+  "review-change",
+  "review-sql",
+  "trace-code"
+ ],
+ "hooks": null,
+ "tasks_sha256": "f9fc3d3f7ebfd9608764cd239c63b87b0cc69110152cfb26624a7071b8ff603d",
+ "budget_usd": 0.6,
+ "total_budget_usd": 2.2829,
+ "spent_usd": 1.857843,
+ "runs": [
+  {
+   "task": "md4c-brackets",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 19,
+     "cost_usd": 0.23354380000000005,
+     "first_context_tokens": 9054,
+     "tools_listed": 7,
+     "input_tokens": 24,
+     "cache_creation_input_tokens": 31394,
+     "cache_read_input_tokens": 272898,
+     "output_tokens": 8063,
+     "skills_used": [],
+     "tests_run": 2,
+     "files_changed": [
+      "src/md4c.c",
+      "test/regressions.txt"
+     ],
+     "files_read": [
+      "./src/md4c.c",
+      "./src/md4c.c",
+      "./src/md4c.c",
+      "./test/regressions.txt"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "61d0f73a445f42095571d799daec84e4b23acfcbc26b9c0e04533292bac69b9c",
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "pathspec-ancestor",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 28,
+     "cost_usd": 0.22400910000000002,
+     "first_context_tokens": 9067,
+     "tools_listed": 7,
+     "input_tokens": 26,
+     "cache_creation_input_tokens": 27183,
+     "cache_read_input_tokens": 277051,
+     "output_tokens": 8752,
+     "skills_used": [],
+     "tests_run": 3,
+     "files_changed": [
+      "pathspec/_backends/hyperscan/gitignore.py",
+      "pathspec/_backends/re2/gitignore.py",
+      "pathspec/_backends/simple/gitignore.py",
+      "tests/test_06_gitignore.py",
+      "tests/test_09_gitignore_excluded_parent.py"
+     ],
+     "files_read": [
+      "./pathspec/_backends/simple/gitignore.py",
+      "./pathspec/gitignore.py",
+      "./pathspec/_backends/re2/gitignore.py",
+      "./pathspec/_backends/hyperscan/gitignore.py",
+      "./tests/test_06_gitignore.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "409faaf80f2e5cb615f86b83cb7c271fa5ed4435df384d105300bd5207f45a36",
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "chrono-rev",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 14,
+     "cost_usd": 0.1371897,
+     "first_context_tokens": 9042,
+     "tools_listed": 7,
+     "input_tokens": 18,
+     "cache_creation_input_tokens": 14071,
+     "cache_read_input_tokens": 110797,
+     "output_tokens": 6979,
+     "skills_used": [],
+     "tests_run": 1,
+     "files_changed": [
+      "src/naive/date/mod.rs",
+      "src/naive/date/tests.rs"
+     ],
+     "files_read": [
+      "./src/naive/date/mod.rs",
+      "./src/naive/date/tests.rs"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "0e3c97c3d4e2272710f95d44a0ae0978cbef9bdb6e578ec6a3ef03cf189d5d8e",
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "markdownit-backticks",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 23,
+     "cost_usd": 0.19656570000000004,
+     "first_context_tokens": 9068,
+     "tools_listed": 7,
+     "input_tokens": 24,
+     "cache_creation_input_tokens": 21928,
+     "cache_read_input_tokens": 196557,
+     "output_tokens": 8915,
+     "skills_used": [],
+     "tests_run": 3,
+     "files_changed": [
+      "markdown_it/rules_inline/backticks.py",
+      "markdown_it/rules_inline/state_inline.py",
+      "tests/test_backticks_unclosed.py",
+      "tests/test_probe.py"
+     ],
+     "files_read": [
+      "./markdown_it/rules_inline/backticks.py",
+      "./markdown_it/helpers/parse_link_label.py",
+      "./markdown_it/parser_inline.py",
+      "./markdown_it/rules_inline/link.py",
+      "./markdown_it/parser_inline.py",
+      "./markdown_it/rules_inline/image.py",
+      "./markdown_it/rules_inline/state_inline.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "c5e4a291ea2a0f1a34beb30a95fa7f0c0fd69766d3a68331d3de792c9faf9793",
+   "passed": false,
+   "failures": [
+    "hidden tests: ['2 failed, 1140 passed, 32 skipped, 3 deselected in 1.17s']"
+   ],
+   "handoff_files": []
+  },
+  {
+   "task": "cmark-refdef",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 19,
+     "cost_usd": 0.13223649999999998,
+     "first_context_tokens": 8989,
+     "tools_listed": 7,
+     "input_tokens": 30,
+     "cache_creation_input_tokens": 12807,
+     "cache_read_input_tokens": 210685,
+     "output_tokens": 5988,
+     "skills_used": [],
+     "tests_run": 2,
+     "files_changed": [
+      "src/blocks.c",
+      "test/regression.txt"
+     ],
+     "files_read": [
+      "./src/blocks.c",
+      "./src/blocks.c",
+      "./test/regression.txt"
+     ],
+     "outside_paths": [
+      "Glob /tmp"
+     ]
+    }
+   ],
+   "setup_sha256": "162df9a360ef4b3d843a3682127b1f73fa78caa48ee5df95748c6a0852768667",
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "pyparsing-previous",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.0742421,
+     "first_context_tokens": 9035,
+     "tools_listed": 7,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 7967,
+     "cache_read_input_tokens": 49141,
+     "output_tokens": 3744,
+     "skills_used": [],
+     "tests_run": 1,
+     "files_changed": [
+      "pyparsing/helpers.py",
+      "tests/test_match_previous_expr_fix.py"
+     ],
+     "files_read": [
+      "./pyparsing/helpers.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "cf83fc71dc9fb029c6779770cf476ea6a226967b9d72ef775da10984cf49447a",
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "yyjson-patch",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 29,
+     "cost_usd": 0.27886110000000003,
+     "first_context_tokens": 9053,
+     "tools_listed": 7,
+     "input_tokens": 34,
+     "cache_creation_input_tokens": 29853,
+     "cache_read_input_tokens": 371011,
+     "output_tokens": 12228,
+     "skills_used": [],
+     "tests_run": 3,
+     "files_changed": [
+      "src/yyjson.c",
+      "test/test_json_patch.c"
+     ],
+     "files_read": [
+      "./src/yyjson.c",
+      "./src/yyjson.c",
+      "./src/yyjson.c",
+      "./test/test_json_patch.c",
+      "./test/test_json_patch.c",
+      "./src/yyjson.c"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "f6c9063ed10698a488608f851f2f4fbd7c48ca969d9967603ff220ac3191eb90",
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "wcwidth-clip",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 18,
+     "cost_usd": 0.2553692,
+     "first_context_tokens": 9075,
+     "tools_listed": 7,
+     "input_tokens": 22,
+     "cache_creation_input_tokens": 33258,
+     "cache_read_input_tokens": 283232,
+     "output_tokens": 9397,
+     "skills_used": [],
+     "tests_run": 2,
+     "files_changed": [
+      "tests/test_clip_overtyping_sgr.py",
+      "wcwidth/_clip.py"
+     ],
+     "files_read": [
+      "./wcwidth/_clip.py",
+      "./wcwidth/sgr_state.py",
+      "./libwcwidth/src/clip.c",
+      "./tests/test_clip_overtyping.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "55673a45d1cfe1fe3572db9ba7227e6f7c2353717eef9aa21f88ce34a675972c",
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "pulldown-setext",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 34,
+     "cost_usd": 0.3258248999999999,
+     "first_context_tokens": 9118,
+     "tools_listed": 7,
+     "input_tokens": 46,
+     "cache_creation_input_tokens": 32922,
+     "cache_read_input_tokens": 589849,
+     "output_tokens": 13506,
+     "skills_used": [],
+     "tests_run": 2,
+     "files_changed": [
+      "pulldown-cmark/specs/heading_attrs.txt",
+      "pulldown-cmark/src/firstpass.rs",
+      "pulldown-cmark/tests/suite/heading_attrs.rs",
+      "pulldown-cmark/tests/suite/mod.rs",
+      "pulldown-cmark/tests/suite/regression.rs",
+      "pulldown-cmark/tests/suite/setext_attrs.rs"
+     ],
+     "files_read": [
+      "./pulldown-cmark/src/firstpass.rs",
+      "./pulldown-cmark/src/tree.rs",
+      "./pulldown-cmark/tests/suite/heading_attrs.rs"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "ab3546a081222fd8a741b1504970d7eb56cb436d1448cc498288a3880cc07508",
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "pathspec-bracket",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [],
+   "setup_sha256": "5b5884087d5961c2cf30ecef2300b288707955f688841e02bd871a18f7f15784",
+   "stop": "total budget: 1.86 spent before pathspec-bracket-control 1, the next session may cost up to 0.6"
+  }
+ ],
+ "stopped": "total budget: 1.86 spent before pathspec-bracket-control 1, the next session may cost up to 0.6"
+}

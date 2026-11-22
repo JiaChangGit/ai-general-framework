@@ -1,0 +1,320 @@
+{
+ "framework": "~/src/ai-general-framework-s19",
+ "framework_commit": "3d195ff30dba187f7af5c615dfd9e5fc510b4b48",
+ "model": "claude-sonnet-5-5",
+ "switch_model": null,
+ "review_model": null,
+ "tools": "Read Grep Glob Edit Write Skill",
+ "confinement": "s19",
+ "skills": [
+  "align-with-me",
+  "debug-root-cause",
+  "guide-learning",
+  "read-research",
+  "review-change",
+  "review-sql",
+  "trace-code"
+ ],
+ "hooks": null,
+ "tasks_sha256": "f9fc3d3f7ebfd9608764cd239c63b87b0cc69110152cfb26624a7071b8ff603d",
+ "budget_usd": 0.6,
+ "total_budget_usd": 3.9443,
+ "spent_usd": 1.661401,
+ "runs": [
+  {
+   "task": "markdownit-backticks",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 13,
+     "cost_usd": 0.115359,
+     "first_context_tokens": 9069,
+     "tools_listed": 7,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 16473,
+     "cache_read_input_tokens": 73190,
+     "output_tokens": 4212,
+     "skills_used": [],
+     "tests_run": 1,
+     "files_changed": [
+      "markdown_it/rules_inline/backticks.py",
+      "markdown_it/rules_inline/state_inline.py",
+      "tests/test_code_inline.py"
+     ],
+     "files_read": [
+      "./markdown_it/rules_inline/backticks.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "c5e4a291ea2a0f1a34beb30a95fa7f0c0fd69766d3a68331d3de792c9faf9793",
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "cmark-refdef",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 24,
+     "cost_usd": 0.1502751,
+     "first_context_tokens": 8989,
+     "tools_listed": 7,
+     "input_tokens": 30,
+     "cache_creation_input_tokens": 15609,
+     "cache_read_input_tokens": 222991,
+     "output_tokens": 6548,
+     "skills_used": [],
+     "tests_run": 1,
+     "files_changed": [
+      "src/blocks.c",
+      "test/regression.txt"
+     ],
+     "files_read": [
+      "./src/blocks.c",
+      "./src/blocks.c",
+      "./test/regression.txt",
+      "./test/regression.txt"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "162df9a360ef4b3d843a3682127b1f73fa78caa48ee5df95748c6a0852768667",
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "pyparsing-previous",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.073401,
+     "first_context_tokens": 9035,
+     "tools_listed": 7,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 8472,
+     "cache_read_input_tokens": 34770,
+     "output_tokens": 3602,
+     "skills_used": [],
+     "tests_run": 1,
+     "files_changed": [
+      "pyparsing/helpers.py",
+      "tests/test_match_previous_reuse.py"
+     ],
+     "files_read": [
+      "./pyparsing/helpers.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "cf83fc71dc9fb029c6779770cf476ea6a226967b9d72ef775da10984cf49447a",
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "yyjson-patch",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 32,
+     "cost_usd": 0.2458499,
+     "first_context_tokens": 9054,
+     "tools_listed": 7,
+     "input_tokens": 32,
+     "cache_creation_input_tokens": 27374,
+     "cache_read_input_tokens": 314999,
+     "output_tokens": 10479,
+     "skills_used": [],
+     "tests_run": 5,
+     "files_changed": [
+      "src/yyjson.c",
+      "test/test_json_patch.c"
+     ],
+     "files_read": [
+      "./src/yyjson.c",
+      "./src/yyjson.c",
+      "./src/yyjson.c",
+      "./src/yyjson.c",
+      "./src/yyjson.c",
+      "./test/test_json_patch.c",
+      "./test/test_json_patch.c",
+      "./test/test_json_patch.c"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "f6c9063ed10698a488608f851f2f4fbd7c48ca969d9967603ff220ac3191eb90",
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "wcwidth-clip",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 27,
+     "cost_usd": 0.3404878999999999,
+     "first_context_tokens": 9075,
+     "tools_listed": 7,
+     "input_tokens": 30,
+     "cache_creation_input_tokens": 40497,
+     "cache_read_input_tokens": 413199,
+     "output_tokens": 13712,
+     "skills_used": [],
+     "tests_run": 3,
+     "files_changed": [
+      "tests/test_clip_overtyping_sgr.py",
+      "wcwidth/_clip.py"
+     ],
+     "files_read": [
+      "./wcwidth/_clip.py",
+      "./wcwidth/_clip.py",
+      "./wcwidth/_clip.py",
+      "./wcwidth/sgr_state.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "55673a45d1cfe1fe3572db9ba7227e6f7c2353717eef9aa21f88ce34a675972c",
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "pulldown-setext",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 38,
+     "cost_usd": 0.4252156999999999,
+     "first_context_tokens": 9119,
+     "tools_listed": 7,
+     "input_tokens": 52,
+     "cache_creation_input_tokens": 42239,
+     "cache_read_input_tokens": 817457,
+     "output_tokens": 17441,
+     "skills_used": [],
+     "tests_run": 2,
+     "files_changed": [
+      "pulldown-cmark/specs/heading_attrs.txt",
+      "pulldown-cmark/specs/regression.txt",
+      "pulldown-cmark/src/firstpass.rs",
+      "pulldown-cmark/src/tree.rs",
+      "pulldown-cmark/tests/setext_attrs.rs",
+      "pulldown-cmark/tests/suite/heading_attrs.rs",
+      "pulldown-cmark/tests/suite/regression.rs"
+     ],
+     "files_read": [
+      "./pulldown-cmark/src/firstpass.rs",
+      "./pulldown-cmark/src/firstpass.rs",
+      "./pulldown-cmark/src/tree.rs",
+      "./pulldown-cmark/src/firstpass.rs",
+      "./pulldown-cmark/tests/suite/heading_attrs.rs",
+      "./pulldown-cmark/tests/suite/heading_attrs.rs",
+      "./pulldown-cmark/tests/suite/mod.rs",
+      "./pulldown-cmark/specs/regression.txt",
+      "./pulldown-cmark/specs/heading_attrs.txt",
+      "./pulldown-cmark/tests/suite/regression.rs"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "ab3546a081222fd8a741b1504970d7eb56cb436d1448cc498288a3880cc07508",
+   "passed": true,
+   "failures": [],
+   "handoff_files": []
+  },
+  {
+   "task": "pathspec-bracket",
+   "kind": "real-bug",
+   "group": "control",
+   "repeat": 0,
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 27,
+     "cost_usd": 0.31081230000000004,
+     "first_context_tokens": 9103,
+     "tools_listed": 7,
+     "input_tokens": 22,
+     "cache_creation_input_tokens": 39550,
+     "cache_read_input_tokens": 290183,
+     "output_tokens": 12355,
+     "skills_used": [],
+     "tests_run": 2,
+     "files_changed": [
+      "pathspec/patterns/gitignore/base.py",
+      "pathspec/patterns/gitignore/basic.py",
+      "pathspec/patterns/gitignore/spec.py",
+      "tests/test_07_bracket_slash.py"
+     ],
+     "files_read": [
+      "./pathspec/patterns/gitwildmatch.py",
+      "./pathspec/patterns/gitignore/base.py",
+      "./pathspec/patterns/gitignore/basic.py",
+      "./pathspec/patterns/gitignore/spec.py"
+     ],
+     "outside_paths": []
+    }
+   ],
+   "setup_sha256": "5b5884087d5961c2cf30ecef2300b288707955f688841e02bd871a18f7f15784",
+   "passed": false,
+   "failures": [
+    "hidden tests: ['61 failed, 300 passed, 794 skipped, 1772 subtests passed in 0.71s']"
+   ],
+   "handoff_files": []
+  }
+ ],
+ "stopped": null
+}

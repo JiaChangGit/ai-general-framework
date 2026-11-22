@@ -1,0 +1,335 @@
+{
+ "model": "claude-sonnet-5-5",
+ "framework_source": "27df12d",
+ "confinement": "s19",
+ "runs": [
+  {
+   "measurement": "run-full-1",
+   "passed": true,
+   "setup_sha256": "9ce7192a7c0903ba8dd48603433d978a76546f680a53bc8448ed7da32ae5d02a",
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.08659320000000001,
+     "first_context_tokens": 11089,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 14516,
+     "cache_read_input_tokens": 34872,
+     "output_tokens": 2503,
+     "skills_used": [
+      "guide-learning"
+     ],
+     "tests_run": 0,
+     "files_changed": [
+      "rewrite.md"
+     ],
+     "files_read": [
+      "./draft.md",
+      "./.agf/managed/guides/writing.md",
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    }
+   ]
+  },
+  {
+   "measurement": "run-full-2",
+   "passed": true,
+   "setup_sha256": "9ce7192a7c0903ba8dd48603433d978a76546f680a53bc8448ed7da32ae5d02a",
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.0807317,
+     "first_context_tokens": 11089,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 12913,
+     "cache_read_input_tokens": 45437,
+     "output_tokens": 2452,
+     "skills_used": [],
+     "tests_run": 0,
+     "files_changed": [
+      "rewrite.md"
+     ],
+     "files_read": [
+      "./draft.md",
+      "./.agf/managed/guides/writing.md"
+     ],
+     "outside_paths": []
+    }
+   ]
+  },
+  {
+   "measurement": "run-full-3",
+   "passed": true,
+   "setup_sha256": "9ce7192a7c0903ba8dd48603433d978a76546f680a53bc8448ed7da32ae5d02a",
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.08210339999999999,
+     "first_context_tokens": 11089,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 13579,
+     "cache_read_input_tokens": 33954,
+     "output_tokens": 2438,
+     "skills_used": [],
+     "tests_run": 0,
+     "files_changed": [
+      "rewrite.md"
+     ],
+     "files_read": [
+      "./draft.md",
+      "./.agf/managed/guides/writing.md",
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    }
+   ]
+  },
+  {
+   "measurement": "run-full-4",
+   "passed": true,
+   "setup_sha256": "9ce7192a7c0903ba8dd48603433d978a76546f680a53bc8448ed7da32ae5d02a",
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.08234230000000001,
+     "first_context_tokens": 11085,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 13599,
+     "cache_read_input_tokens": 33943,
+     "output_tokens": 2454,
+     "skills_used": [],
+     "tests_run": 0,
+     "files_changed": [
+      "rewrite.md"
+     ],
+     "files_read": [
+      "./draft.md",
+      "./.agf/managed/guides/writing.md",
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    }
+   ]
+  },
+  {
+   "measurement": "run-full-5",
+   "passed": true,
+   "setup_sha256": "9ce7192a7c0903ba8dd48603433d978a76546f680a53bc8448ed7da32ae5d02a",
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.0725797,
+     "first_context_tokens": 11097,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 12370,
+     "cache_read_input_tokens": 33077,
+     "output_tokens": 1978,
+     "skills_used": [],
+     "tests_run": 0,
+     "files_changed": [
+      "rewrite.md"
+     ],
+     "files_read": [
+      "./draft.md",
+      "./.agf/managed/guides/writing.md"
+     ],
+     "outside_paths": []
+    }
+   ]
+  },
+  {
+   "measurement": "run-short-1",
+   "passed": true,
+   "setup_sha256": "03ae7cb351751b7c44e31e38ec2e8079829d39a504dc2b48c563473e19006778",
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.0672871,
+     "first_context_tokens": 11125,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 10734,
+     "cache_read_input_tokens": 29291,
+     "output_tokens": 2141,
+     "skills_used": [],
+     "tests_run": 0,
+     "files_changed": [
+      "rewrite.md"
+     ],
+     "files_read": [
+      "./draft.md",
+      "./.agf/managed/guides/writing-short.md",
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    }
+   ]
+  },
+  {
+   "measurement": "run-short-2",
+   "passed": true,
+   "setup_sha256": "03ae7cb351751b7c44e31e38ec2e8079829d39a504dc2b48c563473e19006778",
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.0650822,
+     "first_context_tokens": 11129,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 9719,
+     "cache_read_input_tokens": 43202,
+     "output_tokens": 2187,
+     "skills_used": [],
+     "tests_run": 0,
+     "files_changed": [
+      "rewrite.md"
+     ],
+     "files_read": [
+      "./draft.md",
+      "./.agf/managed/guides/writing-short.md",
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    }
+   ]
+  },
+  {
+   "measurement": "run-short-3",
+   "passed": true,
+   "setup_sha256": "03ae7cb351751b7c44e31e38ec2e8079829d39a504dc2b48c563473e19006778",
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.0546341,
+     "first_context_tokens": 11129,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 8556,
+     "cache_read_input_tokens": 29381,
+     "output_tokens": 1746,
+     "skills_used": [],
+     "tests_run": 0,
+     "files_changed": [
+      "rewrite.md"
+     ],
+     "files_read": [
+      "./draft.md",
+      "./.agf/managed/guides/writing-short.md"
+     ],
+     "outside_paths": []
+    }
+   ]
+  },
+  {
+   "measurement": "run-short-4",
+   "passed": true,
+   "setup_sha256": "03ae7cb351751b7c44e31e38ec2e8079829d39a504dc2b48c563473e19006778",
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.0538131,
+     "first_context_tokens": 11117,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 8474,
+     "cache_read_input_tokens": 29351,
+     "output_tokens": 1697,
+     "skills_used": [],
+     "tests_run": 0,
+     "files_changed": [
+      "rewrite.md"
+     ],
+     "files_read": [
+      "./draft.md",
+      "./.agf/managed/guides/writing-short.md"
+     ],
+     "outside_paths": []
+    }
+   ]
+  },
+  {
+   "measurement": "run-short-5",
+   "passed": true,
+   "setup_sha256": "03ae7cb351751b7c44e31e38ec2e8079829d39a504dc2b48c563473e19006778",
+   "parts": [
+    {
+     "model": "claude-sonnet-5-5",
+     "exit": 0,
+     "subtype": "success",
+     "planned_cut": false,
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.061937500000000006,
+     "first_context_tokens": 11121,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 9661,
+     "cache_read_input_tokens": 30315,
+     "output_tokens": 2025,
+     "skills_used": [],
+     "tests_run": 0,
+     "files_changed": [
+      "rewrite.md"
+     ],
+     "files_read": [
+      "./draft.md",
+      "./.agf/managed/guides/writing-short.md",
+      "./.agf/managed/guides/practices.md"
+     ],
+     "outside_paths": []
+    }
+   ]
+  }
+ ]
+}

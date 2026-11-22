@@ -1,30 +1,50 @@
 # 接手文件
 
-更新日期：2026-11-22（S18 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
+更新日期：2026-11-22（S19 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
 
-> **S19 進行中（2026-11-22）。** 在 `../ai-general-framework-s19` 的 `s19-benchmark` 分支；使用者的決定、門檻與執行經過在 [M-s19](studies/research-2026-11/M-s19.md)（看到結果後不改規格）。
+> **S19 做完，等使用者兩件事（2026-11-22）。**
 >
-> - 做完：隔離（容器＋宿主限制）、S18 審查的修正、10 題凍結並驗證、短版複測材料凍結、判定腳本。
-> - 進行中：對照組試跑（`~/.cache/agf-ecosystem/bench-s19/pilot-r*/results.json`）。每題先 2 次，已通過 2 次的不跑第 3 次；通過不超過 1 次的才留，最多 4 題，少於 2 題就不分組。
-> - 還沒做：A/B/C 各 5 次（上限 8 美元）、短版複測（1.2 美元）與盲評、報告與刪減清單、合併前的測試與隱私掃描。
-> - 續做時：`cat ~/.cache/agf-ecosystem/bench-s19/pilot-r*/results.json` 看做到哪，只補缺的並寫到新的 `--out`；`--base` 要在家目錄外且是空目錄；第三方題目與原始串流不 commit；總花費累計不超過 15 美元；分組期間 HEAD 與會部署的檔不動；判定用 `python3 -I studies/research-2026-11/bench-s19/judge.py`。
+> 1. 把 `s19-benchmark` 併進 main（命令在下面「還沒做的事」），之後自己 push。
+> 2. 核准或否決 [M 報告](studies/research-2026-11/M-s19.md)的刪減清單 P1～P6。核准之前不要改那些規則與 skill。
 
 ## 一開始先做什麼
 
+預期沒有輸出：
+
 ```bash
-git -C <框架目錄> status --short          # 預期：沒有輸出
-git -C <框架目錄> log --oneline -3         # 預期：最上面是 S18 的 commit（見 CHANGELOG），或使用者之後的新 commit
-python3 -B <框架目錄>/scripts/agf.py audit --root <框架目錄>      # 預期："errors": []、"warnings": []
-(cd <框架目錄> && python3 -B -m unittest discover -s tests)        # 預期：OK（有幾個依平台略過）
-python3 -B <框架目錄>/scripts/agf.py task checkpoint --help        # 預期：列出 --done、--doing、--next、--repo、--append
+git -C ~/src/ai-general-framework status --short
 ```
 
-`<框架目錄>` 換成實際的位置。S12～S18 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s18`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以 `git -C <框架目錄> log --oneline -5` 為準。
+預期最上面是 CHANGELOG 最新一輪的 commit，或使用者之後的新 commit：
+
+```bash
+git -C ~/src/ai-general-framework log --oneline -5
+```
+
+預期 `"errors": []`、`"warnings": []`：
+
+```bash
+python3 -B ~/src/ai-general-framework/scripts/agf.py audit --root ~/src/ai-general-framework
+```
+
+預期 OK（有幾個依平台略過）：
+
+```bash
+(cd ~/src/ai-general-framework && python3 -B -m unittest discover -s tests)
+```
+
+預期列出 `--done`、`--doing`、`--next`、`--repo`、`--append`：
+
+```bash
+python3 -B ~/src/ai-general-framework/scripts/agf.py task checkpoint --help
+```
+
+框架放在別處時才要換路徑。S12～S18 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s19`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以上面第二個命令為準。
 
 ## 目前的位置
 
-修改與驗證在 [CHANGELOG.md](CHANGELOG.md)；分析與排好順序的待辦在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md)（第六輪的路線圖、第七與第八輪的更新在最後）；研究與量測在 [studies/](studies/README.md)；外部資源資料庫在 [docs/ecosystem/](docs/ecosystem/README.md)。
+修改與驗證在 [CHANGELOG.md](CHANGELOG.md)；分析與排好順序的待辦在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md)（第六輪的路線圖、第七～九輪的更新在最後）；研究與量測在 [studies/](studies/README.md)；外部資源資料庫在 [docs/ecosystem/](docs/ecosystem/README.md)。
 
 S12 的重點：
 
@@ -51,6 +71,8 @@ S17（2026-11-22）：共通能力與使用者的新需求。guard hook 也檢�
 
 S18（2026-11-22）：寫作短版與讀取時機、commit-msg hook、文件對照程式的 audit、獨立審查 S16～S17 的修正、量測工具的 reviewed 組。A～D 四組在三個有效題目都全過，只量得出成本差；短版第一版讓忠實度退步，第二版過了門檻，但「對新手的用處」仍低於完整版（[L 報告](studies/research-2026-11/L-s18.md)）。
 
+S19（2026-11-22）：量測第一次有真正的隔離（容器加宿主限制）；S11～S18 的數字不能和之後的直接比。S18 審查找到的缺陷已修。真 bug 試跑 19 次通過 16 次，沒有確定合格的題目，所以沒有分組、沒有「框架有沒有好處」的判定；原設計的樣本數也不夠。寫作短版複測通過，維持（[M 報告](studies/research-2026-11/M-s19.md)）。
+
 ## 拿框架到別的專案測試
 
 使用者會在其他聊天室用這個框架做別的專案，順便測它的表現。建議的做法：
@@ -68,14 +90,20 @@ S18（2026-11-22）：寫作短版與讀取時機、commit-msg hook、文件對�
 
 ## 還沒做的事
 
-依分析報告第八輪的優先順序：
+把 S19 併進 main（使用者執行）：
 
-1. （已完成，2026-11-22）乾淨的歷史已換進 main 並 push，CI 通過；guard hook 的新檢查已生效。
-2. （高）重做 benchmark 題目：先只跑對照組 3 次，留下會做錯、而且處理組有資訊能做對的題目，再分組量。
-3. （中）短版用另一種文字再盲評一次，重點看對新手的用處。
-4. （中）S18 的變更交給另一個模型審查。
+```bash
+git -C ~/src/ai-general-framework pull --ff-only ~/src/ai-general-framework-s19 s19-benchmark
+```
+
+依分析報告第九輪的優先順序：
+
+1. （高，等使用者核准）刪減清單 P1～P6；改完做一次寫作盲評與冒煙測試，確認沒有退步。
+2. （高）benchmark 換設計再花錢：先算樣本數與預算，再問使用者。S19 的算法在 `studies/research-2026-11/bench-s19/power.py`。不要直接補跑 S19 沒判完的兩題。
+3. （中）把短版「改寫只用原稿的事實」補進完整版寫作指引，再盲評一次。
+4. （中）審查沒修完的：`FILE_MARKERS` 只認 Claude、審查組只拿最後一段指示、doccheck 對 `skills/`、`examples/`、`tests/` 的缺口。
 5. 不留痕跡的專案做真實開發時，在里程碑跑 `agf traces check`，觀察 commit-msg hook 有沒有被觸發或被 `--no-verify` 繞過。
-6. S19～S21 照第六輪的路線圖；S21 需要先在 WSL 安裝 Codex 或 Gemini CLI，要使用者同意。
+6. 第六輪路線圖還沒做的三項（C 與 kernel、研究文件、跨宿主）順延；跨宿主需要先在 WSL 安裝 Codex 或 Gemini CLI，要使用者同意。
 7. 第五輪留下的：在 GitHub 上跑一次 `skill-triggers.yml`（會花錢）；教學文件格式的個人化與子命令退場（低）。
 8. 其餘待確認的外部名稱在 `docs/ecosystem/recommendations.md`。
 9. （已決定）`save_prompts` 不開，量測也不為了讓題目通過而開；只存使用者核准過的教訓；guard hook 維持裝在工作區上一層。
@@ -86,13 +114,17 @@ S18（2026-11-22）：寫作短版與讀取時機、commit-msg hook、文件對�
 
 - **不要把量測資料夾整個 `git add`。** 原始串流有 session id、本機路徑與使用者裝的工具清單，這個 repo 是公開的。S17 因此改寫過一次歷史；現在有忽略規則與 `tests/test_published_files.py`，commit 前還是要看暫存的檔案清單。
 - **量測途中不要改會部署的檔案，也不要移動 HEAD。** 要試修改時複製一份框架，用 `--framework` 指過去。額度用完會留下一列未完成的紀錄，補跑寫到新的 `--out` 再合併。
+- **假的 CLI 與假的 Docker 測不出隔離。** S19 的兩個隔離錯誤（全域 `CLAUDE.md` 進到對照組、容器讀不到 0600 的安裝檔）都是真跑一次才看到。改了量測的隔離，先用真 Docker 與便宜的模型各組跑一次。
+- **`/tmp` 會不見。** WSL 重開就清掉。要留的材料、腳本與結果放 `~/.cache/agf-ecosystem/` 或 repo，`/tmp` 只放量測的 `--base`。
+- **花錢之前先算樣本數。** 每組 20 次時，20 個百分點的真實差距只有約 15% 的機率達到 p<0.05。先算再問使用者預算（S19）。
+- **題目敘述也要拿標準答案的來源核對。** S19 有一題的敘述和 Git 的實際行為相反，只能作廢。
 - **題目先試跑。** 對照組全過、或處理組沒有資訊能通過的題目，分組量幾次都沒有用（S18）。
 
 - **試跑工具時，答案檔不要放在被分析的資料夾裡。** S16 的 C 試跑第一次把 `truth.json` 一起交給 code graph 工具，codebase-memory-mcp 把它收進索引，查詢先回答案檔的內容。只複製要分析的檔案。
 - **「本機執行」的工具要斷網跑一次才算數。** S16 的 Docling、Marker 在下載過模型之後，第一次斷網執行仍然失敗（還要另外的參數或暖機）。試跑都加 `--network none`。
 - **Claude Code 會擋 `rm -f 目錄/*` 這類可能刪太多的命令**，由使用者才能核准。要重做輸出時換一個新的資料夾。
 
-- **框架的主目錄被 deny 規則與 guard hook 保護。** 工作區上一層的 `.claude/settings.json` 禁止用 Edit／Write 改框架目錄，PreToolUse 的 guard hook 也擋 push、PR、`pkill -f`，以及在框架 repo 裡的 git 寫入（包括 `worktree add`）。這是使用者刻意設的，不要去改它。使用者點名要改框架時，用 `git clone <框架目錄> ../ai-general-framework-<名稱>` 複製一份，在複本開分支修改；改完由使用者自己 `pull --ff-only` 併進 main。clone 的 `origin` 指向本機的框架目錄，不是 GitHub。
+- **框架的主目錄被 deny 規則與 guard hook 保護。** 工作區上一層的 `.claude/settings.json` 禁止用 Edit／Write 改框架目錄，PreToolUse 的 guard hook 也擋 push、PR、`pkill -f`，以及在框架 repo 裡的 git 寫入（包括 `worktree add`）。這是使用者刻意設的，不要去改它。使用者點名要改框架時，用 `git clone ~/src/ai-general-framework ~/src/ai-general-framework-s20`（編號用下一輪的）複製一份，在複本開分支修改；改完由使用者自己 `pull --ff-only` 併進 main。clone 的 `origin` 指向本機的框架目錄，不是 GitHub。
 - **舊版 guard hook 會誤擋 heredoc。** 使用者把 S11 併進 main 之後已修正；如果看到 heredoc 裡的文字被當成命令擋下，先確認 main 是不是新版。
 - **用量上限是共用的。** 量測的受試 session、子代理與主對話用同一個 5 小時額度；S11 的量測做到一半就撞到。無頭模式下撞到上限時，stream 裡會有 `rate_limit_event`，result 的 `subtype` 仍是 `success`，但 `is_error` 是 true。長時間的工作要能分段續跑。
 - **RTK hook 會改寫 Bash 命令。** 自動權限審查偶爾因此要求原樣重送；`find -exec`、`tail -3 檔案一 檔案二` 這類寫法會被它拒絕或改壞，改用 Python 或 `tail -n 3`。需要原始輸出時用 `rtk proxy <命令>`。

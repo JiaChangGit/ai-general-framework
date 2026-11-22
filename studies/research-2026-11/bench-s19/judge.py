@@ -3,6 +3,8 @@
     python3 -I judge.py RESULTS_DIR [RESULTS_DIR ...]
 
 A = control, B = rules-only, C = framework. B and C are each compared with A, and C also with B.
+When a cap cut the runs short, only blocks that all measured groups completed count: the first n completed
+runs of each task, n being the smallest count among the groups. The directories are read in the given order.
 """
 from fractions import Fraction
 import json
@@ -42,17 +44,28 @@ def verdict(base: dict, new: dict) -> dict:
 
 
 def main() -> None:
-    groups: dict[str, dict] = {}
+    rows: dict[tuple[str, str], list[dict]] = {}
     for folder in sys.argv[1:]:
         for row in json.loads((Path(folder) / "results.json").read_text(encoding="utf-8"))["runs"]:
             if "passed" not in row or row["group"] not in NAMES:
                 continue  # interrupted runs are rerun, not counted
-            group = groups.setdefault(NAMES[row["group"]], {"tasks": {}, "cost": 0.0})
-            passed, runs = group["tasks"].get(row["task"], (0, 0))
-            group["tasks"][row["task"]] = (passed + bool(row["passed"]), runs + 1)
-            group["cost"] += sum(part.get("cost_usd") or 0 for part in row["parts"])
+            rows.setdefault((NAMES[row["group"]], row["task"]), []).append(row)
+    measured = sorted({group for group, _ in rows})
+    blocks = {task: min(len(rows.get((group, task), [])) for group in measured) for task in sorted({task for _, task in rows})}
+    groups: dict[str, dict] = {}
+    for group in measured:
+        tasks, cost, budget_failures = {}, 0.0, 0
+        for task, count in blocks.items():
+            used = rows.get((group, task), [])[:count]
+            if not used:
+                continue
+            tasks[task] = (sum(bool(row["passed"]) for row in used), count)
+            cost += sum(part.get("cost_usd") or 0 for row in used for part in row["parts"])
+            budget_failures += sum("session budget exhausted" in (row.get("failures") or []) for row in used)
+        if tasks:
+            groups[group] = {"tasks": tasks, "cost": cost, "budget_failures": budget_failures}
     pairs = [(base, new) for base, new in (("A", "B"), ("A", "C"), ("B", "C")) if base in groups and new in groups]
-    print(json.dumps({"groups": groups, "comparisons": {f"{new} vs {base}": verdict(groups[base], groups[new]) for base, new in pairs}},
+    print(json.dumps({"blocks": blocks, "groups": groups, "comparisons": {f"{new} vs {base}": verdict(groups[base], groups[new]) for base, new in pairs}},
                      ensure_ascii=False, indent=1))
 
 
