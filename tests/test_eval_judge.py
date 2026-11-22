@@ -140,6 +140,16 @@ class JudgeTests(unittest.TestCase):
         self.assertEqual(judge.judge([judge.public_row(row) for row in rows([1] * 24)])["mean"], judge.judge(rows([1] * 24))["mean"])
 
 
+class SampleTests(unittest.TestCase):
+    def test_the_audit_hides_the_group_and_keeps_the_rest_of_a_sentence(self):
+        text = "我把決定寫進.agf/checkpoints/a.md與CLAUDE.md，用了trace-code這個skill，逾時改成10秒。"
+        hidden = judge.redact(text, {"trace-code"})
+        for gone in (".agf", "CLAUDE.md", "trace-code", "skill"):
+            self.assertNotIn(gone, hidden)
+        for kept in ("我把決定寫進", "與", "逾時改成10秒"):
+            self.assertIn(kept, hidden)
+
+
 class TaskCheckTests(unittest.TestCase):
     def task(self):
         return {"id": "ask-one", "kind": "ask", "files": {"a.ini": "30\n"}, "parts": [{"prompt": "shorter"}],

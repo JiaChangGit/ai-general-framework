@@ -40,6 +40,9 @@ TREATED, CONTROL = "framework", "control"
 ALPHA = 0.0294  # Pocock's boundary for two looks
 MARGIN, LARGE, MIN_TASKS = 0.10, 0.25, 20
 EPSILON = 1e-9
+# What would tell an auditor the group. ASCII classes: Chinese has no spaces, so \S and \b would eat or miss it.
+_PATH = r"[A-Za-z0-9_./-]"
+GROUP_MARKS = rf"CLAUDE\.md|AGENTS\.md|{_PATH}*\.(?:agf|claude){_PATH}*|(?:HANDOFF|CHECKPOINT){_PATH}*|(?<![a-z])skills?(?![a-z])"
 
 
 @lru_cache(maxsize=None)
@@ -201,31 +204,35 @@ def load(paths: list[Path]) -> dict:
     return impact.combine([(path.name, json.loads(file.read_text(encoding="utf-8"))) for path, file in zip(paths, files)])
 
 
+def redact(text: str, names=()) -> str:
+    return re.sub("|".join([GROUP_MARKS, *map(re.escape, sorted(names))]), "<hidden>", text, flags=re.IGNORECASE)
+
+
 def sample(folders: list[Path], task_file: Path, seed: int, share: float, to: Path) -> int:
     """Runs to read without knowing their group. The key goes to a separate file."""
     _, tasks = impact.load_tasks(task_file)
-    runs = []
+    runs, skills = [], set()
     for folder in folders:
         data = json.loads((folder / "results.json").read_text(encoding="utf-8"))
+        skills.update(data.get("skills") or [])
         kept = Path(data.get("artifacts_in") or folder)
         runs += [(kept, row) for row in data["runs"] if row.get("artifact") and row.get("items") is not None]
     chosen = random.Random(f"audit/{seed}").sample(runs, ceil(share * len(runs)))
     to.mkdir(parents=True, exist_ok=True)
     if any(to.iterdir()):
         raise SystemExit(f"--to must be empty: {to}")
-    hide = re.compile(r"CLAUDE\.md|AGENTS\.md|\S*\.agf\S*|\S*\.claude\S*|HANDOFF\S*|CHECKPOINT\S*|\bskills?\b", re.IGNORECASE)
     key = {}
     for number, (folder, row) in enumerate(chosen, 1):
         name, task = f"r{number:03d}", tasks[row["task"]]
         work = folder / "artifacts" / row["artifact"]
         start = json.loads((folder / "artifacts" / f"{row['artifact']}.start.json").read_text(encoding="utf-8"))
         lines = [f"# {name}: {row['task']}", "", *(f"> {part['prompt']}" for part in task["parts"]), "", "## answer", "",
-                 hide.sub("<hidden>", (folder / "outputs" / f"{row['artifact']}.md").read_text(encoding="utf-8")), "## changes", ""]
+                 redact((folder / "outputs" / f"{row['artifact']}.md").read_text(encoding="utf-8"), skills), "## changes", ""]
         for changed in grading.changes(start, work):
-            label = "<hidden>" if hide.search(changed) else changed
+            label = "<hidden>" if redact(changed, skills) != changed else changed
             file = work / changed
             text = file.read_text(encoding="utf-8", errors="replace") if file.is_file() and not file.is_symlink() else "(gone or not a file)"
-            lines += [f"### {label}", "", hide.sub("<hidden>", text[:6000]), ""]
+            lines += [f"### {label}", "", redact(text[:6000], skills), ""]
         lines += ["## judgements", ""]
         lines += [f"- {item['id']}: {'holds' if row['items'].get(item['id']) else 'fails'} -- {item.get('means', '')}"
                   for item in task["checks"]["items"]]
