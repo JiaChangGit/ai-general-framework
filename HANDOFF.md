@@ -3,11 +3,10 @@
 更新日期：2026-11-22（S20 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
 
-> **S19、S20 做完；S20 複測通過（2026-11-22）。等使用者三件事。**
+> **S19、S20 做完；P5 已依使用者的決定退掉（2026-11-22）。等使用者兩件事，順序不能反。**
 >
-> 1. 決定 P5（`0e9932a`）要留還是退：品質沒退步，但沒有少讀檔（[N 報告](studies/research-2026-11/N-s20-recheck.md)，建議退）。沒有答覆之前不要動。
-> 2. 把複測的紀錄併進 main（命令在「還沒做的事」）。`245dc3b` 以前已併入並 push。
-> 3. 更新兩個已安裝的專案（命令在「還沒做的事」；最好等第 1 項決定後）。
+> 1. 把 `s20-prune` 併進 main 並 push（命令在「還沒做的事」）。main 目前在 `f3ee0ad`，還含 P5。
+> 2. 再更新兩個已安裝的專案：它們已在 19:54 更新成含 P5 的版本。
 
 ## 一開始先做什麼
 
@@ -74,7 +73,7 @@ S18（2026-11-22）：寫作短版與讀取時機、commit-msg hook、文件對�
 
 S19（2026-11-22）：量測第一次有真正的隔離（容器加宿主限制）；S11～S18 的數字不能和之後的直接比。S18 審查找到的缺陷已修。真 bug 試跑 19 次通過 16 次，沒有確定合格的題目，所以沒有分組、沒有「框架有沒有好處」的判定；原設計的樣本數也不夠。寫作短版複測通過，維持（[M 報告](studies/research-2026-11/M-s19.md)）。
 
-S20（2026-11-22）：使用者核准的刪減 P1～P5 已做（P6 不動）。`agf` 的執行方式在 `.agf/managed/agf-cli.md`；skill 規則只在裝有框架 skill 時寫入；寫文件不再觸發 practices，兩句只在那裡的規則已補進兩份寫作指引。之後經使用者同意花 0.67 美元複測：冒煙與寫作盲評都通過（[N 報告](studies/research-2026-11/N-s20-recheck.md)）。
+S20（2026-11-22）：刪減清單最後留下 P1～P4（P5 複測後由使用者退掉，P6 沒有核准）。`agf` 的執行方式在 `.agf/managed/agf-cli.md`；skill 規則只在裝有框架 skill 時寫入；寫文件仍會先讀 practices，有測試鎖住。之後經使用者同意花 0.67 美元複測：冒煙與寫作盲評都通過（[N 報告](studies/research-2026-11/N-s20-recheck.md)）。
 
 ## 拿框架到別的專案測試
 
@@ -93,13 +92,17 @@ S20（2026-11-22）：使用者核准的刪減 P1～P5 已做（P6 不動）。`
 
 ## 還沒做的事
 
-把 S20 的複測紀錄併進 main（使用者執行）：
+先把退掉 P5 的 S20 併進 main（使用者執行）：
 
 ```bash
 git -C ~/src/ai-general-framework pull --ff-only ~/src/ai-general-framework-s20 s20-prune
 ```
 
-更新已安裝的專案（使用者執行；2026-11-22 在複本演練過，沒有衝突，改動的檔都被 Git 忽略）：
+```bash
+git -C ~/src/ai-general-framework push origin main
+```
+
+併入之後再更新已安裝的專案（使用者執行；2026-11-22 用它們當時的受管理檔案演練過升級與回復，改動的檔都被 Git 忽略）：
 
 ```bash
 python3 -B ~/src/ai-general-framework/scripts/agf.py project update --target ~/src/Distributed_Key-Value_Store_with_Raft --apply
@@ -109,11 +112,11 @@ python3 -B ~/src/ai-general-framework/scripts/agf.py project update --target ~/s
 python3 -B ~/src/ai-general-framework/scripts/agf.py project update --target ~/src/shm_ipc --apply
 ```
 
-shm_ipc 的 `CLAUDE.md` 沒有引入專案規則，Claude Code 在那裡不會自動載入；要不要引入由使用者決定，不要代改。
+shm_ipc 的 `CLAUDE.md` 沒有引入專案規則是那個專案刻意的設計（它寫明需要框架工具時才讀，避免重複載入）。`project status` 因此一直有一個警告，不要代改，也不用再提醒。
 
 依分析報告第九輪的優先順序：
 
-1. （高，等使用者決定）P5 留或退。選退時：在 s20 複本 revert `0e9932a`、更新 CHANGELOG、跑測試，再請使用者併入。P6 沒有核准，不要做。
+1. （已決定）刪減清單：P1～P4 已做，P5 做過又退掉，P6 沒有核准。不要再做 P5、P6。
 2. （高）benchmark 換設計再花錢：先算樣本數與預算，再問使用者。S19 的算法在 `studies/research-2026-11/bench-s19/power.py`。不要直接補跑 S19 沒判完的兩題。
 3. （中）把短版「改寫只用原稿的事實」補進完整版寫作指引，再盲評一次。
 4. （中）審查沒修完的：`FILE_MARKERS` 只認 Claude、審查組只拿最後一段指示、doccheck 對 `skills/`、`examples/`、`tests/` 的缺口。

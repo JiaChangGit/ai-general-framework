@@ -746,6 +746,13 @@ class ProjectTests(unittest.TestCase):
         self.run_project("rollback", True)
         self.assertIn("`shared`", note.read_text(encoding="utf-8"))
 
+    def test_writing_a_document_still_reaches_the_rules_only_practices_has(self):
+        # S20 P5 dropped this trigger and was reverted: these two rules live nowhere else.
+        read = lambda name: (manage.SOURCE / name).read_text(encoding="utf-8")
+        self.assertIn("寫交接檔或文件之前，先讀 `.agf/managed/guides/practices.md`", read("templates/project-rules.md"))
+        for kept in ("agf profile show", "以執行結果與目前的原始碼為準"):
+            self.assertIn(kept, read("docs/practices.md"))
+
     def test_deployed_text_points_at_the_cli_note_for_the_path(self):
         for name in ("docs/tools.md", "docs/writing.md", "docs/cli.md", "templates/diagrams/README.md"):
             text = (manage.SOURCE / name).read_text(encoding="utf-8")
