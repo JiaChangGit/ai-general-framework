@@ -780,9 +780,9 @@ class ProjectTests(unittest.TestCase):
         self.assertEqual(lines["docs/writing.md"], lines["docs/writing-short.md"])
 
     def test_deployed_text_points_at_the_cli_note_for_the_path(self):
-        for name in ("docs/tools.md", "docs/writing.md", "docs/cli.md", "templates/diagrams/README.md"):
+        for name in ("docs/tools.md", "docs/writing.md", "docs/cli.md", "templates/diagrams/README.md", "examples/research/web-fetch.md"):
             text = (manage.SOURCE / name).read_text(encoding="utf-8")
-            self.assertNotRegex(text, r"規則所列|專案規則的 CLI|project-rules\.md` 的 CLI", name)
+            self.assertNotRegex(text, r"規則所列|規則中的有效路徑|入口(依|以)專案規則|專案規則(的 CLI|指定的 CLI|替換)|project-rules\.md` 的 CLI", name)
             self.assertIn("agf-cli.md", text, name)
 
     def test_legacy_manifest_without_mode_keeps_copy_behavior(self):

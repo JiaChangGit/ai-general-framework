@@ -63,7 +63,7 @@ A,Done
 B,Run
 ```
 
-在框架根目錄執行；已配置專案把 `scripts/agf.py` 換成規則中的有效路徑：
+在框架根目錄執行；已配置專案把 `scripts/agf.py` 換成 `.agf/managed/agf-cli.md` 裡的有效路徑：
 
 ```text
 python scripts/agf.py diagram transitions events.csv --state-column state --group-column device --output .agf/artifacts/transitions.json

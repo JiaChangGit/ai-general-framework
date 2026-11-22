@@ -61,9 +61,9 @@ python evals/host/impact.py report /tmp/agf-impact-out
 - 報告的表格另有兩欄：有計畫截斷的任務，第一段實際被截斷了幾次（沒截斷就沒測到「接手」）；受試者讀了幾次工作目錄以外的檔。
 - `--group` 另有 `rules-only`（框架安裝但不帶 skill）與 `skills-only`（只帶 skill，刪掉 `CLAUDE.md`、`AGENTS.md`、`.agf/`），兩組都不裝 hook，用來拆開固定成本。還有 `reviewed`（S18）：和 `framework` 一樣安裝，做完之後再開一個 `--review-model` 的新 session，給它原本的指示與上一段的最後回覆，請它自己讀檔核對、修正並給出最後答案；隱藏檢查看審查之後的結果，花費也算進去。每一段記錄 `first_context_tokens`，也就是第一次呼叫模型時讀進去的 token 數；`probe-context` 任務只要求回覆 OK，最適合拿來比較。
 - `decision-only-in-chat` 與 `decision-only-in-chat-switch` 的關鍵決定只在第一段的對話裡，量的是續接 hook 的 `save_prompts`（`evals/impact/continuity-hooks.json` 已開啟）。
-- `--hooks` 用到的框架檔案會複製進受試目錄，設定檔不寫框架的路徑。但 shared 模式的安裝仍會把框架路徑寫進規則檔（見上面「框架本身的路徑」），所以每次都要看讀取工作目錄以外的次數。
+- `--hooks` 用到的框架檔案會複製進受試目錄，設定檔不寫框架的路徑。但 shared 模式的安裝仍會把框架路徑寫進 `.agf/managed/agf-cli.md`（見上面「框架本身的路徑」），所以每次都要看讀取工作目錄以外的次數。
 - 受試者能用 Read、Grep、Glob、Edit、Write、Skill（只有這次安裝的 skill），Bash 整個拿掉；讀寫只限工作目錄。`--base` 必須在家目錄以外（否則家目錄的 `CLAUDE.md` 會被當成上層規則載入，開跑前會擋下）；不載入使用者層的設定、外掛 MCP 與自動記憶，所以和 S18 以前的數字不能直接比。預檢和 `trigger.py` 相同。
-- 任務可以用 `source`（任務檔旁的目錄）當材料、用 `sandbox`（image 與命令）給受試者一個不收參數的 `run_tests`、用 `checks.hidden` 與 `checks.command` 放隱藏測試。所有會執行受試者程式的檢查都只在容器裡跑：要先有 Docker 與 `python:3.12-slim`，缺了就在花錢之前停下。
+- 任務可以用 `source`（任務檔旁的目錄）當材料、用 `sandbox`（image 與命令）給受試者一個不收參數的 `run_tests`、用 `checks.hidden` 與 `checks.command` 放隱藏測試。所有會執行受試者程式的檢查都只在容器裡跑（Python 片段以隔離模式執行、要印出跑到最後的記號才算通過；隱藏測試命令只覆蓋測試檔，擋不住受試者改 conftest、建置設定或故意造假，量測後要看 `files_changed`）：要先有 Docker 與 `python:3.12-slim`，缺了就在花錢之前停下。
 - 逾時與用完單次預算算失敗；額度、Docker 故障等會停下，不算失敗。每次執行記錄材料與隱藏測試的雜湊，`report` 不合併雜湊不同的同一格。
 - `--env NAME` 不帶值時，從目前的環境複製那個變數，例如在 CI 裡傳 API key，不必把它寫在命令列上。
 - 每個條件只跑一兩次時，差異可能是雜訊。要比較時固定模型、任務與 CLI 版本；Claude Code 的快取在訂閱方案內是 1 小時、其他情況 5 分鐘，跑的先後會影響 cache read 的多寡，所以 token 要分開看，不只看總數。

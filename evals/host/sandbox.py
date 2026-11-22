@@ -52,7 +52,7 @@ def docker_argv(work: Path, image: str, command: str, name: str, extra: Path | N
         copy += " && cp -R --remove-destination /hidden/. /work/"  # replaces a subject's file or link at those paths
     # Output stays in the container's tmpfs; only the end of it is copied to the host.
     script = (f"{copy} || exit 125; cd /work; timeout -s KILL \"$LIMIT\" sh -c {shlex.quote(command)} > /out/log 2>&1; code=$?; "
-              f"tail -c {OUTPUT_LIMIT} /out/log; [ $code -eq 125 ] && exit 1; exit $code")  # 125 is kept for Docker and the copy
+              f"tail -c {OUTPUT_LIMIT} /out/log; [ $code -ge 125 ] && [ $code -le 127 ] && exit 1; exit $code")  # 125-127 are kept for Docker and the copy
     return ["docker", "run", "--rm", "--name", name, "--pull", "never", "--network", "none", "--cap-drop", "ALL",
             "--security-opt", "no-new-privileges", "--read-only", "--user", USER, "--cpus", "2", "--memory", "2g",
             "--memory-swap", "2g", "--pids-limit", "256", "--log-driver", "none",
@@ -92,7 +92,7 @@ def _contained(work: Path, image: str, command: str, timeout: int, extra: Path |
         return {"exit": 124, "output": "timed out", "timed_out": True, "infrastructure": False}
     output = (done.stdout + done.stderr).decode("utf-8", "replace")[-OUTPUT_LIMIT:]
     return {"exit": done.returncode, "output": output, "timed_out": done.returncode in (124, 137),
-            "infrastructure": done.returncode == 125}
+            "infrastructure": done.returncode in (125, 126, 127)}
 
 
 SUBJECT_TOOLS = ("Read", "Grep", "Glob", "Edit", "Write", "Skill")

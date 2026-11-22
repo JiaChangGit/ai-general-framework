@@ -10,7 +10,7 @@ It refuses, by exit code 2 with the reason on stderr (Claude Code shows the
 reason to the model and does not run the tool):
   - git push, whatever wraps it on the command line: `git -C dir`, global git
     options, a path to git, `sh -c` / `bash -lc` / `eval`, `( )`, `{ }`, `if/then`,
-    `cd x &&`, `env`, `sudo -u`, `timeout -s`, `nice -n`, `xargs`, and rtk
+    `cd x &&`, `pushd`/`popd`, `env`, `sudo -u`, `timeout -s`, `nice -n`, `xargs`, and rtk
     (`rtk git`, `rtk proxy`, `rtk err`, `rtk run`);
   - creating or merging a pull/merge request with gh or glab (global options such
     as `-R repo` included), and gh release create;
@@ -45,8 +45,9 @@ Configuration: JSON at the path given as the first argument, else $AGF_GUARD_CON
 else defaults (block push, pull requests and pattern kills; no protected paths):
   {"protected_paths": ["/abs/dir", "~/other"], "block_push": true,
    "block_pull_requests": true, "block_pkill": true}
-A configuration that cannot be read, or a call the hook cannot parse, is refused,
-so a typo or an unexpected input does not silently remove the protection.
+A configuration that cannot be read, a call the hook cannot parse, or commands
+nested deeper than it follows are refused, so a typo or an unexpected input
+does not silently remove the protection.
 """
 from __future__ import annotations
 
@@ -99,6 +100,8 @@ MCP_NOUNS = r"(?:files?|dir|directory|directories|folder|text|content|object|not
 MCP_VERBS = "(?:" + "|".join(sorted(MCP_WRITES)) + ")"
 MCP_COMPOUND = re.compile(f"{MCP_VERBS}{MCP_NOUNS}|{MCP_NOUNS}{MCP_VERBS}")
 MCP_MAX_DEPTH = 64
+
+BASH_MAX_DEPTH = 8  # wrappers inside wrappers; deeper is refused rather than passed unchecked
 
 
 class Refuse(Exception):
@@ -357,7 +360,7 @@ def git_writes(sub: str, args: list[str]) -> bool:
 
 
 def option_values(argv: list[str], names: set[str]) -> list[str]:
-    """Values of the given options, in the `-o VALUE`, `-oVALUE` and `--name=VALUE` forms."""
+    """Values of the given options, in the `-o VALUE`, `-oVALUE`, bundled `-fsSLo VALUE` and `--name=VALUE` forms."""
     values = []
     for index, token in enumerate(argv):
         for name in names:
@@ -365,8 +368,14 @@ def option_values(argv: list[str], names: set[str]) -> list[str]:
                 values.append(argv[index + 1])
             elif name.startswith("--") and token.startswith(name + "="):
                 values.append(token.split("=", 1)[1])
-            elif not name.startswith("--") and len(name) == 2 and token.startswith(name) and len(token) > 2:
-                values.append(token[2:])
+            elif len(name) == 2 and token[:1] == "-" and token[:2] != "--":
+                at = token.find(name[1], 1)
+                if at < 1 or (at > 1 and not token[1:at].isalnum()):
+                    continue
+                if at + 1 < len(token):
+                    values.append(token[at + 1:])
+                elif index + 1 < len(argv):
+                    values.append(argv[index + 1])
     return values
 
 
@@ -375,8 +384,9 @@ def short_flags(argv: list[str]) -> str:
 
 
 def check_bash(command: str, cwd: Path, config: dict, depth: int = 0) -> None:
-    if depth > 3:
-        return
+    if depth > BASH_MAX_DEPTH:
+        raise Refuse(f"nests commands deeper than {BASH_MAX_DEPTH} levels, which the hook does not check")
+    stack: list[Path] = []
     command, expanded = strip_heredocs(command)
     for body in expanded:
         for inner in substitutions(body, quotes=False):
@@ -407,6 +417,18 @@ def check_bash(command: str, cwd: Path, config: dict, depth: int = 0) -> None:
         if name == "cd":
             target = next((a for a in argv[1:] if not a.startswith("-")), "~")
             cwd = (cwd / Path(target).expanduser()).resolve()
+            continue
+        if name == "pushd":
+            target = next((a for a in argv[1:] if not a.startswith(("-", "+"))), None)
+            if target:
+                stack.append(cwd)
+                cwd = (cwd / Path(target).expanduser()).resolve()
+            elif len(argv) == 1 and stack:  # bare pushd swaps with the top
+                cwd, stack[-1] = stack[-1], cwd
+            continue
+        if name == "popd":
+            if len(argv) == 1 and stack:
+                cwd = stack.pop()
             continue
         if name in SHELLS or name == "eval":
             if name == "eval":
@@ -570,6 +592,9 @@ def main() -> int:
         event = json.load(sys.stdin)
     except ValueError:
         return 0  # nothing to judge; Claude Code always sends JSON
+    except Exception as error:  # e.g. RecursionError: exit code 1 would let the call through
+        print(f"agf guard could not read this call ({type(error).__name__}); refusing it", file=sys.stderr)
+        return 2
     if not isinstance(event, dict):
         return 0
     try:

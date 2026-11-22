@@ -1,6 +1,6 @@
 # 接手文件
 
-更新日期：2026-11-22（S20 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
+更新日期：2026-11-22（S21 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
 
 > **S21 進行中（2026-11-22）。** 在 `../ai-general-framework-s21` 的 `s21-wrapup` 分支；使用者已同意的範圍、完成條件與門檻在 [O 報告](studies/research-2026-11/O-s21.md)。S19、S20 已全部併進 main 並 push（`d27fda6`），兩個已安裝專案也更新完。
@@ -39,7 +39,7 @@ python3 -B ~/src/ai-general-framework/scripts/agf.py audit --root ~/src/ai-gener
 python3 -B ~/src/ai-general-framework/scripts/agf.py task checkpoint --help
 ```
 
-框架放在別處時才要換路徑。S12～S18 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s20`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以上面第二個命令為準。
+框架放在別處時才要換路徑。S12～S18 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s21`，舊的可能已被使用者清掉），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以上面第二個命令為準。
 
 ## 目前的位置
 
@@ -72,7 +72,7 @@ S18（2026-11-22）：寫作短版與讀取時機、commit-msg hook、文件對�
 
 S19（2026-11-22）：量測第一次有真正的隔離（容器加宿主限制）；S11～S18 的數字不能和之後的直接比。S18 審查找到的缺陷已修。真 bug 試跑 19 次通過 16 次，沒有確定合格的題目，所以沒有分組、沒有「框架有沒有好處」的判定；原設計的樣本數也不夠。寫作短版複測通過，維持（[M 報告](studies/research-2026-11/M-s19.md)）。
 
-S20（2026-11-22）：刪減清單最後留下 P1～P4（P5 複測後由使用者退掉，P6 沒有核准）。`agf` 的執行方式在 `.agf/managed/agf-cli.md`；skill 規則只在裝有框架 skill 時寫入；寫文件仍會先讀 practices，有測試鎖住。之後經使用者同意花 0.67 美元複測：冒煙與寫作盲評都通過（[N 報告](studies/research-2026-11/N-s20-recheck.md)）。
+S20（2026-11-22）：刪減清單最後留下 P1～P4（P5 複測後由使用者退掉，P6 沒有核准）。`agf` 的執行方式在 `.agf/managed/agf-cli.md`；skill 規則只在裝有框架 skill 時寫入；寫文件仍會先讀 practices，有測試鎖住。經使用者同意花 0.67 美元複測的是含 P5 的 `245dc3b`（冒煙與寫作盲評都通過）；最後出貨、沒有 P5 的組合沒有量過（[N 報告](studies/research-2026-11/N-s20-recheck.md)）。
 
 ## 拿框架到別的專案測試
 
@@ -91,40 +91,55 @@ S20（2026-11-22）：刪減清單最後留下 P1～P4（P5 複測後由使用�
 
 ## 還沒做的事
 
-先把退掉 P5 的 S20 併進 main（使用者執行）：
+把 S21 併進 main（使用者執行）：
 
 ```bash
-git -C ~/src/ai-general-framework pull --ff-only ~/src/ai-general-framework-s20 s20-prune
+git -C ~/src/ai-general-framework pull --ff-only ~/src/ai-general-framework-s21 s21-wrapup
 ```
 
 ```bash
 git -C ~/src/ai-general-framework push origin main
 ```
 
-併入之後再更新已安裝的專案（使用者執行；2026-11-22 用它們當時的受管理檔案演練過升級與回復，改動的檔都被 Git 忽略）：
+清理（使用者執行；理由與盤點在 [O 報告](studies/research-2026-11/O-s21.md)，AI 不替使用者刪）。第一行先備份、比對相同才刪：
 
 ```bash
-python3 -B ~/src/ai-general-framework/scripts/agf.py project update --target ~/src/Distributed_Key-Value_Store_with_Raft --apply
+cp -a ~/src/ai-general-framework-s18/studies/research-2026-11 ~/.cache/agf-ecosystem/private-s18-research && diff -r ~/src/ai-general-framework-s18/studies/research-2026-11 ~/.cache/agf-ecosystem/private-s18-research && rm -rf ~/src/ai-general-framework-s18
 ```
 
 ```bash
-python3 -B ~/src/ai-general-framework/scripts/agf.py project update --target ~/src/shm_ipc --apply
+rm -rf ~/src/ai-general-framework-s16 ~/src/ai-general-framework-s17 ~/src/ai-general-framework-s19 ~/src/ai-general-framework-s20
 ```
 
-shm_ipc 的 `CLAUDE.md` 沒有引入專案規則是那個專案刻意的設計（它寫明需要框架工具時才讀，避免重複載入）。`project status` 因此一直有一個警告，不要代改，也不用再提醒。
+```bash
+rm -rf ~/.cache/agf-ecosystem/repos
+```
 
-依分析報告第九輪的優先順序：
+```bash
+docker image rm agf-parse-light:s16 agf-parse-docling:s16 agf-parse-marker:s16 agf-parse-ocrmypdf:s16
+```
 
-1. （已決定）刪減清單：P1～P4 已做，P5 做過又退掉，P6 沒有核准。不要再做 P5、P6。
-2. （高）benchmark 換設計再花錢：先算樣本數與預算，再問使用者。S19 的算法在 `studies/research-2026-11/bench-s19/power.py`。不要直接補跑 S19 沒判完的兩題。
-3. （中）把短版「改寫只用原稿的事實」補進完整版寫作指引，再盲評一次。
-4. （中）審查沒修完的：`FILE_MARKERS` 只認 Claude、審查組只拿最後一段指示、doccheck 對 `skills/`、`examples/`、`tests/` 的缺口。
-5. 不留痕跡的專案做真實開發時，在里程碑跑 `agf traces check`，觀察 commit-msg hook 有沒有被觸發或被 `--no-verify` 繞過。
-6. 第六輪路線圖還沒做的三項（C 與 kernel、研究文件、跨宿主）順延；跨宿主需要先在 WSL 安裝 Codex 或 Gemini CLI，要使用者同意。
-7. 第五輪留下的：在 GitHub 上跑一次 `skill-triggers.yml`（會花錢）；教學文件格式的個人化與子命令退場（低）。
-8. （小）`project update` 找不到配置時只說「use project install first」：在家目錄照做會把規則裝錯地方。訊息應印出目標路徑；目標是家目錄時要警告。還沒改。
-9. 其餘待確認的外部名稱在 `docs/ecosystem/recommendations.md`。
-10. （已決定）`save_prompts` 不開，量測也不為了讓題目通過而開；只存使用者核准過的教訓；guard hook 維持裝在工作區上一層。
+下一行清的是全機所有專案的 build cache（只是快取，會重建）：
+
+```bash
+docker builder prune --all
+```
+
+路線圖（舊的 S19～S21 編號已被用掉，順延重編；花費都要先問）：
+
+1. **S22 benchmark 換設計。** 量比較敏感的東西（呼叫關係答對幾條、規則有沒有被遵守、花費）。先算樣本數、偵測能力與花費給使用者看，再開跑；算法在 `studies/research-2026-11/bench-s19/power.py`。不要直接補跑 S19 沒判完的兩題。S19 的題目與 image 先留著。
+2. **S23 C 與 kernel 的程式追蹤。** 把確定性工具接進 `trace-code` 的 reference，用 S22 的方法在一個 kernel 子目錄比較。codegraph 的 image 先留著。
+3. **S24 研究文件。** PDF 解析與引用回查，用真實論文與中文 PDF 核對頁碼和數字。解析用的 image 要重建（Dockerfile 在 `studies/ecosystem-2026-11/trials/docparse/docker/`）。
+4. **S25 跨宿主接手。** 需要先在 WSL 安裝 Codex 或 Gemini CLI，要使用者同意。
+5. 之後：其他領域各用一個真實任務驗收；教學文件格式的個人化與子命令退場（低）。
+
+要使用者決定、不急的：
+
+- **Raft 的 `traces check`** 加 `--after 7257862` 之後舊署名是 0，但還是會失敗：它的排除清單少 7 個型樣（`agf traces exclude --apply` 會補），而且追蹤著需求副本 `docs/reference/AGENTS.md`（要不要留由使用者決定）。
+- shm_ipc 追蹤著 4 個工具設定檔（2026-11-22 掃過沒有密鑰、本機路徑或 email）。使用者選擇維持原樣，只裝 hook。
+- 兩個專案都是舊配置：`project update` 不會更新它們的 commit-msg hook，判斷規則改了要各重跑一次 `traces hook --target <專案的絕對路徑> --apply`（給使用者時換成真實路徑）。
+- 資料庫裡 34 筆授權與幾個名稱待確認（`docs/ecosystem/recommendations.md`）；`skill-triggers.yml` 從未在 GitHub 上跑過（會花錢、要 API key）。
+- 已決定，不要再做：P5、P6；`save_prompts` 不開，量測也不為了讓題目通過而開；只存使用者核准過的教訓；guard hook 維持裝在工作區上一層。
 
 沒有在真實 session 觸發過的：續接 hook 的 PreCompact、PostCompact、StopFailure、PreModelSwitch。`align-with-me` 在 2026-11-19 第一次被使用者實際叫用，照 skill 寫的流程走完。`debug-root-cause` 新加的「先驗證前提、附證據」量過一次（`debug-wrong-premise`），兩組都做對，量不出作用。
 
@@ -135,6 +150,8 @@ shm_ipc 的 `CLAUDE.md` 沒有引入專案規則是那個專案刻意的設計�
 - **假的 CLI 與假的 Docker 測不出隔離。** S19 的兩個隔離錯誤（全域 `CLAUDE.md` 進到對照組、容器讀不到 0600 的安裝檔）都是真跑一次才看到。改了量測的隔離，先用真 Docker 與便宜的模型各組跑一次。
 - **`/tmp` 會不見。** WSL 重開就清掉。要留的材料、腳本與結果放 `~/.cache/agf-ecosystem/` 或 repo，`/tmp` 只放量測的 `--base`。
 - **盲評分數不能跨輪比。** 同一個短版兩位評審差了 0.4～0.8 分；舊版一定要和新版混在同一批重跑、重評（S20）。
+- **在受保護目錄裡跑命令，路徑不要用變數。** guard hook 展不開 `${F}-s21`，會當成目前目錄（main）而拒絕（S21）。先 cd 出去、寫完整路徑，讓它判斷真正的目標；仍被擋就問使用者，不要換寫法繞。
+- **刪除之前先盤點只存在那裡的東西。** `-s18` 有 S18 報告唯一的原始串流；main 到不了的物件裡有使用者暫存過的 WIP，所以不要 `gc --prune=now`。開複本用 `git clone --no-local`，不把到不了的舊物件帶過去（S21）。
 - **給使用者的命令要帶真實路徑。** `--target .` 被原樣貼在家目錄執行過（S20）。先在本機找出 `.agf/manifest.json`，每個專案給一行絕對路徑的命令；框架回的「use project install first」在家目錄照做會把規則裝進家目錄。
 - **「已經有了」要逐句查。** S19 說 P5 拿掉的內容常駐規則已有，其實兩句只在 practices。刪任何觸發條件之前，列出那個檔每一句還能從哪裡被讀到（S20）。
 - **花錢之前先算樣本數。** 每組 20 次時，20 個百分點的真實差距只有約 15% 的機率達到 p<0.05。先算再問使用者預算（S19）。
@@ -145,7 +162,7 @@ shm_ipc 的 `CLAUDE.md` 沒有引入專案規則是那個專案刻意的設計�
 - **「本機執行」的工具要斷網跑一次才算數。** S16 的 Docling、Marker 在下載過模型之後，第一次斷網執行仍然失敗（還要另外的參數或暖機）。試跑都加 `--network none`。
 - **Claude Code 會擋 `rm -f 目錄/*` 這類可能刪太多的命令**，由使用者才能核准。要重做輸出時換一個新的資料夾。
 
-- **框架的主目錄被 deny 規則與 guard hook 保護。** 工作區上一層的 `.claude/settings.json` 禁止用 Edit／Write 改框架目錄，PreToolUse 的 guard hook 也擋 push、PR、`pkill -f`，以及在框架 repo 裡的 git 寫入（包括 `worktree add`）。這是使用者刻意設的，不要去改它。使用者點名要改框架時，用 `git clone ~/src/ai-general-framework ~/src/ai-general-framework-s20`（編號用下一輪的）複製一份，在複本開分支修改；改完由使用者自己 `pull --ff-only` 併進 main。clone 的 `origin` 指向本機的框架目錄，不是 GitHub。
+- **框架的主目錄被 deny 規則與 guard hook 保護。** 工作區上一層的 `.claude/settings.json` 禁止用 Edit／Write 改框架目錄，PreToolUse 的 guard hook 也擋 push、PR、`pkill -f`，以及在框架 repo 裡的 git 寫入（包括 `worktree add`）。這是使用者刻意設的，不要去改它。使用者點名要改框架時，用 `git clone --no-local ~/src/ai-general-framework ~/src/ai-general-framework-s22`（編號用下一輪的）複製一份，在複本開分支修改；改完由使用者自己 `pull --ff-only` 併進 main。clone 的 `origin` 指向本機的框架目錄，不是 GitHub。
 - **舊版 guard hook 會誤擋 heredoc。** 使用者把 S11 併進 main 之後已修正；如果看到 heredoc 裡的文字被當成命令擋下，先確認 main 是不是新版。
 - **用量上限是共用的。** 量測的受試 session、子代理與主對話用同一個 5 小時額度；S11 的量測做到一半就撞到。無頭模式下撞到上限時，stream 裡會有 `rate_limit_event`，result 的 `subtype` 仍是 `success`，但 `is_error` 是 true。長時間的工作要能分段續跑。
 - **RTK hook 會改寫 Bash 命令。** 自動權限審查偶爾因此要求原樣重送；`find -exec`、`tail -3 檔案一 檔案二` 這類寫法會被它拒絕或改壞，改用 Python 或 `tail -n 3`。需要原始輸出時用 `rtk proxy <命令>`。

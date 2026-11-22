@@ -313,6 +313,30 @@ class GuardHookTests(unittest.TestCase):
             with self.subTest(tool=tool):
                 self.assertEqual(self.run_hook(tool, target).returncode, 0)
 
+    def test_wrappers_nested_past_the_limit_are_refused_not_passed(self):
+        wrapped = "git" + " push"
+        for _ in range(4):
+            wrapped = "bash -c " + json.dumps(wrapped)
+        for command in (wrapped, "eval " * 5 + "git" + " push", "eval " * 30 + "true"):
+            with self.subTest(command=command[:40]):
+                self.assertEqual(self.run_hook("Bash", {"command": command}).returncode, 2)
+        self.assertEqual(self.run_hook("Bash", {"command": "eval " * 5 + "true"}).returncode, 0)
+
+    def test_an_event_too_deep_to_read_is_refused(self):
+        event = '{"tool_name": "mcp__x__run", "tool_input": ' + '{"a":' * 100000 + "1" + "}" * 100000 + "}"
+        result = subprocess.run([sys.executable, str(HOOK), str(self.config)], input=event, capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 2, result.stderr[-300:])
+
+    def test_bundled_options_and_pushd_reach_the_protected_path(self):
+        p, w, url = self.protected.as_posix(), self.work.as_posix(), "https://example.invalid/f"
+        for command in (f"curl -fsSLo {p}/x {url}", f"wget -qO {p}/x {url}", f"cp -rt {p} notes.md", f"tar -xzC {p} -f a.tgz",
+                        f"pushd {p}; touch x", f"cd {p} && pushd {w}; popd; touch x"):
+            with self.subTest(command=command):
+                self.assertEqual(self.run_hook("Bash", {"command": command}).returncode, 2)
+        for command in (f"curl -fsSLo {w}/x {url}", f"cd {p} && pushd {w} && touch x"):
+            with self.subTest(command=command):
+                self.assertEqual(self.run_hook("Bash", {"command": command}).returncode, 0)
+
     def test_unexpected_event_shapes_are_handled_without_crashing(self):
         for event in [{"tool_name": "Bash", "tool_input": "git push", "cwd": str(self.work)},
                       {"tool_name": "Bash", "tool_input": {"command": "ls"}, "cwd": 42},

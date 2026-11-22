@@ -63,6 +63,7 @@ import statistics
 import subprocess
 import sys
 import tempfile
+import uuid
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import preflight  # noqa: E402
@@ -146,12 +147,15 @@ def check(task: dict, work: Path, answer: str, task_dir: Path, runner=sandbox.ru
     image = task.get("sandbox", {}).get("image", CHECK_IMAGE)
     jobs = []
     for index, code in enumerate(checks.get("python", [])):
-        command = "python -B -c " + shlex.quote("import sys; sys.path.insert(0, '.')\n" + code)
-        jobs.append((f"python check {index}", command, 20, None))
+        # -I plus append: the subject's files never replace the standard library. The mark at the end
+        # shows that the whole snippet ran, not that the subject's code ended the process early.
+        mark = f"check-finished-{uuid.uuid4().hex}"
+        command = "python -I -B -c " + shlex.quote(f"import sys; sys.path.append('.')\n{code}\nprint({mark!r}, flush=True)")
+        jobs.append((f"python check {index}", command, 20, None, mark))
     if checks.get("command"):
         hidden = _inside(task_dir, checks["hidden"]) if checks.get("hidden") else None
-        jobs.append(("hidden tests", checks["command"], int(checks.get("timeout", 180)), hidden))
-    for label, command, limit, hidden in jobs:
+        jobs.append(("hidden tests", checks["command"], int(checks.get("timeout", 180)), hidden, None))
+    for label, command, limit, hidden, mark in jobs:
         try:
             got = runner(work, image, command, limit, hidden)
         except (OSError, ValueError, subprocess.SubprocessError) as error:
@@ -161,6 +165,8 @@ def check(task: dict, work: Path, answer: str, task_dir: Path, runner=sandbox.ru
         if got["exit"] != 0:
             reason = "timed out or killed" if got["timed_out"] else got["output"].strip().splitlines()[-1:]
             failures.append(f"{label}: {reason}")
+        elif mark and mark not in got["output"]:
+            failures.append(f"{label}: the process ended before the check finished")
     for pattern in checks.get("answer_patterns", []):
         if not re.search(pattern, answer or ""):
             failures.append(f"answer lacks /{pattern}/")
@@ -284,7 +290,7 @@ def _session(args, out, cli, work, model, prompt, name, results, given, env, exp
     stop = None
     if expects_tests and summary["tool_names"] is not None and TEST_TOOL not in summary["tool_names"]:
         stop = "infrastructure: the test tool was not available"
-    elif any(error["tool"] == TEST_TOOL and re.search(r"exit code: 125|test tool failed", error["error"]) for error in summary["tool_errors"]):
+    elif any(error["tool"] == TEST_TOOL and re.search(r"exit code: 12[5-7]\b|test tool failed", error["error"]) for error in summary["tool_errors"]):
         stop = "infrastructure: the test container did not run"
     elif not failed and (not result or ((code != 0 or result.get("is_error")) and not planned_cut)):
         # The host's message can carry the account's reset time and time zone; results.json is published.

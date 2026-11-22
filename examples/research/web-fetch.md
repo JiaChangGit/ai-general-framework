@@ -1,6 +1,6 @@
 # 有界地取得一頁靜態來源
 
-`source fetch` 預設只列計畫。沒有 `--execute` 就不連網，也不建立輸出目錄。在 framework checkout 根目錄使用；已安裝到其他專案時，依專案規則替換 AGF CLI 入口。Linux/WSL 若使用 `python3`，也請替換執行名稱。
+`source fetch` 預設只列計畫。沒有 `--execute` 就不連網，也不建立輸出目錄。在 framework checkout 根目錄使用；已安裝到其他專案時，依 `.agf/managed/agf-cli.md` 替換 AGF CLI 入口。Linux/WSL 若使用 `python3`，也請替換執行名稱。
 
 ```text
 python scripts/agf.py source fetch https://example.com/ --output artifacts/example.html

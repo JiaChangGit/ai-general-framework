@@ -1,10 +1,12 @@
 import json
 import os
 from pathlib import Path
+import shlex
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "evals" / "host"))
@@ -102,6 +104,43 @@ class SandboxTests(unittest.TestCase):
         for params in ({"name": "run_tests", "arguments": {"command": "id"}}, {"name": "shell"}):
             reply = sandbox.answer({"id": 1, "method": "tools/call", "params": params}, self.work, "image", "true", 5)
             self.assertTrue(reply["result"]["isError"])
+
+    def test_a_check_that_exited_before_its_end_does_not_pass(self):
+        task = {"checks": {"python": ["import thing"]}}
+        quiet = lambda *call: {"exit": 0, "output": "", "timed_out": False, "infrastructure": False}
+        self.assertFalse(impact.check(task, self.work, "", self.work, quiet)["passed"])
+
+    def test_the_subjects_files_cannot_replace_the_checks_imports_or_end_it_early(self):
+        def local(work, image, command, limit, hidden):  # fixture files only; stands in for the container
+            argv = [sys.executable, *shlex.split(command)[1:]]
+            done = subprocess.run(argv, cwd=work, capture_output=True, text=True, timeout=30)
+            return {"exit": done.returncode, "output": done.stdout + done.stderr, "timed_out": False, "infrastructure": False}
+
+        task = {"checks": {"python": ["import thing, inspect\nassert list(inspect.signature(thing.f).parameters) == ['name']"]}}
+        (self.work / "thing.py").write_text("import os\nos._exit(0)\n", encoding="utf-8")
+        self.assertFalse(impact.check(task, self.work, "", self.work, local)["passed"], "exit at import")
+        (self.work / "thing.py").write_text("def f(n):\n    return n\n", encoding="utf-8")
+        (self.work / "inspect.py").write_text(
+            "class S:\n    parameters = {'name': 1}\ndef signature(f):\n    return S()\n", encoding="utf-8")
+        self.assertFalse(impact.check(task, self.work, "", self.work, local)["passed"], "planted standard module")
+        (self.work / "thing.py").write_text("def f(name):\n    return name\n", encoding="utf-8")
+        self.assertTrue(impact.check(task, self.work, "", self.work, local)["passed"], "a correct answer still passes")
+
+    def test_task_modules_do_not_collide_with_the_standard_library(self):
+        # The check imports them after the standard library, so a collision would test the wrong module.
+        for task in impact.load_tasks(ROOT / "evals/impact/tasks.json")[1].values():
+            if task["checks"].get("python"):
+                modules = {Path(name).stem for name in task.get("files", {}) if "/" not in name and name.endswith(".py")}
+                self.assertEqual(modules & set(sys.stdlib_module_names), set(), task["id"])
+
+    def test_docker_failures_are_infrastructure_and_flags_precede_the_image(self):
+        for code in (125, 126, 127):
+            with patch.object(sandbox.subprocess, "run", return_value=subprocess.CompletedProcess([], code, b"", b"")):
+                self.assertTrue(sandbox._contained(self.work, "image", "true", 5, None)["infrastructure"], code)
+        argv = sandbox.docker_argv(self.work, "image", "make test", "name", self.work)
+        for flag in ("--network", "--cap-drop", "--security-opt", "--read-only", "--user", "--pids-limit"):
+            self.assertLess(argv.index(flag), argv.index("image"), f"{flag} after the image would go to the program")
+        self.assertIn("[ $code -ge 125 ] && [ $code -le 127 ] && exit 1", argv[-1], "the subject's own 126 or 127 is not infrastructure")
 
     def test_checks_only_execute_through_the_container(self):
         marker = self.work / "executed-on-host"
