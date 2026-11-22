@@ -297,6 +297,22 @@ class GuardHookTests(unittest.TestCase):
                 result = self.run_hook(tool, tool_input)
                 self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_lowercase_compound_writes_and_deep_arguments_are_refused(self):
+        deep = {"command": "git push"}
+        for _ in range(10):
+            deep = {"level": deep}
+        too_deep = {"note": "x"}
+        for _ in range(70):
+            too_deep = {"level": too_deep}
+        target = {"path": str(self.protected / "x")}
+        for tool, tool_input in [("mcp__fs__writefile", target), ("mcp__fs__createfile", target), ("mcp__fs__fileedit", target),
+                                 ("mcp__x__tool", deep), ("mcp__x__tool", too_deep)]:
+            with self.subTest(tool=tool):
+                self.assertEqual(self.run_hook(tool, tool_input).returncode, 2)
+        for tool in ("mcp__fs__readfile", "mcp__fs__listupdates", "mcp__fs__get_output"):
+            with self.subTest(tool=tool):
+                self.assertEqual(self.run_hook(tool, target).returncode, 0)
+
     def test_unexpected_event_shapes_are_handled_without_crashing(self):
         for event in [{"tool_name": "Bash", "tool_input": "git push", "cwd": str(self.work)},
                       {"tool_name": "Bash", "tool_input": {"command": "ls"}, "cwd": 42},

@@ -1,0 +1,220 @@
+{
+ "startup": "先讀本工作目錄的 AGENTS.md（若存在），依本次範圍完成任務。只使用這個目錄的材料與已配置的框架內容；不連網、不安裝。唯一能執行的是 run_tests 工具：它不收參數，在隔離容器裡對目前檔案的副本建置並跑既有測試，你可以改或加測試檔讓它一起跑。不必詢問已明確的條件。",
+ "tasks": [
+  {
+   "order": 1,
+   "id": "md4c-brackets",
+   "repo": "mity/md4c",
+   "pre": "bd740dd61842e2b98b7ec00cfd109faca52abc8d",
+   "fix": "c6008fbf150a83eb901f8a18f6b9fb6a217a5c06",
+   "date": "2026-10-13",
+   "title": "Fix bracket pairing across link destinations",
+   "license_files": [
+    "LICENSE.md"
+   ],
+   "pre_sha256": "851b7741008b3116558ed7d16d8b7b8bdd2eb1573ad1d3a9a4289cdbaead3525",
+   "hidden_sha256": "feac6ae8b2efc12963c2feac6e1d058abe0b4bcb9c207918a17b84fe9857510a",
+   "hidden_paths": [
+    "test",
+    "scripts/run-tests.py"
+   ],
+   "test_command": "{ cmake -S . -B /tmp/b -DCMAKE_BUILD_TYPE=Release && cmake --build /tmp/b -j2; } > /tmp/build.log 2>&1 || { tail -n 50 /tmp/build.log; exit 1; }; cd /tmp/b && python3 -B /work/scripts/run-tests.py",
+   "hidden_command": "{ cmake -S . -B /tmp/b -DCMAKE_BUILD_TYPE=Release && cmake --build /tmp/b -j2; } > /tmp/build.log 2>&1 || { tail -n 50 /tmp/build.log; exit 1; }; cd /tmp/b && python3 -B /work/scripts/run-tests.py",
+   "image": "agf-bench-c:s19",
+   "prompt": "這是 Markdown 解析器 md4c。連結目的地或標題裡只要有 `[`，外層的連結或圖片就配不成對。\n例如 `[![img](url[)]()` 應該是一個連結包著一張網址為 `url[` 的圖片，現在不是；`[![img](url \"title[\")](/outer)` 也一樣壞掉。\n目的地與標題裡的括號不應該影響外層連結、圖片或參照式連結的配對；連結不能巢狀的既有規則不變，很長的輸入仍要維持線性時間。\n\n請找出原因並修好，保持其他行為不變，既有測試要繼續通過（修正本身使舊測試的預期不再正確時除外）。完成後簡短說明改了什麼、怎麼驗證。"
+  },
+  {
+   "order": 2,
+   "id": "pathspec-ancestor",
+   "repo": "cpburnz/python-pathspec",
+   "pre": "ac29e19b2dcc92fbd2e34562781cf9cd52378171",
+   "fix": "f70a1d2fcfb24bc1e4d9a9dbadae467645afb23e",
+   "date": "2026-10-18",
+   "title": "Fix ancestor exclusion checks after gitignore negations",
+   "license_files": [
+    "LICENSE-MIT",
+    "LICENSE-MPL-2.0"
+   ],
+   "pre_sha256": "0e718401c75d34aacb93d7bde511342326bddb2184af3b889388ae75a159c0f3",
+   "hidden_sha256": "088791ce8cc354de745aef956aa9bee1964aece213e050a8185b40765ec711f9",
+   "hidden_paths": [
+    "tests"
+   ],
+   "test_command": "PYTHONPATH=. python -B -m pytest -q -p no:cacheprovider tests",
+   "hidden_command": "PYTHONPATH=. python -B -m pytest -q -p no:cacheprovider tests -k 'not test_ancestors_checked_once'",
+   "image": "agf-bench-py:s19",
+   "prompt": "這是 Python 的 pathspec。GitIgnoreSpec 對否定規則的判斷和 git 不一致：上層目錄仍被排除時，底下的檔案不能被重新納入。\n例如規則 `a/`、`!a/b/` 時，`a/b/file.txt` 應該仍被忽略；規則 `*`、`!*.txt` 時，`a/b/file.txt` 也是。\n結果要和 git check-ignore 相同，`check_files` 回報的 index 要是排除那個上層目錄的規則；真的被重新納入的目錄則照常生效。\n\n請找出原因並修好，保持其他行為不變，既有測試要繼續通過（修正本身使舊測試的預期不再正確時除外）。完成後簡短說明改了什麼、怎麼驗證。"
+  },
+  {
+   "order": 3,
+   "id": "chrono-rev",
+   "repo": "chronotope/chrono",
+   "pre": "7fa24eac9514db65eb8bddf7fadeca71b68e414a",
+   "fix": "7b6436f65e0c7ec2f9a7cdea88af1f3851a01f6f",
+   "date": "2026-07-29",
+   "title": "Fix reversed `NaiveDate` day and week iterators",
+   "license_files": [
+    "LICENSE.txt"
+   ],
+   "pre_sha256": "822b3ab0e57a7ff3f1290a4377e102163f9a75c215fda2acd581a45e70251ecb",
+   "hidden_sha256": "b4ff6ca22d4aab38ef5d39f23ae07749b9647fd165f9f5e9c49399d36c126aac",
+   "hidden_paths": [
+    "src/naive/date/tests.rs"
+   ],
+   "test_command": "cp -R /opt/cargo-home /tmp/cargo && cp /opt/Cargo.lock ./Cargo.lock && export CARGO_HOME=/tmp/cargo CARGO_TARGET_DIR=/work/.target CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 && cargo test -q --offline -j 2 --lib naive::date",
+   "hidden_command": "cp -R /opt/cargo-home /tmp/cargo && cp /opt/Cargo.lock ./Cargo.lock && export CARGO_HOME=/tmp/cargo CARGO_TARGET_DIR=/work/.target CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 && cargo test -q --offline -j 2 --lib naive::date",
+   "image": "agf-bench-chrono:s19",
+   "prompt": "這是 Rust 的 chrono。`NaiveDate` 的 `iter_days()` 與 `iter_weeks()` 反向走訪是錯的：\n`start.iter_days().take(10).rev()` 應該得到正向那 10 天的相反順序，現在卻跑到完全不同的日期；週的版本也一樣。\n兩個 iterator 代表的是從起點到 `NaiveDate::MAX` 為止的有限序列，正向、反向、混合走訪與長度都要符合這個定義。\n\n請找出原因並修好，保持其他行為不變，既有測試要繼續通過（修正本身使舊測試的預期不再正確時除外）。完成後簡短說明改了什麼、怎麼驗證。"
+  },
+  {
+   "order": 4,
+   "id": "markdownit-backticks",
+   "repo": "executablebooks/markdown-it-py",
+   "pre": "1c70dcec10b245bfac7349a31725cc3a8ee06d40",
+   "fix": "f5af61fc11ca1c8f8601f2cc8df3cb2955a45f6d",
+   "date": "2026-11-09",
+   "title": "🐛 FIX: Preserve code spans after unclosed link and image labels (#439)",
+   "license_files": [
+    "LICENSE",
+    "LICENSE.markdown-it"
+   ],
+   "pre_sha256": "1dffa006e3a9a72cf061a47d6177125287d0a676b8f47110f93650d634179182",
+   "hidden_sha256": "4ceee6c6157a985587244e23b6e422cc1fb1731f71b32fe8691561ca6f9b3d10",
+   "hidden_paths": [
+    "tests"
+   ],
+   "test_command": "PYTHONPATH=. python -B -m pytest -q -p no:cacheprovider tests --ignore=tests/test_packaging --ignore=tests/fuzz --ignore=tests/test_fuzzer.py",
+   "hidden_command": "PYTHONPATH=. python -B -m pytest -q -p no:cacheprovider tests --ignore=tests/test_packaging --ignore=tests/fuzz --ignore=tests/test_fuzzer.py -k 'not test_backtick_closer'",
+   "image": "agf-bench-py:s19",
+   "prompt": "這是 Python 的 markdown-it-py。前面有沒關閉的連結或圖片標籤時，後面的行內程式碼會失效：\n`[foo `bar` baz`` 與 `![alt `code` x`` 裡的第一對反引號都應該變成 <code>，現在原樣輸出。\n另外，行內程式碼去頭尾空格不符合 CommonMark 0.31.2：內容只要不全是空格（U+0020）就該兩端各去一個空格，中間是 tab 或不換行空格時現在沒有去。程式碼優先於連結等既有規則不變。\n\n請找出原因並修好，保持其他行為不變，既有測試要繼續通過（修正本身使舊測試的預期不再正確時除外）。完成後簡短說明改了什麼、怎麼驗證。"
+  },
+  {
+   "order": 5,
+   "id": "cmark-refdef",
+   "repo": "commonmark/cmark",
+   "pre": "7042d9978b20fea86ca9cc98bda55f10be392e69",
+   "fix": "6566d91bdb25898bd910f8bed2a3f18f4a05cf91",
+   "date": "2026-09-01",
+   "title": "Fix thematic break after a link reference definition",
+   "license_files": [
+    "COPYING"
+   ],
+   "pre_sha256": "57a8450befb2b1226c0b365be330e33a08b91d2e766a79eebfaeac6bbc551c52",
+   "hidden_sha256": "aa0c4e51d9c72f9b2473d417c72bb97a9b3315e10fe19b1229a27c365f2eb3df",
+   "hidden_paths": [
+    "test"
+   ],
+   "test_command": "{ cmake -S . -B /tmp/b -DCMAKE_BUILD_TYPE=Release && cmake --build /tmp/b -j2; } > /tmp/build.log 2>&1 || { tail -n 50 /tmp/build.log; exit 1; }; cd /tmp/b && ctest --output-on-failure -j2",
+   "hidden_command": "{ cmake -S . -B /tmp/b -DCMAKE_BUILD_TYPE=Release && cmake --build /tmp/b -j2; } > /tmp/build.log 2>&1 || { tail -n 50 /tmp/build.log; exit 1; }; cd /tmp/b && ctest --output-on-failure -j2",
+   "image": "agf-bench-c:s19",
+   "prompt": "這是 CommonMark 的 C 實作 cmark。連結參照定義的下一行是 `---` 時，輸出是錯的：\n`[f]:r` 換行 `---` 應該輸出 `<hr />`，現在輸出 `<p>---</p>`。定義後面還有其他內容時也要正確，真正的 setext 標題不受影響。\n\n請找出原因並修好，保持其他行為不變，既有測試要繼續通過（修正本身使舊測試的預期不再正確時除外）。完成後簡短說明改了什麼、怎麼驗證。"
+  },
+  {
+   "order": 6,
+   "id": "pyparsing-previous",
+   "repo": "pyparsing/pyparsing",
+   "pre": "038ff39cbc29b77a74ac21674206d5bf170ca769",
+   "fix": "efd56db4e59f36b1673ce0eb0823e3afaa9d1201",
+   "date": "2026-08-18",
+   "title": "Fix match_previous_expr to match nested and repeated expressions (#653)",
+   "license_files": [
+    "LICENSE"
+   ],
+   "pre_sha256": "d780ffc65771740ac0d501ec97737a55762b66bbbb7b869d04573fda689a24fa",
+   "hidden_sha256": "c009d1d591bb650186364d8d19d15705691ee665899cb15bb949525ed2299b8c",
+   "hidden_paths": [
+    "tests"
+   ],
+   "test_command": "PYTHONPATH=. python -B -m pytest -q -p no:cacheprovider tests/test_unit.py tests/test_simple_unit.py tests/test_util.py",
+   "hidden_command": "PYTHONPATH=. python -B -m pytest -q -p no:cacheprovider tests/test_unit.py tests/test_simple_unit.py tests/test_util.py",
+   "image": "agf-bench-py:s19",
+   "prompt": "這是 Python 的 pyparsing。`match_previous_expr` 只能成功一次：\n用 `first + ':' + match_previous_expr(first)` 配 OneOrMore 解析 `a:a b:b c:c` 會失敗；某次解析失敗之後，同一個 parser 連本來正確的輸入也不接受了。\n巢狀使用（例如成對標籤 `{a}{b}xx{/b}{/a}`）也要正確，不相符的配對仍要拒絕。\n\n請找出原因並修好，保持其他行為不變，既有測試要繼續通過（修正本身使舊測試的預期不再正確時除外）。完成後簡短說明改了什麼、怎麼驗證。"
+  },
+  {
+   "order": 7,
+   "id": "yyjson-patch",
+   "repo": "ibireme/yyjson",
+   "pre": "6447536015f3d600f3d65323b10976103b337ca7",
+   "fix": "1e8c0529732401f26d36046f7cfb5547cafef44b",
+   "date": "2026-09-30",
+   "title": "fix: compare JSON Patch test numbers by value",
+   "license_files": [
+    "LICENSE"
+   ],
+   "pre_sha256": "18069e318af066836de76f8d5ff9505c4e330f5e3b3c8294e51bcb81ad9821a3",
+   "hidden_sha256": "0c68945f31c1288dfba3f5ba9aab65584eafb0ad93aa54eefcfb8a86869cc240",
+   "hidden_paths": [
+    "test"
+   ],
+   "test_command": "{ cmake -S . -B /tmp/b -DYYJSON_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug && cmake --build /tmp/b -j2; } > /tmp/build.log 2>&1 || { tail -n 50 /tmp/build.log; exit 1; }; cd /tmp/b && ctest --output-on-failure -j2",
+   "hidden_command": "{ cmake -S . -B /tmp/b -DYYJSON_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug && cmake --build /tmp/b -j2; } > /tmp/build.log 2>&1 || { tail -n 50 /tmp/build.log; exit 1; }; cd /tmp/b && ctest --output-on-failure -j2",
+   "image": "agf-bench-c:s19",
+   "prompt": "這是 C 的 yyjson。JSON Patch 的 `test` 操作沒有照 RFC 6902 用「數值」比較數字：文件是 `1`、patch 是 `1.0` 時應該相等，現在失敗。\n要以精確的數學值比較，包含巢狀在陣列與物件裡的數字、正負零、超過 2^53 與 int64／uint64 邊界（不能因為轉成 double 而誤判相等），兩種 patch API 都要正確。RAW 值、字串與非有限值維持原本的比較方式。\n\n請找出原因並修好，保持其他行為不變，既有測試要繼續通過（修正本身使舊測試的預期不再正確時除外）。完成後簡短說明改了什麼、怎麼驗證。"
+  },
+  {
+   "order": 8,
+   "id": "wcwidth-clip",
+   "repo": "jquast/wcwidth",
+   "pre": "0e30e300dad21e2cca30ef7487c075c10f769567",
+   "fix": "45c4002e1239639e32777d5887356627a4b04a87",
+   "date": "2026-11-09",
+   "title": "Preserve cell styles when clipping overtyped text+perf (#315)",
+   "license_files": [
+    "LICENSE"
+   ],
+   "pre_sha256": "6748fe2b16f5c08b6e00b1750524c4b4c1780ff9a70792656a8fa16a7f5970f2",
+   "hidden_sha256": "0b641ad0f936680ac6237fdc6021d33f16cf95d536a4bfcf3cc7520371792765",
+   "hidden_paths": [
+    "tests"
+   ],
+   "test_command": "WCWIDTH_PYTHON=1 PYTHONPATH=. python -B -m pytest -q -p no:cacheprovider -p no:benchmark -o addopts= tests --ignore=tests/test_benchmarks.py --ignore=tests/test_check_release.py --ignore=tests/test_setup.py --deselect tests/test_core.py::test_package_version",
+   "hidden_command": "WCWIDTH_PYTHON=1 PYTHONPATH=. python -B -m pytest -q -p no:cacheprovider -p no:benchmark -o addopts= tests --ignore=tests/test_benchmarks.py --ignore=tests/test_check_release.py --ignore=tests/test_setup.py --deselect tests/test_core.py::test_package_version",
+   "image": "agf-bench-py:s19",
+   "prompt": "這是 Python 的 wcwidth。`clip()` 遇到游標移動後覆寫時，會把樣式套錯字元：\n`clip('\\x1b[31mabc\\x1b[0m\\bX', 0, 3)` 的 a、b 應該維持紅色、X 沒有樣式，現在不是。\n每個留下來的字元都要保有它被寫入當下的 SGR 樣式（顏色、背景、粗體等），被覆寫的位置用覆寫當下的樣式，輸出結尾的樣式狀態也要正確；寬字元、組合字元與補空格的既有行為照舊。\n\n請找出原因並修好，保持其他行為不變，既有測試要繼續通過（修正本身使舊測試的預期不再正確時除外）。完成後簡短說明改了什麼、怎麼驗證。"
+  },
+  {
+   "order": 9,
+   "id": "pulldown-setext",
+   "repo": "pulldown-cmark/pulldown-cmark",
+   "pre": "2f7b648599f282597a86e77d5ca64bad79026f24",
+   "fix": "d59f441e7304b6e7bda504069537d6ba9e215cb5",
+   "date": "2026-10-22",
+   "title": "Fix bugs in setext heading blocks",
+   "license_files": [
+    "LICENSE"
+   ],
+   "pre_sha256": "0f7951413799a2214a994a6e0a57b0172a6281eedcf5715fd629e837631a3bb8",
+   "hidden_sha256": "1daee471cf708c2b9db34295588e0cc95f09e76cddb11b7697abf24ea04f9264",
+   "hidden_paths": [
+    "pulldown-cmark/tests",
+    "pulldown-cmark/specs"
+   ],
+   "test_command": "cp -R /opt/cargo-home /tmp/cargo && cp /opt/Cargo.lock ./Cargo.lock && export CARGO_HOME=/tmp/cargo CARGO_TARGET_DIR=/work/.target CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 && cargo test -q --offline -j 2 -p pulldown-cmark --tests",
+   "hidden_command": "cp -R /opt/cargo-home /tmp/cargo && cp /opt/Cargo.lock ./Cargo.lock && export CARGO_HOME=/tmp/cargo CARGO_TARGET_DIR=/work/.target CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 && cargo test -q --offline -j 2 -p pulldown-cmark --tests",
+   "image": "agf-bench-pulldown:s19",
+   "prompt": "這是 Rust 的 pulldown-cmark。setext 標題有兩個錯：\n(1) 底線前一行只有屬性區塊（例如 `{}`、`{.class}`）時，可能 panic，或在 `</h1>` 前多出一個換行；`x`、`{}`、`-` 三行放在清單或引用裡時就會遇到。標題內容不應該以換行結尾，`<h1>` 的內容是 `foo` 就輸出 `<h1>foo</h1>`。\n(2) 標題內容最後一個字元是反斜線時，它是普通的反斜線，不是硬換行：`x\\` 加底線應該輸出 `<h2>x\\</h2>`，後面跟著屬性區塊時也一樣。\n\n請找出原因並修好，保持其他行為不變，既有測試要繼續通過（修正本身使舊測試的預期不再正確時除外）。完成後簡短說明改了什麼、怎麼驗證。"
+  },
+  {
+   "order": 10,
+   "id": "pathspec-bracket",
+   "repo": "cpburnz/python-pathspec",
+   "pre": "47ea6a5b02bc968f8afe1f3b1a9cfa77a6493e4c",
+   "fix": "d1d98f30fb21036a2d43c06be4f21e929f2e412d",
+   "date": "2026-11-01",
+   "title": "Fix slashes inside gitignore bracket expressions",
+   "license_files": [
+    "LICENSE-MIT",
+    "LICENSE-MPL-2.0"
+   ],
+   "pre_sha256": "691625fa5d234e9583f416e0b7cd8c6a9caee0635440cb023bd9f0d2c7020f16",
+   "hidden_sha256": "f66ec679f7cdfbf1800c1e18452b47589c85d487c1095a6fc433be58768bd7d0",
+   "hidden_paths": [
+    "tests"
+   ],
+   "test_command": "PYTHONPATH=. python -B -m pytest -q -p no:cacheprovider tests",
+   "hidden_command": "PYTHONPATH=. python -B -m pytest -q -p no:cacheprovider tests",
+   "image": "agf-bench-py:s19",
+   "prompt": "這是 Python 的 pathspec。gitignore 規則的中括號裡有 `/` 時，和 git 不一致：\n`[a/b].txt` 應該只比對 `a.txt` 與 `b.txt`（不含子目錄裡的），現在不對。中括號裡的 `/` 不是目錄分隔，但中括號永遠配不到 `/`；範圍、否定、POSIX 類別、跳脫與 bytes 規則都要正確。像 `[/]` 這種不可能配到任何東西的規則，在所有 errors 模式下都是沒有作用的規則（`include` 與 `regex` 都是 None）。兩個 gitignore pattern 類別都要修。\n\n請找出原因並修好，保持其他行為不變，既有測試要繼續通過（修正本身使舊測試的預期不再正確時除外）。完成後簡短說明改了什麼、怎麼驗證。"
+  }
+ ]
+}

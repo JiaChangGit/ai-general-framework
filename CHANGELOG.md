@@ -41,7 +41,7 @@
 
 **驗證**：Linux 329 個測試通過（7 個依平台略過）、audit 通過；Windows 的 Python 3.13 在完整副本上跑 `test_traces`、`test_guard_hook`、`test_ecosystem`、`test_eval_host`、`test_manage`、`test_audit` 通過。
 
-**要使用者做的**：guard hook 的 MCP 檢查要生效，`/home/user/src/.claude/settings.json` 的 matcher 要改成 `Bash|Edit|Write|MultiEdit|NotebookEdit|mcp__.*`（這個檔依使用者的規定不由 AI 改）。
+**要使用者做的**：guard hook 的 MCP 檢查要生效，`~/src/.claude/settings.json` 的 matcher 要改成 `Bash|Edit|Write|MultiEdit|NotebookEdit|mcp__.*`（這個檔依使用者的規定不由 AI 改）。
 
 **沒做的事**：沒有交給另一個模型獨立審查；guard hook 的 MCP 檢查沒在真實 session 接 MCP 試過；不留痕跡的規則在真的 `git commit` 時有沒有作用，量測工具沒有 Bash，量不到。
 
@@ -129,7 +129,7 @@
 | `skills/trace-code`、`guide-learning`、`debug-root-cause`、`review-sql` 的描述 | S11 的觸發量測裡，兩個複合任務（一個請求裡有兩種工作）都選了輔助的 skill。描述寫明兩種工作同時出現時以誰為主 | 觸發量測：那兩個情境 6/6 選對；字面相近、不該換的兩個情境 4/4 沒被搶走 |
 | `skills/read-research` 的描述 | 「核對清理過的規格複本」這個情境在 S8、S11 都沒用到它 | 3/3 |
 | `skills/debug-root-cause` 第 1、5 步 | 先列出並核對調查依賴的前提；說「修好了」要附修正前失敗、修正後通過的輸出 | 文字修改，沒有量測 |
-| `agf project status` 的 `parent_claude_dirs`、`launch_notices` | S8、S10 都從上層目錄啟動，專案的 skill 與 deny 規則沒有載入 | 單元測試；在 Raft 專案上實際列出 `/home/user/src`。無頭探測的結果記在 `adapters/claude.json` 的 `project_launch` |
+| `agf project status` 的 `parent_claude_dirs`、`launch_notices` | S8、S10 都從上層目錄啟動，專案的 skill 與 deny 規則沒有載入 | 單元測試；在 Raft 專案上實際列出 `~/src`。無頭探測的結果記在 `adapters/claude.json` 的 `project_launch` |
 | `agf task checkpoint` | 讓每個里程碑都寫得起交接：已完成、進行中、下一步，加上程式收集的 git 狀態，`--append` 接在既有交接檔最後 | 單元測試 3 個 |
 | `agf check --profile periodic`、`templates/quality.example.json` 的三個例子 | 示範腳本、文件命令、乾淨重建，最容易在之後的修改裡悄悄壞掉（Raft 專案 S10 的教訓） | 單元測試 2 個，含「範本三種 profile 都驗證得過」 |
 | 續接 hook 的 `save_prompts` 與 `user-prompt` 子命令 | 使用者在對話裡說的決定，session 一截斷就不見了。預設關閉，因為打進對話的東西可能有密碼或金鑰 | 單元測試；量測：兩個「決定只在對話裡」的任務，框架組 6/6、對照組 0/6 |

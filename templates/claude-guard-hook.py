@@ -25,8 +25,9 @@ reason to the model and does not run the tool):
     includes them: an argument named like a command (command, cmd, script, ..., with a
     sibling args list), at any depth, is checked as a Bash command, and a path argument
     (path, file, source, destination, uri, ...) as a write when a word of the tool's name
-    says it changes something (write, edit, delete, move, run, ...). Relative paths count
-    only against an absolute working directory given in the call. Unrecognised arguments pass.
+    says it changes something (write, edit, delete, move, run, ..., also compounds such
+    as writefile). Relative paths count only against an absolute working directory given
+    in the call. Unrecognised arguments pass; arguments nested over 64 levels are refused.
 
 Text that the shell never runs is not read as commands: words inside single
 quotes, and a heredoc body read by a program that is not a shell (the text
@@ -93,6 +94,11 @@ MCP_PATH_KEYS = {"path", "paths", "file", "files", "file_path", "file_paths", "f
 # Whole words of the tool name (split on _, -, . and camelCase), so get_output is not "put".
 MCP_WRITES = {"write", "edit", "create", "delete", "remove", "rm", "move", "mv", "rename", "update", "put", "append",
               "mkdir", "patch", "apply", "save", "copy", "cp", "upload", "replace", "insert", "run", "exec", "execute"}
+# Lowercase compounds have no word boundary: writefile, fileedit, createdirectory (S19 review).
+MCP_NOUNS = r"(?:files?|dir|directory|directories|folder|text|content|object|note|page)"
+MCP_VERBS = "(?:" + "|".join(sorted(MCP_WRITES)) + ")"
+MCP_COMPOUND = re.compile(f"{MCP_VERBS}{MCP_NOUNS}|{MCP_NOUNS}{MCP_VERBS}")
+MCP_MAX_DEPTH = 64
 
 
 class Refuse(Exception):
@@ -475,8 +481,8 @@ def _words(name: str) -> set[str]:
 
 def _mcp_fields(value, depth: int = 0):
     """(key, value) pairs of an MCP tool input, including nested objects and lists of objects."""
-    if depth > 6:
-        return
+    if depth > MCP_MAX_DEPTH:
+        raise Refuse(f"nests MCP arguments deeper than {MCP_MAX_DEPTH} levels, which the hook does not check")
     if isinstance(value, dict):
         for key, item in value.items():
             yield str(key).lower(), item, value
@@ -495,7 +501,8 @@ def check_mcp(tool: str, data: dict, cwd: Path, config: dict) -> None:
     relative path is only judged against an absolute working directory given in the same
     call, never against this session's directory. Anything else passes: the hook cannot know
     what an unfamiliar tool does (S18 review)."""
-    writes = bool(_words(tool.rsplit("__", 1)[-1]) & MCP_WRITES)
+    words = _words(tool.rsplit("__", 1)[-1])
+    writes = bool(words & MCP_WRITES) or any(MCP_COMPOUND.fullmatch(word) for word in words)
     unknown = Path("/agf-guard-unknown-mcp-cwd")  # nothing is protected under it
     for key, value, holder in _mcp_fields(data):
         workdir = next((v for k, v in holder.items() if str(k).lower() in MCP_WORKDIR_KEYS and isinstance(v, str) and v), None)

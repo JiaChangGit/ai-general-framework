@@ -32,6 +32,12 @@ class DocCheckTests(unittest.TestCase):
                          "no subcommand `frobnicate`", "path `templates/missing.md`", "path `docs/ecosystem/gone.md`"):
             self.assertIn(expected, problems)
 
+    def test_stale_top_level_docs_and_continued_commands_are_reported(self):
+        self.write("guide.md", "See `docs/old-name.md`.\n\n```bash\npython scripts/agf.py audit \\\n  --nonexistent\n```\n")
+        problems = "\n".join(doccheck.check(self.root))
+        self.assertIn("path `docs/old-name.md`", problems)
+        self.assertIn("has no option `--nonexistent`", problems)
+
     def test_project_paths_and_dated_records_are_not_checked(self):
         self.write("guide.md", "A project may keep `docs/HANDOFF.md` or `skills/its-own-skill/`.\n")
         self.write("analysis-2026-11.md", "Back then we proposed `agf task record --checkpoint`.\n")

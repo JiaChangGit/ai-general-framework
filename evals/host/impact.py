@@ -23,7 +23,8 @@ limit stopped the session and a new one has to continue". A part with
 last answer, checks the files itself, fixes them and gives the final answer.
 
 Success is decided by hidden checks that run after the last part and are never
-in the subject's directory: Python snippets (with a 20-second limit), regular
+in the subject's directory: Python snippets (with a 20-second limit) or a command
+with hidden test files, both only inside sandbox.py's container, regular
 expressions over the last answer, or over files the subject wrote. Tokens come
 from the CLI's own result event (input, cache creation, cache read, output) and
 cost from its estimate; both are summed over the parts.
@@ -33,7 +34,11 @@ stops on a failed session other than a planned cut-off, instead of spending
 more. Group order alternates from task to task. Every run gets a private parent
 directory under --base, removed afterwards, and must pass preflight.py first.
 Bash is removed (see trigger.py for why); subjects use Read, Grep, Glob, Edit,
-Write and Skill.
+Write and Skill inside their own directory only (sandbox.confinement), and, in a
+task with "sandbox": {"image", "command"}, one run_tests tool without arguments.
+
+A timeout or an exhausted per-session budget is a failed run. A usage limit, a
+Docker failure or any other error stops the experiment, to be finished later.
 
 `report` reads one or more output directories, so a run that a usage limit
 stopped can be finished in a second directory and summarised together; it
@@ -51,6 +56,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shlex
 import shutil
 import signal
 import statistics
@@ -61,9 +67,13 @@ import tempfile
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import preflight  # noqa: E402
 import run_claude  # noqa: E402
+import sandbox  # noqa: E402
 import trigger  # noqa: E402
 
-TOOLS = "Read Grep Glob Edit Write Skill"
+TOOLS = " ".join(sandbox.SUBJECT_TOOLS)
+CONFINEMENT = "s19"  # change it when the subjects' limits change: such runs are not comparable
+CHECK_IMAGE = "python:3.12-slim"  # where Python-snippet checks run
+TEST_TOOL = "mcp__bench__run_tests"
 GROUPS = ("framework", "control", "rules-only", "skills-only", "reviewed")
 REVIEW_PROMPT = ("另一位工程師剛完成下面的工作。請獨立核對：讀相關的程式與檔案，不要只相信他的說法；發現錯誤就直接修正檔案。"
                  "最後用你自己的話完整回答原本的問題，或說明完成的結果。\n\n原本的工作：\n{prompt}\n\n他的最後回覆：\n{answer}")
@@ -80,23 +90,75 @@ def load_tasks(path: Path) -> tuple[str, dict[str, dict]]:
     return data["startup"], tasks
 
 
-def check(task: dict, work: Path, answer: str) -> dict:
-    """Run the hidden checks; returns {"passed": bool, "failures": [...]}."""
-    failures = []
-    for index, code in enumerate(task["checks"].get("python", [])):
+def _inside(root: Path, name: str) -> Path:
+    path = (root / name).resolve()
+    if not path.is_relative_to(root.resolve()) or not path.is_dir():
+        raise SystemExit(f"not a directory inside the task file's directory: {name}")
+    return path
+
+
+def materialize(task: dict, task_dir: Path, work: Path) -> None:
+    """The subject's files: a "source" directory next to the task file, then the inline "files"."""
+    if task.get("source"):
+        shutil.copytree(_inside(task_dir, task["source"]), work, symlinks=True, dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns(".git"))
+    for name, text in task.get("files", {}).items():
+        (work / name).parent.mkdir(parents=True, exist_ok=True)
+        (work / name).write_text(text, encoding="utf-8")
+
+
+def fingerprint(root: Path, skip: tuple[str, ...] = ()) -> dict[str, str]:
+    """Relative path to content hash, without following links."""
+    found = {}
+    for top, _, names in os.walk(root, followlinks=False):
+        for name in names:
+            file = Path(top) / name
+            relative = file.relative_to(root).as_posix()
+            if relative.startswith(skip):
+                continue
+            if file.is_symlink():
+                found[relative] = "link:" + os.readlink(file)
+            elif file.is_file():
+                found[relative] = hashlib.sha256(file.read_bytes()).hexdigest()
+    return found
+
+
+def setup_hash(task: dict, task_dir: Path, work: Path) -> str:
+    """What the subject gets plus the hidden files. The install's manifest and history differ per install."""
+    hidden = task["checks"].get("hidden")
+    given = [fingerprint(work, (".agf/manifest.json", ".agf/history/")), fingerprint(_inside(task_dir, hidden)) if hidden else {}]
+    return hashlib.sha256(json.dumps(given, sort_keys=True).encode()).hexdigest()
+
+
+def check(task: dict, work: Path, answer: str, task_dir: Path, runner=sandbox.run) -> dict:
+    """Run the hidden checks; returns {"passed", "failures"}, or {"infrastructure": reason}.
+
+    The subject's code is never executed here: only `runner` (the container) runs it."""
+    checks, failures = task["checks"], []
+    image = task.get("sandbox", {}).get("image", CHECK_IMAGE)
+    jobs = []
+    for index, code in enumerate(checks.get("python", [])):
+        command = "python -B -c " + shlex.quote("import sys; sys.path.insert(0, '.')\n" + code)
+        jobs.append((f"python check {index}", command, 20, None))
+    if checks.get("command"):
+        hidden = _inside(task_dir, checks["hidden"]) if checks.get("hidden") else None
+        jobs.append(("hidden tests", checks["command"], int(checks.get("timeout", 180)), hidden))
+    for label, command, limit, hidden in jobs:
         try:
-            result = subprocess.run([sys.executable, "-c", "import sys; sys.path.insert(0, '.')\n" + code], cwd=work,
-                                    capture_output=True, text=True, timeout=20)
-            if result.returncode != 0:
-                failures.append(f"python check {index}: {(result.stderr or result.stdout).strip().splitlines()[-1:]}")
-        except subprocess.TimeoutExpired:
-            failures.append(f"python check {index}: timed out")
-    for pattern in task["checks"].get("answer_patterns", []):
+            got = runner(work, image, command, limit, hidden)
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            return {"infrastructure": f"{label}: {type(error).__name__}"}
+        if got["infrastructure"]:
+            return {"infrastructure": f"{label}: the container did not run"}
+        if got["exit"] != 0:
+            reason = "timed out or killed" if got["timed_out"] else got["output"].strip().splitlines()[-1:]
+            failures.append(f"{label}: {reason}")
+    for pattern in checks.get("answer_patterns", []):
         if not re.search(pattern, answer or ""):
             failures.append(f"answer lacks /{pattern}/")
-    for name, patterns in task["checks"].get("file_patterns", {}).items():
+    for name, patterns in checks.get("file_patterns", {}).items():
         file = work / name
-        if not file.is_file():
+        if not file.is_file() or not file.resolve().is_relative_to(work.resolve()):
             failures.append(f"missing {name}")
             continue
         text = file.read_text(encoding="utf-8", errors="replace")
@@ -137,13 +199,17 @@ def run(args: argparse.Namespace) -> int:
         raise SystemExit("the reviewed group needs --review-model")
     skills = args.skill or sorted(path.parent.name for path in (framework / "skills").glob("*/SKILL.md"))
     groups = args.group or ["framework", "control"]
+    needed = [tasks[value].get("sandbox", {}).get("image", CHECK_IMAGE) for value in ids
+              if tasks[value].get("sandbox") or tasks[value]["checks"].get("python") or tasks[value]["checks"].get("command")]
+    if needed and (missing := sandbox.missing_images(needed)):
+        raise SystemExit(f"Docker or these images are not available: {missing}; the subjects' code only runs in containers")
     base.mkdir(parents=True, exist_ok=True)
     if any(base.iterdir()):
         raise SystemExit(f"--base must be an empty directory: {base}")
     out.mkdir(parents=True, exist_ok=True)
     cli, env = run_claude.find_cli(args.cli), run_claude._pairs(args.env)
     results = {"framework": str(framework), "framework_commit": trigger._commit(framework), "model": args.model,
-               "switch_model": args.switch_model, "review_model": args.review_model, "tools": TOOLS, "skills": skills, "hooks": str(args.hooks) if args.hooks else None,
+               "switch_model": args.switch_model, "review_model": args.review_model, "tools": TOOLS, "confinement": CONFINEMENT, "skills": skills, "hooks": str(args.hooks) if args.hooks else None,
                "tasks_sha256": hashlib.sha256(task_file.read_bytes()).hexdigest(),
                "budget_usd": args.budget, "total_budget_usd": args.total_budget, "spent_usd": 0.0, "runs": [], "stopped": None}
     save = lambda: (out / "results.json").write_text(json.dumps(results, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
@@ -157,7 +223,7 @@ def run(args: argparse.Namespace) -> int:
             for tid in ids:
                 task = tasks[tid]
                 for group in groups if order % 2 == 0 else list(reversed(groups)):
-                    row = run_one(args, framework, base, out, cli, env, startup, task, group, repeat, skills, results)
+                    row = run_one(args, framework, base, out, cli, env, startup, task, task_file.parent, group, repeat, skills, results)
                     results["runs"].append(row)
                     save()
                     if row.get("stop"):
@@ -177,81 +243,113 @@ def run(args: argparse.Namespace) -> int:
     return 0
 
 
-def run_one(args, framework, base, out, cli, env, startup, task, group, repeat, skills, results) -> dict:
+def _session(args, out, cli, work, model, prompt, name, results, given, env, expects_tests, extra=(), review=False) -> tuple[dict, dict, str | None]:
+    """One session: its record, its result event, and why the experiment has to stop (or None)."""
+    stream = out / "streams" / f"{name}.jsonl"
+    before = fingerprint(work)
+    code = run_claude.run(cli, work, model, prompt, stream, allowed=given["allowed"], disallowed=given["disallowed"],
+                          extra=(*extra, *given["extra"]), env=env, budget=args.budget, timeout=args.timeout)
+    summary = run_claude.summarize(stream, work)
+    result = summary["result"] or {}
+    after = fingerprint(work)
+    failed = None
+    if code == 124:
+        failed = "session timed out"
+    elif result.get("subtype") == "error_max_budget_usd":
+        failed = "session budget exhausted"
+    cost = result.get("cost_usd")
+    # A killed session reports no cost; charge the most it could have spent.
+    estimated = code == 124 and cost is None
+    cost = args.budget if estimated else cost
+    results["spent_usd"] = round(results["spent_usd"] + (cost or 0), 6)
+    planned_cut = bool(extra) and result.get("subtype") == "error_max_turns"
+    part = {"model": model, **({"review": True} if review else {}), "exit": code, "subtype": result.get("subtype"),
+            "planned_cut": planned_cut, "failed": failed, "turns": result.get("turns"), "cost_usd": cost,
+            **({"cost_is_upper_bound": True} if estimated else {}),
+            "first_context_tokens": summary.get("first_context_tokens"), "tools_listed": summary.get("tools_listed"),
+            **{key: result.get(key) for key in TOKEN_KEYS},
+            "skills_used": trigger.measure(summary, None)["skills_used"],
+            "tests_run": sum(use["tool"] == TEST_TOOL for use in summary["tool_uses"]),
+            "files_changed": sorted(key for key in before.keys() | after.keys() if before.get(key) != after.get(key)),
+            "files_read": [path.replace(str(work), ".") for path in summary["files_read"]],
+            "outside_paths": summary["outside_paths"]}
+    stop = None
+    if expects_tests and summary["tool_names"] is not None and TEST_TOOL not in summary["tool_names"]:
+        stop = "infrastructure: the test tool was not available"
+    elif any(error["tool"] == TEST_TOOL and re.search(r"exit code: 125|test tool failed", error["error"]) for error in summary["tool_errors"]):
+        stop = "infrastructure: the test container did not run"
+    elif not failed and (not result or ((code != 0 or result.get("is_error")) and not planned_cut)):
+        # The host's message can carry the account's reset time and time zone; results.json is published.
+        said = re.sub(r".*hit your .*limit.*", "usage limit reached", str(result.get("text"))[:200])
+        stop = f"exit {code}, {said}"
+    return part, result, stop
+
+
+def run_one(args, framework, base, out, cli, env, startup, task, task_dir, group, repeat, skills, results) -> dict:
     parent = Path(tempfile.mkdtemp(prefix="run-", dir=base))
     row = {"task": task["id"], "kind": task.get("kind"), "group": group, "repeat": repeat, "parts": []}
     try:
         work = parent / "work"
         work.mkdir()
-        for name, text in task["files"].items():
-            (work / name).parent.mkdir(parents=True, exist_ok=True)
-            (work / name).write_text(text, encoding="utf-8")
+        materialize(task, task_dir, work)
+        installed = [] if group in ("control", "rules-only") else skills
+        hooked = bool(args.hooks) and group in ("framework", "reviewed")
         if group != "control":
-            trigger._install(framework, work, [] if group == "rules-only" else skills)
+            trigger._install(framework, work, installed)
             if group == "skills-only":
                 for name in ("CLAUDE.md", "AGENTS.md"):
                     (work / name).unlink(missing_ok=True)
                 shutil.rmtree(work / ".agf", ignore_errors=True)
-            if args.hooks and group in ("framework", "reviewed"):
+            if hooked:
                 _install_hooks(framework, work, args.hooks.resolve())
-        checked = preflight.check(work, args.forbid, env, set(args.allow_env))
+        row["setup_sha256"] = setup_hash(task, task_dir, work)
+        box = task.get("sandbox", {})
+        given = sandbox.confinement(work, box.get("image"), box.get("command"), box.get("timeout", 180),
+                                    skills=tuple(installed), hooks=hooked)
+        session_env = {**env, **given["env"]}  # last, so --env cannot loosen it
+        checked = preflight.check(work, args.forbid, session_env,
+                                  set(args.allow_env) | {"CLAUDE_CODE_DISABLE_AUTO_MEMORY"})
+        if checked["user_level"]:
+            # Under the home directory the host loads ~/.claude as an ancestor, whatever --setting-sources says (S19).
+            raise SystemExit(f"--base must be outside the home directory, whose instructions would reach every group: {checked['user_level']}")
         if not checked["ok"]:
             raise SystemExit(f"preflight failed before {task['id']}-{group}: {json.dumps(checked, ensure_ascii=False)}")
-        answer = ""
-        for number, part in enumerate(task["parts"], 1):
-            if results["spent_usd"] + args.budget > args.total_budget:
-                row["stop"] = f"total budget: {results['spent_usd']:.2f} spent, the next session may cost up to {args.budget}"
-                return row
-            model = args.switch_model if part.get("model") == "switch" else args.model
-            extra = ("--max-turns", str(part["max_turns"])) if part.get("max_turns") else ()
-            stream = out / "streams" / f"{task['id']}-{group}-{repeat}-{number}.jsonl"
-            print(f"run {task['id']} {group} #{repeat} part {number}", flush=True)
-            code = run_claude.run(cli, work, model, startup + "\n\n" + part["prompt"], stream, allowed=TOOLS,
-                                  disallowed=("Bash",), extra=extra, env=env, budget=args.budget, timeout=args.timeout)
-            summary = run_claude.summarize(stream, work)
-            result = summary["result"] or {}
-            results["spent_usd"] = round(results["spent_usd"] + (result.get("cost_usd") or 0), 6)
-            planned_cut = part.get("max_turns") and result.get("subtype") == "error_max_turns"
-            row["parts"].append({"model": model, "exit": code, "subtype": result.get("subtype"), "planned_cut": bool(planned_cut),
-                                 "turns": result.get("turns"), "cost_usd": result.get("cost_usd"),
-                                 "first_context_tokens": summary.get("first_context_tokens"),
-                                 "tools_listed": summary.get("tools_listed"),
-                                 **{key: result.get(key) for key in TOKEN_KEYS},
-                                 "skills_used": trigger.measure(summary, None)["skills_used"],
-                                 "files_read": [path.replace(str(work), ".") for path in summary["files_read"]],
-                                 "outside_paths": summary["outside_paths"]})
-            if not result or ((code != 0 or result.get("is_error")) and not planned_cut):
-                row["stop"] = f"{task['id']}-{group} part {number}: exit {code}, {str(result.get('text'))[:200]}"
-                return row
-            answer = result.get("text") or ""
+        planned = [(str(number), args.switch_model if part.get("model") == "switch" else args.model, part)
+                   for number, part in enumerate(task["parts"], 1)]
         if group == "reviewed":
             # D group: a different model checks the finished work, fixes it and gives the final answer;
             # the hidden checks judge what it leaves behind.
+            planned.append(("review", args.review_model, {"prompt": task["parts"][-1]["prompt"], "review": True}))
+        answer, failed = "", None
+        for label, model, part in planned:
+            where = f"{task['id']}-{group} {label}"
             if results["spent_usd"] + args.budget > args.total_budget:
-                row["stop"] = f"total budget: {results['spent_usd']:.2f} spent before the review of {task['id']}"
+                row["stop"] = f"total budget: {results['spent_usd']:.2f} spent before {where}, the next session may cost up to {args.budget}"
                 return row
-            stream = out / "streams" / f"{task['id']}-{group}-{repeat}-review.jsonl"
-            print(f"run {task['id']} {group} #{repeat} review", flush=True)
-            prompt = REVIEW_PROMPT.format(prompt=task["parts"][-1]["prompt"], answer=answer)
-            code = run_claude.run(cli, work, args.review_model, startup + "\n\n" + prompt, stream, allowed=TOOLS,
-                                  disallowed=("Bash",), env=env, budget=args.budget, timeout=args.timeout)
-            summary = run_claude.summarize(stream, work)
-            result = summary["result"] or {}
-            results["spent_usd"] = round(results["spent_usd"] + (result.get("cost_usd") or 0), 6)
-            row["parts"].append({"model": args.review_model, "review": True, "exit": code, "subtype": result.get("subtype"),
-                                 "planned_cut": False, "turns": result.get("turns"), "cost_usd": result.get("cost_usd"),
-                                 "first_context_tokens": summary.get("first_context_tokens"), "tools_listed": summary.get("tools_listed"),
-                                 **{key: result.get(key) for key in TOKEN_KEYS},
-                                 "skills_used": trigger.measure(summary, None)["skills_used"],
-                                 "files_read": [path.replace(str(work), ".") for path in summary["files_read"]],
-                                 "outside_paths": summary["outside_paths"]})
-            if not result or code != 0 or result.get("is_error"):
-                row["stop"] = f"{task['id']}-{group} review: exit {code}, {str(result.get('text'))[:200]}"
+            review = bool(part.get("review"))
+            prompt = REVIEW_PROMPT.format(prompt=part["prompt"], answer=answer) if review else part["prompt"]
+            extra = ("--max-turns", str(part["max_turns"])) if part.get("max_turns") else ()
+            print(f"run {task['id']} {group} #{repeat} {'review' if review else 'part ' + label}", flush=True)
+            record, result, stop = _session(args, out, cli, work, model, startup + "\n\n" + prompt,
+                                            f"{task['id']}-{group}-{repeat}-{label}", results, given, session_env,
+                                            bool(box.get("command")), extra, review)
+            row["parts"].append(record)
+            if stop:
+                row["stop"] = f"{where}: {stop}"
                 return row
-            answer = result.get("text") or ""
+            answer, failed = result.get("text") or "", record["failed"]
+            if failed:
+                break
         (out / "outputs").mkdir(exist_ok=True)
         (out / "outputs" / f"{task['id']}-{group}-{repeat}.md").write_text(answer + "\n", encoding="utf-8")
-        row.update(check(task, work, answer))
+        if failed:
+            row.update(passed=False, failures=[failed])
+        else:
+            verdict = check(task, work, answer, task_dir)
+            if "infrastructure" in verdict:
+                row["stop"] = f"{task['id']}-{group} check: infrastructure: {verdict['infrastructure']}"
+                return row
+            row.update(verdict)
         row["handoff_files"] = sorted(str(path.relative_to(work)) for pattern in ("*HANDOFF*", "*CHECKPOINT*", ".agf/checkpoints/*")
                                       for path in work.glob(pattern) if path.is_file())
         return row
@@ -285,7 +383,7 @@ def summarize_runs(data: dict) -> dict:
         cell["cost"].append(_sum(row, "cost_usd"))
         cell["tokens"].append(sum(_sum(row, key) for key in TOKEN_KEYS))
         cell["turns"].append(_sum(row, "turns"))
-        last = row["parts"][-1]
+        last = task_parts[-1]  # not the review, which would differ per group
         cell["last_part_tokens"].append(sum(last.get(key) or 0 for key in TOKEN_KEYS))
     groups = {}
     for cells in table.values():
@@ -320,9 +418,18 @@ def combine(named: list[tuple[str, dict]]) -> dict:
     files record it); framework commits may differ and are all listed."""
     first_name, first = named[0]
     for name, data in named[1:]:
+        if first.get("confinement") != data.get("confinement"):
+            raise ValueError(f"confinement differs: {first_name} and {name} did not limit their subjects the same way")
         for key in SAME_SETUP:
             if key in first and key in data and data[key] != first[key]:
                 raise ValueError(f"{key} differs: {first_name} has {first[key]!r}, {name} has {data[key]!r}")
+    setups = {}
+    for name, data in named:
+        for row in data["runs"]:
+            if row.get("setup_sha256"):
+                cell = (row["task"], row["group"])
+                if setups.setdefault(cell, row["setup_sha256"]) != row["setup_sha256"]:
+                    raise ValueError(f"setup differs for {cell[0]}/{cell[1]} in {name}: files, framework or hidden checks changed")
     commits = sorted({str(data.get("framework_commit")) for _, data in named})
     stopped = [f"{name}: {data['stopped']}" for name, data in named if data.get("stopped")]
     return {"model": first["model"], "switch_model": first.get("switch_model"), "framework_commit": ", ".join(commits),

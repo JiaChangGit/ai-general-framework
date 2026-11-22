@@ -39,9 +39,9 @@ python scripts/agf.py traces remove --target ../my-project --apply
 
 新配置預設不留 AI 痕跡（使用者 2026-11-22 的決定）：`project install --apply` 在專案規則加一行「commit 不加 AI 署名、公開文件不提工具名、AI 工具檔不進版本庫」，並在該 clone 的 `.git/info/exclude` 寫一段有標記的排除清單（CLAUDE.md、AGENTS.md、GEMINI.md、`.claude/`、`.agents/`、`.agf/`、`.ai/` 等）。這個檔案只在本機生效、不會被 commit，也不會影響已經被追蹤的檔案。`--keep-ai-traces` 關掉這個預設；沒有這個欄位的舊配置維持原樣，更新時加 `--exclude-ai-traces` 才開啟。回復（rollback）會依還原後的配置拿掉或保留那段清單。目標目錄不是 Git work tree 的根目錄（例如在另一個 repo 底下）時，不會去改外層 repo 的檔案。
 
-`traces check` 只讀：列出被追蹤的 AI 工具檔（附移出版本庫、但保留檔案的 `git rm --cached` 命令）、commit 訊息裡的 AI 共同作者或「Generated with」字樣、檔案裡的同類字樣，以及排除清單與 commit-msg hook 在不在。找到痕跡，或排除清單不在，退出碼都是 1。歷史 commit 只回報、不改寫。共同作者行只認 AI 工具的帳號名稱與信箱，人名不算。
+`traces check` 只讀：列出被追蹤的 AI 工具檔（附移出版本庫、但保留檔案的 `git rm --cached` 命令）、commit 訊息裡的 AI 共同作者或「Generated with」字樣、檔案裡的同類字樣，以及排除清單與 commit-msg hook 在不在。找到痕跡，或排除清單不在，退出碼都是 1。歷史 commit 只回報、不改寫。共同作者行只認整個名字就是 AI 工具（可帶型號）或帳號屬於 AI 工具的，含有同一個字的人名（例如 Jane Claude）不算。
 
-`traces hook --apply` 寫一支 commit-msg hook（git 在建立 commit 前執行的程式）：訊息裡有 AI 共同作者或「Generated with」字樣就拒絕，錯誤訊息說明怎麼改；專案原本就有 commit-msg hook 時不覆蓋。不留痕跡的配置會一起裝。`--keep-ai-traces` 的配置與之後的更新都不動排除清單與 hook，只有從不留痕跡切回 keep 時，才移除這個模式加的那兩樣。排除清單在 Git worktree 之間共用。
+`traces hook --apply` 寫一支 commit-msg hook（git 在建立 commit 前執行的程式）：訊息裡有 AI 共同作者或「Generated with」字樣就拒絕，錯誤訊息說明怎麼改；專案原本就有 commit-msg hook 時不覆蓋；`core.hooksPath` 指到共用或會被追蹤的目錄、或 hook 是 symlink 時不寫，回報 `CUSTOM_HOOKS_PATH` 或 `FOREIGN_HOOK`；機器上沒有能執行的 Python 3 時不擋 commit，也就不會檢查。不留痕跡的配置會一起裝。`--keep-ai-traces` 的配置與之後的更新都不動排除清單與 hook，只有從不留痕跡切回 keep 時，才移除這個模式加的那兩樣。排除清單在 Git worktree 之間共用。
 
 ## 來源、檔案與圖解
 

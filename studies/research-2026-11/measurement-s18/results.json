@@ -633,8 +633,8 @@
      "outside_paths": []
     }
    ],
-   "stop": "rewrite-zh-reviewed review: exit 1, You've hit your 5-hour limit · resets 6:50am (Asia/Taipei)"
+   "stop": "rewrite-zh-reviewed review: exit 1, usage limit reached"
   }
  ],
- "stopped": "rewrite-zh-reviewed review: exit 1, You've hit your 5-hour limit · resets 6:50am (Asia/Taipei)"
+ "stopped": "rewrite-zh-reviewed review: exit 1, usage limit reached"
 }

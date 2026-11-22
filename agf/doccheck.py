@@ -17,6 +17,8 @@ SHARED_NAMES = ("docs/", "skills/", "examples/", "tests/")
 CODE = re.compile(r"```[^\n]*\n(.*?)```|`([^`\n]+)`", re.S)
 COMMAND = re.compile(r"(?:scripts/agf\.py|(?<![\w./-])agf)[ \t]+((?:[a-z][a-z-]*)(?:[ \t]+(?:[a-z][a-z-]*))?)((?:[ \t]+[^\s`|;&]+)*)")
 OPTION = re.compile(r"(?<![\w-])(--[a-z][a-z0-9-]*)")
+PROJECT_DOCS = {"docs/HANDOFF.md"}  # named in the docs as a file of the user's project
+CONTINUED = re.compile(r"\\\r?\n[ \t]*")
 SKIP_PATH = re.compile(r"[<>*{}…$\s]|\.\.\.")
 # Dated records describe the state when they were written; they are not kept in step with the code.
 RECORDS = {"analysis-2026-11.md", "verification.md", "research.md", "link-study.md", "memory-prompt-study.md",
@@ -81,7 +83,7 @@ def check(root) -> list[str]:
         for match in CODE.finditer(text):
             code = match.group(1) or match.group(2)
             line = text.count("\n", 0, match.start()) + 1
-            for command in COMMAND.finditer(code):
+            for command in COMMAND.finditer(CONTINUED.sub(" ", code)):
                 problem = _check_command(command.group(1), command.group(2) or "", parsers)
                 if problem:
                     problems.append(f"{relative}:{line}: {problem}")
@@ -90,8 +92,11 @@ def check(root) -> list[str]:
                 if candidate.startswith(FOLDERS) and not SKIP_PATH.search(candidate) and not (directory / candidate).exists():
                     head = "/".join(candidate.split("/")[:2])
                     # docs/, skills/, examples/ and tests/ also exist in user projects: only a path whose
-                    # first two parts are this framework's (e.g. docs/ecosystem/...) is checked.
-                    if candidate.startswith(SHARED_NAMES) and not (directory / head).exists():
+                    # first two parts are this framework's (e.g. docs/ecosystem/...) is checked, and any
+                    # docs/<name>.md, the commonest kind to go stale, except the known project files.
+                    own_doc = (candidate.startswith("docs/") and candidate.count("/") == 1
+                               and candidate.endswith(".md") and candidate not in PROJECT_DOCS)
+                    if candidate.startswith(SHARED_NAMES) and not own_doc and not (directory / head).exists():
                         continue
                     problems.append(f"{relative}:{line}: path `{candidate}` does not exist")
     return problems

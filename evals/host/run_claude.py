@@ -57,7 +57,7 @@ def run(cli: str, cwd: Path, model: str, prompt: str, out: Path, *, allowed: str
     started = time.monotonic()
     with out.open("wb") as stdout, out.with_suffix(".stderr").open("wb") as stderr:
         try:
-            code = subprocess.run(argv, cwd=cwd, env=clean_env(env), stdout=stdout, stderr=stderr, timeout=timeout).returncode
+            code = subprocess.run(argv, cwd=cwd, env=clean_env(env), stdout=stdout, stderr=stderr, stdin=subprocess.DEVNULL, timeout=timeout).returncode
         except subprocess.TimeoutExpired:
             code = 124
     meta = {"argv": argv[:2] + ["<prompt>"] + argv[3:], "cwd": str(cwd), "exit": code,
@@ -98,7 +98,7 @@ def outside(paths: list[str], inside: Path) -> list[str]:
 
 
 def summarize(path: Path, inside: Path | None = None) -> dict:
-    summary = {"skills_listed": None, "tools_listed": None, "model": None, "version": None, "cwd": None, "first_context_tokens": None,
+    summary = {"skills_listed": None, "tools_listed": None, "tool_names": None, "model": None, "version": None, "cwd": None, "first_context_tokens": None,
                "tool_uses": [], "skill_calls": [], "skill_calls_blocked": [], "skill_calls_blocked_errors": [], "skill_reads": [],
                "files_read": [], "tool_errors": [],
                "bash_ran": [], "result": None}
@@ -110,7 +110,7 @@ def summarize(path: Path, inside: Path | None = None) -> dict:
             continue
         kind = event.get("type")
         if kind == "system" and event.get("subtype") == "init":
-            summary.update(skills_listed=event.get("skills"), tools_listed=len(event.get("tools") or []),
+            summary.update(skills_listed=event.get("skills"), tools_listed=len(event.get("tools") or []), tool_names=event.get("tools"),
                            model=event.get("model"), version=event.get("claude_code_version"), cwd=event.get("cwd"))
         elif kind == "assistant":
             message = event.get("message", {})

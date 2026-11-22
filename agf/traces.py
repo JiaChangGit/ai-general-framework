@@ -20,18 +20,31 @@ PATTERNS = ("CLAUDE.md", "AGENTS.md", "GEMINI.md", ".cursorrules", ".claude/", "
             ".codex/", ".gemini/", ".opencode/", ".cursor/", "/.github/copilot-instructions.md")
 NAMES = {"CLAUDE.md", "AGENTS.md", "GEMINI.md", ".cursorrules"}
 FOLDERS = {".claude", ".agents", ".agf", ".ai", ".codex", ".gemini", ".opencode", ".cursor"}
-TOOLS = r"claude|anthropic|codex|openai|chatgpt|gpt|gemini|copilot|cursor|aider|devin|windsurf"
-# Co-author lines name tool accounts, not people: "Devin Smith" or "Cursor Lee" must not match (S18 review).
-AUTHORS = r"\b(?:claude|anthropic|openai|codex|chatgpt|copilot|aider|windsurf)\b|noreply@anthropic\.com|cursoragent|devin[- ]ai|gemini code assist"
-COMMIT_MARKERS = re.compile(rf"^\s*co-authored-by:[^\n]*(?:{AUTHORS})|generated (?:with|by) \[?(?:{TOOLS})\b|\U0001F916 ?generated",
-                            re.IGNORECASE | re.MULTILINE)
+TOOLS = (r"claude(?: code)?|anthropic|openai(?: codex)?|codex(?: cli)?|chatgpt|gpt-\d[\w.-]*|gemini(?: cli| code assist)?|"
+         r"(?:github )?copilot|cursor(?: agent)?|aider|devin(?: ai)?|windsurf")
+# A co-author is a tool when the whole name is a tool's (optionally with its model) or the account is a tool's.
+# "Jane Claude", "Devin Smith" and "Cursor Lee" are people (S18 and S19 reviews).
+AUTHOR_NAMES = (r"claude(?: code| ai|[- ](?:opus|sonnet|haiku|fable|\d)[^<\n]*)?|anthropic|openai(?: codex)?|codex(?: cli)?|chatgpt|"
+                r"gpt-\d[\w.-]*|gemini(?: cli| code assist|[- ]\d[^<\n]*)?|(?:github )?copilot(?: autofix[^<\n]*)?|cursor(?: agent)?|"
+                r"aider|devin ai|windsurf")
+AUTHOR_ACCOUNTS = (r"noreply@anthropic\.com|(?:noreply|codex)@openai\.com|cursoragent|devin-ai|gemini-code-assist|"
+                   r"copilot(?:-swe-agent)?\[bot\]|\+copilot@users\.noreply|copilot@github\.com|@aider\.chat|claude\[bot\]")
+# "generated with/by <tool>" counts only where the tool's name ends the phrase: not "generated with cursor offset".
+COMMIT_MARKERS = re.compile(
+    rf"^\s*co-authored-by:[ \t]*(?:(?:{AUTHOR_NAMES})(?:\[bot\])?[ \t]*(?:\([^)\n]*\)[ \t]*)?(?:<|$)|[^\n]*(?:{AUTHOR_ACCOUNTS}))"
+    rf"|generated (?:with|by) \[?(?:{TOOLS})(?=[ \t]*(?:$|[\])(.!,:;<*]|\d|via\b|opus\b|sonnet\b|haiku\b|fable\b))"
+    r"|\U0001F916 ?generated",
+    re.IGNORECASE | re.MULTILINE)
 FILE_MARKERS = r"generated with \[?claude code|co-authored-by: *claude|🤖 generated with"
 HOOK_MARK = "# agf: commit-msg hook that rejects AI co-author lines (agf traces hook)"
 HOOK = '''#!/bin/sh
 {mark}
 # Installed by `agf traces hook --apply`; `agf traces hook --remove --apply` takes it out.
-PY=$(command -v python3 || command -v python || command -v py)
-[ -n "$PY" ] || exit 0  # no Python: do not block commits, the check simply does not run
+PY=
+for candidate in python3 python py; do  # found is not enough: Windows has a python3 stub that only fails
+  if "$candidate" -c 'import sys; sys.exit(sys.version_info[0] < 3)' </dev/null >/dev/null 2>&1; then PY=$candidate; break; fi
+done
+[ -n "$PY" ] || exit 0  # no working Python 3: do not block commits, the check simply does not run
 exec "$PY" - "$1" <<'PYEOF'
 import re, sys
 text = open(sys.argv[1], encoding="utf-8", errors="replace").read()
@@ -116,6 +129,13 @@ def _hook_file(root: Path) -> Path:
     return path if path.is_absolute() else root / path
 
 
+def _shared_or_tracked(root: Path, path: Path) -> bool:
+    """True when core.hooksPath (or a link) puts the hook outside this repository's own Git directory."""
+    common = Path(_git(root, "rev-parse", "--git-common-dir").strip())
+    common = common if common.is_absolute() else root / common
+    return not path.parent.resolve().is_relative_to(common.resolve())
+
+
 def hook(target, apply: bool = False, remove: bool = False) -> dict:
     """Install (or remove) the commit-msg hook. A hook this command did not write is never touched."""
     root = Path(target).resolve()
@@ -124,6 +144,13 @@ def hook(target, apply: bool = False, remove: bool = False) -> dict:
     if not is_toplevel(root):
         return {"status": "NESTED", "target": str(root), "applied": False}
     path = _hook_file(root)
+    if _shared_or_tracked(root, path):
+        return {"status": "CUSTOM_HOOKS_PATH", "hook": str(path), "applied": False,
+                "meaning": "core.hooksPath points outside this repository's .git (a shared or tracked directory); nothing was changed. "
+                           "Add or remove the check there by hand if wanted."}
+    if path.is_symlink():
+        return {"status": "FOREIGN_HOOK", "hook": str(path), "applied": False,
+                "meaning": "commit-msg is a symbolic link; neither it nor its target was changed."}
     current = path.read_text(encoding="utf-8", errors="replace") if path.is_file() else None
     ours = current is not None and HOOK_MARK in current
     if remove:

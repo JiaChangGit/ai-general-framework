@@ -208,7 +208,7 @@ guard hook 這一輪裝在工作區上一層的 `.claude/settings.json`（不是
 
 ### 前提變了一半
 
-這一輪動手前先查了一個前提。S8、S10 的紀錄說：從上層目錄啟動時，專案的 skill 不會列出來。可是這個對話本身就是從上層目錄（`/home/user/src`）啟動的桌面版 session，Raft 專案的 skill 卻有列出來，並註明「處理那個目錄的檔案時適用」。
+這一輪動手前先查了一個前提。S8、S10 的紀錄說：從上層目錄啟動時，專案的 skill 不會列出來。可是這個對話本身就是從上層目錄（`~/src`）啟動的桌面版 session，Raft 專案的 skill 卻有列出來，並註明「處理那個目錄的檔案時適用」。
 
 花 0.01 美元用無頭 session 實測（Claude Code 2.1.325）。從上層啟動時，子專案的 skill 不在清單裡，讀了子專案的檔之後也沒有出現；子專案 `.claude/settings.json` 裡的 hook 沒有執行。從子專案啟動時，兩者都有。所以 skill 這部分依宿主而異，設定與 hook 則兩種情況都只從啟動的目錄載入。`project status` 的提醒照這個寫，紀錄在 `adapters/claude.json` 的 `project_launch`。
 
@@ -328,7 +328,7 @@ guard hook 這一輪裝在工作區上一層的 `.claude/settings.json`（不是
 
 更新後的優先順序：
 
-1. （高）使用者把 `s17-common` 併進 main，並把 `/home/user/src/.claude/settings.json` 的 matcher 加上 `mcp__.*`。
+1. （高）使用者把 `s17-common` 併進 main，並把 `~/src/.claude/settings.json` 的 matcher 加上 `mcp__.*`。
 2. （高）S18：有標準答案、沒框架容易做錯的題目（C 的函式指標、只在對話說過的決定、允許 Bash 時的 commit 署名），A～D 分組量；同時量「寫作指引拆短版」能不能把多讀的成本降下來（第五輪就排了）。
 3. （中）S17 的變更交給另一個模型獨立審查。
 4. （中）OpenAI 的 doc-gardening：定期比對文件敘述與程式，目前 `check --profile periodic` 只重跑命令。

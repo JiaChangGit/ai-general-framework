@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -8,12 +9,20 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "evals" / "host"))
 import impact  # noqa: E402
+import sandbox  # noqa: E402
 
 FAKE_CLI = '''#!{python}
 """Stands in for the Claude Code CLI. FAKE_MODE=fix renames the parameter in greeting.py."""
 import json, os, sys
 from pathlib import Path
 mode = os.environ.get("FAKE_MODE", "fix")
+if mode == "hang":
+    import time; time.sleep(30)
+if mode in ("budget", "limit"):
+    subtype = "error_max_budget_usd" if mode == "budget" else "success"
+    print(json.dumps({{"type": "result", "is_error": True, "subtype": subtype, "total_cost_usd": 0.02,
+                      "result": "You've hit your 5-hour limit, resets 6:50am (Some/Where)"}}))
+    sys.exit(1)
 cut = "--max-turns" in sys.argv
 print(json.dumps({{"type": "system", "subtype": "init", "skills": [], "tools": ["Read"], "model": "fake", "cwd": os.getcwd()}}))
 if mode == "fix" and not cut and Path("greeting.py").exists():
@@ -27,6 +36,89 @@ sys.exit(1 if cut else 0)
 '''
 
 
+FAKE_DOCKER = '''#!{python}
+"""Stands in for docker: runs the container script in a temp directory. Test fixtures only."""
+import subprocess, sys, tempfile
+argv = sys.argv[1:]
+if argv[:2] == ["image", "inspect"]:
+    sys.exit(0)
+mounts = dict((item.split("dst=")[1].split(",")[0], item.split("src=")[1].split(",")[0]) for item in argv if item.startswith("type=bind"))
+with tempfile.TemporaryDirectory() as root:
+    for name in ("work", "out"):
+        subprocess.run(["mkdir", root + "/" + name])
+    script = argv[-1].replace("/work", root + "/work").replace("/out/log", root + "/out/log")
+    for inside, outside in mounts.items():
+        script = script.replace(inside + "/.", outside + "/.")
+    sys.exit(subprocess.run(["sh", "-c", script], env={{"PATH": "{bin}:/usr/bin:/bin", "LIMIT": "20"}}).returncode)
+'''
+
+
+class SandboxTests(unittest.TestCase):
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.work = Path(temp.name) / "work"
+        self.work.mkdir()
+
+    def test_the_container_has_no_network_privileges_or_writable_mounts(self):
+        argv = sandbox.docker_argv(self.work, "image", "make test", "name", self.work)
+        joined = " ".join(argv)
+        for part in ("--network none", "--cap-drop ALL", "no-new-privileges", "--read-only", "--user 65534:65534",
+                     "--pids-limit 256", "--pull never", "dst=/src,readonly", "dst=/hidden,readonly"):
+            self.assertIn(part, joined)
+        self.assertNotIn("--privileged", joined)
+        with self.assertRaises(ValueError):
+            sandbox.docker_argv(self.work, "--privileged", "true", "name")
+
+    def test_the_subject_is_confined_and_cannot_write_what_the_host_loads(self):
+        given = sandbox.confinement(self.work, "image", "make test", skills=("trace-code",))
+        allowed = given["allowed"].split()
+        self.assertEqual(allowed, ["Edit(./**)", "Skill(trace-code)", "mcp__bench__run_tests"])
+        for rule in ("Bash", "Edit(./.claude/**)", "Edit(./**/.claude/**)", "Edit(./.git/**)", "Edit(./.mcp.json)", "Edit(./CLAUDE.md)"):
+            self.assertIn(rule, given["disallowed"])
+        settings = json.loads(given["extra"][given["extra"].index("--settings") + 1])
+        self.assertEqual(settings, {"disableAllHooks": True, "disableSkillShellExecution": True})
+        self.assertIn("--strict-mcp-config", given["extra"])
+        self.assertNotIn("mcp__bench__run_tests", sandbox.confinement(self.work)["allowed"])
+
+    @unittest.skipIf(sys.platform == "win32", "POSIX permissions")
+    def test_the_snapshot_is_readable_and_does_not_follow_links(self):
+        (self.work / "private").mkdir(mode=0o700)
+        secret = self.work / "private" / "f"
+        secret.write_text("x", encoding="utf-8")
+        secret.chmod(0o600)
+        (self.work / "link").symlink_to("/etc/hostname")
+        copied = sandbox._snapshot(self.work, self.work.parent / "copy")
+        self.assertEqual((copied / "private").stat().st_mode & 0o777, 0o755)
+        self.assertEqual((copied / "private/f").stat().st_mode & 0o777, 0o644)
+        self.assertTrue((copied / "link").is_symlink())
+        self.assertEqual(secret.stat().st_mode & 0o777, 0o600)
+
+    def test_the_test_tool_takes_no_arguments_and_no_other_name(self):
+        for params in ({"name": "run_tests", "arguments": {"command": "id"}}, {"name": "shell"}):
+            reply = sandbox.answer({"id": 1, "method": "tools/call", "params": params}, self.work, "image", "true", 5)
+            self.assertTrue(reply["result"]["isError"])
+
+    def test_checks_only_execute_through_the_container(self):
+        marker = self.work / "executed-on-host"
+        code = f"open({str(marker)!r}, 'w').write('x')"
+        calls = []
+
+        def runner(*call):
+            calls.append(call)
+            return {"exit": 1, "output": "assertion\\n", "timed_out": False, "infrastructure": False}
+
+        task = {"checks": {"python": [code], "command": "make test"}, "sandbox": {"image": "pinned"}}
+        verdict = impact.check(task, self.work, "", self.work, runner)
+        self.assertFalse(marker.exists())
+        self.assertEqual([call[1] for call in calls], ["pinned", "pinned"])
+        self.assertEqual(len(verdict["failures"]), 2)
+        down = impact.check(task, self.work, "", self.work,
+                            lambda *call: {"exit": 125, "output": "", "timed_out": False, "infrastructure": True})
+        self.assertNotIn("passed", down)
+        self.assertIn("infrastructure", down)
+
+
 @unittest.skipIf(sys.platform == "win32", "the fake CLI relies on a POSIX shebang")
 class ImpactTests(unittest.TestCase):
     def setUp(self):
@@ -35,6 +127,12 @@ class ImpactTests(unittest.TestCase):
         self.cli = self.temp / "fake-claude"
         self.cli.write_text(FAKE_CLI.format(python=sys.executable), encoding="utf-8")
         self.cli.chmod(0o755)
+        self.bin = self.temp / "bin"
+        self.bin.mkdir()
+        (self.bin / "python").symlink_to(sys.executable)
+        (self.bin / "docker").write_text(FAKE_DOCKER.format(python=sys.executable, bin=self.bin), encoding="utf-8")
+        (self.bin / "docker").chmod(0o755)
+        self.env = {**os.environ, "PATH": f"{self.bin}{os.pathsep}{os.environ.get('PATH', '')}"}
         self.tasks = self.temp / "tasks.json"
         greeting = {"greeting.py": "def greet(n):\n    return 'Hello, ' + n\n"}
         check = {"python": ["import greeting, inspect\nassert list(inspect.signature(greeting.greet).parameters) == ['name']"]}
@@ -49,7 +147,7 @@ class ImpactTests(unittest.TestCase):
         argv = [sys.executable, str(ROOT / "evals/host/impact.py"), "run", "--framework", str(ROOT), "--base", str(self.temp / base_name),
                 "--out", str(self.temp / "out"), "--cli", str(self.cli), "--model", "fake-model", "--tasks", str(self.tasks),
                 "--env", f"FAKE_MODE={mode}", *extra]
-        result = subprocess.run(argv, capture_output=True, text=True, timeout=300)
+        result = subprocess.run(argv, capture_output=True, text=True, timeout=300, env=self.env)
         data = json.loads((self.temp / "out" / "results.json").read_text(encoding="utf-8"))
         return result, data
 
@@ -75,6 +173,44 @@ class ImpactTests(unittest.TestCase):
         row = data["runs"][0]
         self.assertFalse(row["passed"])
         self.assertIn("python check 0", row["failures"][0])
+
+    def test_timeouts_and_spent_session_budgets_are_failures(self):
+        for number, (mode, reason) in enumerate((("hang", "session timed out"), ("budget", "session budget exhausted"))):
+            result, data = self.run_impact("--ids", "edit", "--runs", "1", "--group", "control", "--timeout", "2",
+                                           mode=mode, base_name=f"base{number}")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(data["runs"][0]["failures"], [reason])
+            self.assertGreater(data["spent_usd"], 0)
+
+    def test_a_usage_limit_stops_the_run_without_publishing_the_reset_time(self):
+        result, data = self.run_impact("--ids", "edit", "--runs", "1", "--group", "control", mode="limit")
+        self.assertEqual(result.returncode, 3)
+        self.assertNotIn("passed", data["runs"][0])
+        self.assertIn("usage limit reached", data["stopped"])
+        self.assertNotIn("Some/Where", json.dumps(data))
+
+    def test_a_source_directory_and_hidden_tests_are_used(self):
+        (self.temp / "pre").mkdir()
+        (self.temp / "pre/greeting.py").write_text("def greet(n):\n    return 'Hello, ' + n\n", encoding="utf-8")
+        (self.temp / "hidden").mkdir()
+        (self.temp / "hidden/test_hidden.py").write_text("import greeting\nassert greeting.greet(name='A')\n", encoding="utf-8")
+        data = json.loads(self.tasks.read_text())
+        data["tasks"].append({"id": "repo", "source": "pre", "parts": [{"prompt": "fix"}],
+                              "sandbox": {"image": "img"}, "checks": {"hidden": "hidden", "command": "python -B test_hidden.py"}})
+        self.tasks.write_text(json.dumps(data))
+        result, data = self.run_impact("--ids", "repo", "--runs", "2", "--group", "control")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual([row["passed"] for row in data["runs"]], [True, True])
+        self.assertEqual(data["runs"][0]["parts"][0]["files_changed"], ["greeting.py"])
+        self.assertEqual(data["runs"][0]["setup_sha256"], data["runs"][1]["setup_sha256"])
+        changed = json.loads(json.dumps(data))
+        changed["runs"][0]["setup_sha256"] = "other"
+        with self.assertRaisesRegex(ValueError, "setup differs"):
+            impact.combine([("one", data), ("two", changed)])
+
+    def test_two_installs_of_the_same_framework_have_the_same_setup(self):
+        _, data = self.run_impact("--ids", "edit", "--runs", "2", "--group", "framework")
+        self.assertEqual(data["runs"][0]["setup_sha256"], data["runs"][1]["setup_sha256"])
 
     def test_answer_patterns_must_all_match(self):
         _, data = self.run_impact("--ids", "answer", "--runs", "1", "--group", "control")
@@ -170,7 +306,7 @@ class ImpactTests(unittest.TestCase):
         self.tasks.write_text(json.dumps(tasks))
         argv = [sys.executable, str(ROOT / "evals/host/impact.py"), "run", "--framework", str(ROOT), "--base", str(self.temp / "b2"),
                 "--out", str(self.temp / "o2"), "--cli", str(self.cli), "--model", "m", "--tasks", str(self.tasks), "--ids", "cut"]
-        result = subprocess.run(argv, capture_output=True, text=True, timeout=60)
+        result = subprocess.run(argv, capture_output=True, text=True, timeout=60, env=self.env)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("--switch-model", result.stderr)
 

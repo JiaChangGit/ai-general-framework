@@ -3,7 +3,7 @@
 更新日期：2026-11-22（S18 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
 
-> **push 之前先核對歷史。** S17 原本的 commit `35e6b34` 含私人的原始串流檔；使用者 2026-11-22 決定清掉，乾淨的 S17 是 `1541006`。`git -C /home/user/src/ai-general-framework merge-base --is-ancestor 35e6b34 main` 若回傳 0，表示 main 還是舊歷史，**不要 push**：先由使用者 `git fetch /home/user/src/ai-general-framework-s18 s18-benchmark` 再 `git reset --keep FETCH_HEAD`（AI 不改 main；不要用 pull，歷史已分岔）。推的時候只推 main，不用 `--all`；s17 的 clone 與 main 的 reflog 還留著舊 commit。
+> **S19 進行中（2026-11-22）。** 在 `../ai-general-framework-s19` 的 `s19-benchmark` 分支；使用者的決定、選題與判定門檻在 `studies/research-2026-11/M-s19.md`（看到結果後不改）。S18 的乾淨歷史已在 main 並推上 GitHub（`fad222f`，CI 四個 job 通過）。被額度打斷時：先看 `M-s19.md` 最後的執行經過、`~/.cache/agf-ecosystem/bench-s19/`（第三方題目與原始結果，不 commit）與各 `measurement-s19*/results.json` 做到哪，只補缺的；量測的 `--base` 要在家目錄外；原始串流不 commit；總上限 15 美元要累計。
 
 ## 一開始先做什麼
 
@@ -65,7 +65,7 @@ S18（2026-11-22）：寫作短版與讀取時機、commit-msg hook、文件對�
 
 依分析報告第八輪的優先順序：
 
-1. **使用者**照本檔開頭把乾淨的歷史換進 main，再 push。guard hook 的 matcher 已於 2026-11-22 改好；它讀的是 main 的檔案，S18 進了 main 才有新的 MCP 檢查。
+1. （已完成，2026-11-22）乾淨的歷史已換進 main 並 push，CI 通過；guard hook 的新檢查已生效。
 2. （高）重做 benchmark 題目：先只跑對照組 3 次，留下會做錯、而且處理組有資訊能做對的題目，再分組量。
 3. （中）短版用另一種文字再盲評一次，重點看對新手的用處。
 4. （中）S18 的變更交給另一個模型審查。
