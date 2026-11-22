@@ -16,7 +16,7 @@ with the framework minus the mean without it, over the repeats both groups compl
     not worth it     the upper end is below the margin
     inconclusive     anything else
 
-Negative tasks are not part of the score. Run `sample` and read it before `judge`, so that the checks of
+Negative tasks are not part of the score; one counts as wrong by the share of its repeats with any item wrong. Run `sample` and read it before `judge`, so that the checks of
 the judgements cannot follow the groups' results.
 """
 from __future__ import annotations
@@ -39,10 +39,12 @@ import impact  # noqa: E402
 TREATED, CONTROL = "framework", "control"
 ALPHA = 0.0294  # Pocock's boundary for two looks
 MARGIN, LARGE, MIN_TASKS = 0.10, 0.25, 20
+CACHE_APART = 0.10  # shares of cache reads this far apart make the costs hard to compare
+CORRELATED = 0.4  # agree: above chance for 24 tasks (one-sided 0.05 is 0.344)
 EPSILON = 1e-9
 # What would tell an auditor the group. ASCII classes: Chinese has no spaces, so \S and \b would eat or miss it.
 _PATH = r"[A-Za-z0-9_./-]"
-GROUP_MARKS = rf"CLAUDE\.md|AGENTS\.md|{_PATH}*\.(?:agf|claude){_PATH}*|(?:HANDOFF|CHECKPOINT){_PATH}*|(?<![a-z])skills?(?![a-z])"
+GROUP_MARKS = rf"CLAUDE\.md|AGENTS\.md|{_PATH}*\.(?:agf|claude){_PATH}*|(?:HANDOFF|CHECKPOINT){_PATH}*|(?<![a-z])skills?(?![a-z])|專案規則|交接檔?|檢查點"
 
 
 @lru_cache(maxsize=None)
@@ -142,6 +144,10 @@ def spending(tasks: dict[str, list[tuple[dict, dict]]], alpha: float) -> dict:
         read = total["cache_read_input_tokens"]
         sent = read + total["input_tokens"] + total["cache_creation_input_tokens"]
         found["cache_read_share"][group] = read / sent if sent else None
+    found["token_ratio"] = {key: totals[TREATED][key] / totals[CONTROL][key] if totals[CONTROL][key] else None
+                            for key in impact.TOKEN_KEYS}
+    shares = [share for share in found["cache_read_share"].values() if share is not None]
+    found["cache_differs"] = len(shares) == 2 and abs(shares[0] - shares[1]) > CACHE_APART
     if len(logs) > 1:
         found.update(zip(("ratio", "ratio_low", "ratio_high"), map(exp, interval(logs, alpha))))
     return found
@@ -156,9 +162,17 @@ def judge(rows: list[dict], alpha: float = ALPHA, min_tasks: int = MIN_TASKS) ->
     else:
         found = decide(list(change.values()), alpha)
     found.update(tasks=len(change), alpha=alpha, second_stage=found["verdict"] == "inconclusive")
-    wrong = [sum(not all(pair[side]["items"].values()) for pairs in negatives.values() for pair in pairs) for side in (0, 1)]
+    wrong = [sum(sum(not all(pair[side]["items"].values()) for pair in pairs) / len(pairs) for pairs in negatives.values())
+             for side in (0, 1)]
     found["negatives"] = {"tasks": len(negatives), "wrong_control": wrong[0], "wrong_framework": wrong[1],
-                          "side_effect": wrong[1] - wrong[0] >= 2}
+                          "side_effect": wrong[1] - wrong[0] >= 2 - EPSILON}
+    both = [pair for cells in (tasks, negatives) for pairs in cells.values() for pair in pairs]
+    found["failed_runs"] = {group: sum(any(part.get("failed") for part in pair[side].get("parts", [])) for pair in both)
+                            for side, group in ((0, CONTROL), (1, TREATED))}
+    found["by_item"] = {task: {item: {CONTROL: sum(bool(old["items"].get(item)) for old, _ in pairs),
+                                      TREATED: sum(bool(new["items"].get(item)) for _, new in pairs), "runs": len(pairs)}
+                               for item in pairs[0][0]["items"]}
+                        for task, pairs in {**tasks, **negatives}.items()}
     if len(change) < 2:
         return found
     means = {side: [float(sum((score(pair[side]) for pair in pairs), Fraction(0)) / len(pairs)) for pairs in tasks.values()] for side in (0, 1)}
@@ -173,9 +187,19 @@ def judge(rows: list[dict], alpha: float = ALPHA, min_tasks: int = MIN_TASKS) ->
         inside = [value for task, value in change.items() if kinds[task] == kind]
         others = [value for task, value in change.items() if kinds[task] != kind]
         found["by_kind"][kind] = {"tasks": len(inside), "mean": float(sum(inside) / len(inside))}
+        if len(inside) > 1:
+            found["by_kind"][kind].update(zip(("low", "high"), interval([float(value) for value in inside], alpha)[1:]))
         if len(others) > 1:
             found["without_kind"][kind] = decide(others, alpha)  # does the conclusion rest on this one kind?
+    found["rests_on"] = [kind for kind, without in found["without_kind"].items()
+                         if found["verdict"] == "benefit" and without["verdict"] != "benefit"]
     return found
+
+
+def correlation(one: list[float], other: list[float]) -> float | None:
+    middle = [sum(values) / len(values) if values else 0 for values in (one, other)]
+    spread = sqrt(sum((x - middle[0]) ** 2 for x in one) * sum((y - middle[1]) ** 2 for y in other))
+    return sum((x - middle[0]) * (y - middle[1]) for x, y in zip(one, other)) / spread if spread else None
 
 
 def agree(one: list[dict], other: list[dict]) -> dict:
@@ -185,18 +209,22 @@ def agree(one: list[dict], other: list[dict]) -> dict:
     both = [task for task in common if first[task] and second[task]]
     same = sum((first[task] > 0) == (second[task] > 0) for task in both)
     apart = abs(float(sum(first[task] - second[task] for task in common) / len(common))) if common else None
-    return {"tasks": len(common), "both_nonzero": len(both), "same_sign": same, "mean_apart": apart,
-            "stands_in": len(both) >= 8 and same >= 0.75 * len(both) and apart <= MARGIN + EPSILON}
+    related = correlation([float(first[task]) for task in common], [float(second[task]) for task in common])
+    return {"tasks": len(common), "both_nonzero": len(both), "same_sign": same, "mean_apart": apart, "correlation": related,
+            # Same signs alone follow from a shared mean; the tasks have to agree as well.
+            "stands_in": len(both) >= 8 and same >= 0.75 * len(both) and apart <= MARGIN + EPSILON
+            and related is not None and related >= CORRELATED}
 
 
-def public_row(row: dict) -> dict:
-    """Judgements, counts and spend only: no text, no path."""
+def public_row(row: dict, skills=()) -> dict:
+    """Judgements, counts and spend only: no text, no path. skills_used is the subject's text unless it is an installed name."""
     keys = ("task", "kind", "negative", "group", "repeat", "position", "passed", "items", "setup_sha256")
     part_keys = ("model", "served", "cli_version", "subtype", "failed", "turns", "cost_usd", "cost_is_upper_bound",
                  "first_context_tokens", "tools_listed", *impact.TOKEN_KEYS, "skills_used")
     return {**{key: row[key] for key in keys if key in row},
             "outside_reads": sum(len(part.get("outside_paths") or []) for part in row.get("parts", [])),
-            "parts": [{key: part[key] for key in part_keys if key in part} for part in row.get("parts", [])]}
+            "parts": [{key: [name for name in part[key] if name in skills] if key == "skills_used" else part[key]
+                       for key in part_keys if key in part} for part in row.get("parts", [])]}
 
 
 def load(paths: list[Path]) -> dict:
@@ -209,14 +237,13 @@ def redact(text: str, names=()) -> str:
 
 
 def sample(folders: list[Path], task_file: Path, seed: int, share: float, to: Path) -> int:
-    """Runs to read without knowing their group. The key goes to a separate file."""
+    """Runs to read without knowing their group. The key goes to keys/, apart from the sheets."""
     _, tasks = impact.load_tasks(task_file)
     runs, skills = [], set()
     for folder in folders:
         data = json.loads((folder / "results.json").read_text(encoding="utf-8"))
         skills.update(data.get("skills") or [])
-        kept = Path(data.get("artifacts_in") or folder)
-        runs += [(kept, row) for row in data["runs"] if row.get("artifact") and row.get("items") is not None]
+        runs += [(Path(row.get("kept_in") or folder), row) for row in data["runs"] if row.get("artifact") and row.get("items") is not None]
     chosen = random.Random(f"audit/{seed}").sample(runs, ceil(share * len(runs)))
     to.mkdir(parents=True, exist_ok=True)
     if any(to.iterdir()):
@@ -224,21 +251,31 @@ def sample(folders: list[Path], task_file: Path, seed: int, share: float, to: Pa
     key = {}
     for number, (folder, row) in enumerate(chosen, 1):
         name, task = f"r{number:03d}", tasks[row["task"]]
-        work = folder / "artifacts" / row["artifact"]
+        items, work = task["checks"]["items"], folder / "artifacts" / row["artifact"]
         start = json.loads((folder / "artifacts" / f"{row['artifact']}.start.json").read_text(encoding="utf-8"))
         lines = [f"# {name}: {row['task']}", "", *(f"> {part['prompt']}" for part in task["parts"]), "", "## answer", "",
                  redact((folder / "outputs" / f"{row['artifact']}.md").read_text(encoding="utf-8"), skills), "## changes", ""]
+        judged_text, extra = json.dumps(items, ensure_ascii=False), 0
         for changed in grading.changes(start, work):
-            label = "<hidden>" if redact(changed, skills) != changed else changed
+            if changed not in task.get("files", {}) and changed not in judged_text:
+                # Notes, by whatever name, would tell the group; only change-based items look at them.
+                extra += 1
+                lines += [f"### another file, number {extra}", ""]
+                continue
             file = work / changed
             text = file.read_text(encoding="utf-8", errors="replace") if file.is_file() and not file.is_symlink() else "(gone or not a file)"
-            lines += [f"### {label}", "", redact(text[:6000], skills), ""]
+            lines += [f"### {redact(changed, skills)}", "", redact(text[:6000], skills), ""]
         lines += ["## judgements", ""]
-        lines += [f"- {item['id']}: {'holds' if row['items'].get(item['id']) else 'fails'} -- {item.get('means', '')}"
-                  for item in task["checks"]["items"]]
-        (to / f"{name}.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+        if any(part.get("failed") for part in row.get("parts", [])):
+            lines += ["The session failed, so by the rule every item fails.", ""]
+        for item in items:
+            conditions = {key: value for key, value in item.items() if key not in ("id", "means")}
+            lines += [f"- {item['id']}: {'holds' if row['items'].get(item['id']) else 'fails'} -- {item.get('means', '')}",
+                      f"  `{json.dumps(conditions, ensure_ascii=False)}`"]
+        (to / f"{name}.md").write_text("\n".join(lines) + "\n", encoding="utf-8", errors="replace")
         key[name] = {"dir": folder.name, "artifact": row["artifact"], "group": row["group"]}
-    to.with_name(to.name + ".key.json").write_text(json.dumps(key, indent=1) + "\n", encoding="utf-8")
+    (to.parent / "keys").mkdir(exist_ok=True)
+    impact.write_json(to.parent / "keys" / f"{to.name}.json", key)
     print(f"{len(chosen)} of {len(runs)} runs")
     return 0
 
@@ -272,8 +309,8 @@ def main() -> int:
         else:
             data = load(args.results)
             kept = {key: data.get(key) for key in (*impact.SAME_SETUP, "confinement", "cli_version", "framework_commit", "spent_usd")}
-            kept.update(stopped=bool(data["stopped"]), runs=[public_row(row) for row in data["runs"]])
-            args.to.write_text(json.dumps(kept, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+            kept.update(stopped=bool(data["stopped"]), runs=[public_row(row, data.get("skills") or ()) for row in data["runs"]])
+            impact.write_json(args.to, kept)
     except ValueError as error:
         print(f"judge: {error}", file=sys.stderr)
         return 2

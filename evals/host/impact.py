@@ -5,6 +5,7 @@
         [--switch-model MODEL] [--ids ID,...] [--runs 2] [--group framework] [--group control]
         [--skill NAME ...] [--hooks SETTINGS_JSON] [--budget USD] [--total-budget USD]
         [--seed N] [--jobs N] [--first-repeat N] [--resume OUT_DIR ...] [--cli-version VERSION]
+        [--overshoot USD] [--spent-before USD]
         [--pid-file FILE] [--cli PATH] [--env NAME=VALUE ...] [--allow-env NAME ...] [--forbid PATH ...]
     python evals/host/impact.py report OUT_DIR [OUT_DIR ...] [--md FILE]
     python evals/host/impact.py regrade OUT_DIR --tasks FILE --out NEW_DIR
@@ -41,14 +42,17 @@ another model than the requested one was served or the CLI version changed. A
 task and its groups are one block, run one after the other; --jobs blocks run
 side by side. Group order alternates from block to block, and --seed shuffles
 the tasks and decides which group starts. --resume runs only what the given
-directories did not complete and counts what they spent. Every run gets a private parent
+directories did not complete, judges again what only lacked its checks, and
+counts what they spent or had set aside when they were killed. Every run gets a private parent
 directory under --base, removed afterwards, and must pass preflight.py first.
 Bash is removed (see trigger.py for why); subjects use Read, Grep, Glob, Edit,
 Write and Skill inside their own directory only (sandbox.confinement), and, in a
 task with "sandbox": {"image", "command"}, one run_tests tool without arguments.
 
-A timeout or an exhausted per-session budget is a failed run. A usage limit, a
-Docker failure or any other error stops the experiment, to be finished later.
+A timeout after the model answered, an exhausted per-session budget and an
+answer over the output limit are failed runs. A usage limit, no response from
+the model, a Docker failure or any other error stops the experiment, to be
+finished later.
 
 `report` reads one or more output directories, so a run that a usage limit
 stopped can be finished in a second directory and summarised together; it
@@ -87,12 +91,15 @@ import trigger  # noqa: E402
 from grading import fingerprint  # noqa: E402
 
 TOOLS = " ".join(sandbox.SUBJECT_TOOLS)
-CONFINEMENT = "s19"  # change it when the subjects' limits change: such runs are not comparable
+CONFINEMENT = "s22"  # change it when the subjects' limits change: such runs are not comparable
 CHECK_IMAGE = "python:3.12-slim"  # where Python-snippet checks run
 TEST_TOOL = "mcp__bench__run_tests"
 GROUPS = ("framework", "control", "rules-only", "skills-only", "reviewed")
 REVIEW_PROMPT = ("另一位工程師剛完成下面的工作。請獨立核對：讀相關的程式與檔案，不要只相信他的說法；發現錯誤就直接修正檔案。"
                  "最後用你自己的話完整回答原本的問題，或說明完成的結果。\n\n原本的工作：\n{prompt}\n\n他的最後回覆：\n{answer}")
+LIMIT_NOTICE = re.compile(r"\W*(you('ve|’ve| have)? (hit|reached) (your|the) .{0,40}limit|(claude )?(ai )?usage limit reached)", re.IGNORECASE)
+# Errors that the subject's own work caused: running it again would hide a failure.
+SUBJECT_ERROR = re.compile(r"exceeded the .{0,20}output token maximum|prompt is too long|violates? (our|anthropic's) usage policy", re.IGNORECASE)
 TOKEN_KEYS = ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "output_tokens")
 
 
@@ -107,6 +114,8 @@ def original_work(parts: list[dict]) -> str:
 def load_tasks(path: Path) -> tuple[str, dict[str, dict]]:
     data = json.loads(path.read_text(encoding="utf-8"))
     tasks = {task["id"]: task for task in data["tasks"]}
+    if len(tasks) != len(data["tasks"]):
+        raise ValueError(f"a task id appears twice in {path.name}")
     for task in tasks.values():
         same = task["checks"].get("same_as")
         if same:
@@ -133,30 +142,54 @@ def same_model(requested: str, served: str) -> bool:
     return re.fullmatch(re.escape(requested) + r"(-\d{8})?", served) is not None
 
 
+def write_json(path: Path, data) -> None:
+    """Replace the file in one step. ASCII: what a subject wrote can hold characters that UTF-8 cannot."""
+    half = path.with_name(path.name + ".tmp")
+    half.write_text(json.dumps(data, indent=1) + "\n", encoding="ascii")
+    os.replace(half, path)
+
+
+def printable(text) -> str:
+    return str(text or "").encode("utf-8", "replace").decode("utf-8")
+
+
 class Ledger:
     """What may still be spent and whether to go on, shared by the blocks that run side by side."""
 
-    def __init__(self, results: dict, save, budget: float, total: float, carried: float = 0.0, version: str | None = None):
+    def __init__(self, results: dict, save, budget: float, total: float, carried: float = 0.0, version: str | None = None,
+                 overshoot: float = 0.0):
         self.results, self.save, self.budget, self.total, self.carried, self.version = results, save, budget, total, carried, version
-        self.changed, self.reserved, self.reason = threading.Condition(threading.RLock()), 0, None
+        self.hold = budget + overshoot  # the host only sees a budget passed after the call that passed it
+        self.changed, self.reserved, self.reason, self.setups = threading.Condition(threading.RLock()), 0, None, {}
 
-    def reserve(self, where: str) -> str | None:
-        """Set one session's budget aside, or say why it does not start."""
+    def reserve(self, where: str, started: bool = False) -> str | None:
+        """Set one session's budget aside, saved before it starts, or say why it does not start.
+
+        A later part of a run that already started still runs after a stop, so that what was paid is not lost."""
         with self.changed:
             while True:
-                if self.reason:
+                if self.reason and not started:
                     return f"not started after: {self.reason}"
                 spent = self.carried + self.results["spent_usd"]
-                if spent + (self.reserved + 1) * self.budget <= self.total + 1e-9:
+                if spent + (self.reserved + 1) * self.hold <= self.total + 1e-9:
                     self.reserved += 1
+                    self.results["reserved_usd"] = round(self.reserved * self.hold, 6)
+                    self.save()
                     return None
                 if not self.reserved:
-                    return f"total budget: {spent:.2f} spent before {where}, the next session may cost up to {self.budget}"
+                    return f"total budget: {spent:.2f} spent before {where}, the next session may cost up to {self.hold}"
                 self.changed.wait(1)  # a running session rarely uses all that was set aside for it
+
+    def check_setup(self, task: str, group: str, setup: str) -> str | None:
+        with self.changed:
+            if self.setups.setdefault((task, group), setup) != setup:
+                return f"setup of {task}-{group} differs from earlier runs: files, framework or hidden checks changed"
+            return None
 
     def charge(self, cost: float) -> None:
         with self.changed:
             self.reserved -= 1
+            self.results["reserved_usd"] = round(self.reserved * self.hold, 6)
             self.results["spent_usd"] = round(self.results["spent_usd"] + cost, 6)
             self.save()
             self.changed.notify_all()
@@ -230,17 +263,18 @@ def check(task: dict, work: Path, answer: str, task_dir: Path, runner=sandbox.ru
     """Run the hidden checks; returns {"passed", "failures"} (and "items"), or {"infrastructure": reason}.
 
     The subject's code is never executed here: only `runner` (the container) runs it. checks.restore names
-    files, say test settings, that go back to what the subject got before the checks run."""
+    files, say test settings, that go back to what the subject got in the copy the code is executed in; what
+    the subject changed is still judged on its own work."""
     if names := task["checks"].get("restore"):
         with tempfile.TemporaryDirectory(prefix="agf-restore-") as folder:
             copy = Path(folder).resolve() / "work"
-            if problem := _restored(task, task_dir, work, names, copy):
-                return {"passed": False, "failures": [problem]}
-            return _check(task, copy, answer, task_dir, runner, start)
-    return _check(task, work, answer, task_dir, runner, start)
+            problem = _restored(task, task_dir, work, names, copy)
+            return _check(task, work, answer, task_dir, runner, start, copy, problem)
+    return _check(task, work, answer, task_dir, runner, start, work)
 
 
-def _check(task: dict, work: Path, answer: str, task_dir: Path, runner, start: dict | None) -> dict:
+def _check(task: dict, work: Path, answer: str, task_dir: Path, runner, start: dict | None,
+           executed: Path, unrestored: str | None = None) -> dict:
     checks, failures = task["checks"], []
     image = task.get("sandbox", {}).get("image", CHECK_IMAGE)
     jobs = [(f"python check {index}", *_snippet(code)) for index, code in enumerate(checks.get("python", []))]
@@ -251,8 +285,10 @@ def _check(task: dict, work: Path, answer: str, task_dir: Path, runner, start: d
 
     def execute(label, command, limit, hidden, mark) -> str | None:
         """Why this check fails, or None."""
+        if unrestored:
+            return f"{label}: {unrestored}"
         try:
-            got = runner(work, image, command, limit, hidden)
+            got = runner(executed, image, command, limit, hidden)
         except (OSError, ValueError, subprocess.SubprocessError) as error:
             broken.append(f"{label}: {type(error).__name__}")
             return broken[-1]
@@ -273,7 +309,10 @@ def _check(task: dict, work: Path, answer: str, task_dir: Path, runner, start: d
             return {"infrastructure": broken[0]}
     items = None
     if checks.get("items"):
-        items = grading.grade(checks["items"], work, answer, start or {}, lambda name, code: not execute(name, *_snippet(code)))
+        try:
+            items = grading.grade(checks["items"], work, answer, start or {}, lambda name, code: not execute(name, *_snippet(code)))
+        except grading.Undecided as error:
+            return {"infrastructure": str(error)}
         if broken:
             return {"infrastructure": broken[0]}
         failures += [name for name, held in items.items() if not held]  # ids only: no subject output
@@ -350,19 +389,38 @@ def run(args: argparse.Namespace) -> int:
                "switch_model": args.switch_model, "review_model": args.review_model, "tools": TOOLS, "confinement": CONFINEMENT, "skills": skills, "hooks": str(args.hooks) if args.hooks else None,
                "tasks_sha256": hashlib.sha256(task_file.read_bytes()).hexdigest(),
                "budget_usd": args.budget, "total_budget_usd": args.total_budget, "spent_usd": 0.0, "runs": [], "stopped": None,
-               "seed": args.seed, "jobs": args.jobs, "cli_version": args.cli_version}
+               "seed": args.seed, "jobs": args.jobs, "cli_version": args.cli_version, "reserved_usd": 0.0}
     try:
-        earlier = combine([("this run", results), *((folder.name, json.loads((folder / "results.json").read_text(encoding="utf-8")))
-                                                   for folder in args.resume)])
+        resumed = [(folder.resolve(), json.loads((folder / "results.json").read_text(encoding="utf-8"))) for folder in args.resume]
+        earlier = combine([("this run", results), *((folder.name, data) for folder, data in resumed)])
     except (OSError, ValueError) as error:
         raise SystemExit(f"cannot resume: {error}")
     done = {(row["task"], row["group"], row["repeat"]) for row in earlier["runs"] if "passed" in row}
     results["cli_version"] = earlier.get("cli_version")
-    save = lambda: (out / "results.json").write_text(json.dumps(results, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    save = lambda: write_json(out / "results.json", results)
+    try:
+        (out / "results.json").open("x", encoding="ascii").close()  # claimed, also against a second run started now
+    except FileExistsError:
+        raise SystemExit(f"--out already has results: {out}")
+    save()
     pid_file = args.pid_file.resolve() if args.pid_file else None
     if pid_file:
         pid_file.write_text(json.dumps({"pid": os.getpid()}) + "\n", encoding="utf-8")
-    ledger = Ledger(results, save, args.budget, args.total_budget, earlier["spent_usd"], results["cli_version"])
+    ledger = Ledger(results, save, args.budget, args.total_budget, earlier["spent_usd"] + args.spent_before,
+                    results["cli_version"], args.overshoot)
+    for row in earlier["runs"]:
+        if row.get("setup_sha256"):
+            ledger.setups.setdefault((row["task"], row["group"]), row["setup_sha256"])
+    for folder, data in resumed:
+        for row in data["runs"]:
+            key = (row["task"], row["group"], row["repeat"])
+            if key in done or "passed" in row or not row.get("artifact") or row["task"] not in ids:
+                continue
+            judged = rejudge(tasks[row["task"]], task_file.parent, folder, row)  # paid already; only the checks are missing
+            ledger.record(judged)
+            if judged.get("stop"):
+                return 3
+            done.add(key)
 
     def block(planned: tuple[int, str, list[str]]) -> None:
         repeat, tid, order = planned
@@ -380,7 +438,10 @@ def run(args: argparse.Namespace) -> int:
             ledger.record(row)
 
     blocks = planned_order(ids, groups, range(args.first_repeat, args.first_repeat + args.runs), args.seed)
-    previous = signal.signal(signal.SIGTERM, trigger._stop_requested)
+    previous = {}
+    for stopping in (getattr(signal, name) for name in ("SIGTERM", "SIGINT", "SIGHUP") if hasattr(signal, name)):
+        if signal.getsignal(stopping) != signal.SIG_IGN:  # nohup's choice stays
+            previous[stopping] = signal.signal(stopping, trigger._stop_requested)
     pool = futures.ThreadPoolExecutor(max_workers=max(1, args.jobs))
     try:
         running = [pool.submit(block, planned) for planned in blocks]
@@ -392,13 +453,15 @@ def run(args: argparse.Namespace) -> int:
         if ledger.reason:
             return 3
     except trigger.Stopped:
-        signal.signal(signal.SIGTERM, signal.SIG_IGN)
+        for stopping in previous:
+            signal.signal(stopping, signal.SIG_IGN)
         ledger.stop("SIGTERM")
         pool.shutdown()  # what is running is finished and recorded
         return 143
     finally:
         pool.shutdown()
-        signal.signal(signal.SIGTERM, previous)
+        for stopping, handler in previous.items():
+            signal.signal(stopping, handler)
         if pid_file:
             trigger._release(pid_file)
     save()
@@ -425,6 +488,8 @@ def _session(args, out, cli, work, model, prompt, name, ledger, given, env, expe
         failed = "session timed out"
     elif result.get("subtype") == "error_max_budget_usd":
         failed = "session budget exhausted"
+    elif result.get("is_error") and SUBJECT_ERROR.search(str(result.get("text"))):
+        failed = "the session broke off on the subject's own error"
     estimated = cost is None
     cost = args.budget if estimated else cost
     planned_cut = bool(extra) and result.get("subtype") == "error_max_turns"
@@ -443,14 +508,20 @@ def _session(args, out, cli, work, model, prompt, name, ledger, given, env, expe
         stop = f"infrastructure: served {wrong} instead of {model}"
     if stop:
         return part, result, stop
-    if expects_tests and summary["tool_names"] is not None and TEST_TOOL not in summary["tool_names"]:
+    if not failed and LIMIT_NOTICE.match(str(result.get("text") or "")):
+        stop = f"exit {code}, usage limit reached"
+    elif expects_tests and summary["tool_names"] is not None and TEST_TOOL not in summary["tool_names"]:
         stop = "infrastructure: the test tool was not available"
     elif any(error["tool"] == TEST_TOOL and re.search(r"exit code: 12[5-7]\b|test tool failed", error["error"]) for error in summary["tool_errors"]):
         stop = "infrastructure: the test container did not run"
     elif not failed and (not result or ((code != 0 or result.get("is_error")) and not planned_cut)):
         # The host's message can carry the account's reset time and time zone; results.json is published.
-        said = re.sub(r".*hit your .*limit.*", "usage limit reached", str(result.get("text"))[:200])
+        said = printable(result.get("text"))[:200]
+        if re.search(r"limit|\bresets?\b", said, re.IGNORECASE):
+            said = "usage limit reached"
         stop = f"exit {code}, {said}"
+    elif not summary["models"]:
+        stop = "infrastructure: no model response"
     return part, result, stop
 
 
@@ -475,6 +546,9 @@ def run_one(args, framework, base, out, cli, env, startup, task, task_dir, group
             if hooked:
                 _install_hooks(framework, work, args.hooks.resolve())
         row["setup_sha256"] = setup_hash(task, task_dir, work)
+        if problem := ledger.check_setup(task["id"], group, row["setup_sha256"]):
+            row["stop"] = problem
+            return row
         box = task.get("sandbox", {})
         given = sandbox.confinement(work, box.get("image"), box.get("command"), box.get("timeout", 180),
                                     skills=tuple(installed), hooks=hooked)
@@ -499,7 +573,7 @@ def run_one(args, framework, base, out, cli, env, startup, task, task_dir, group
             review = bool(part.get("review"))
             prompt = REVIEW_PROMPT.format(prompt=part["prompt"], answer=answer) if review else part["prompt"]
             extra = ("--max-turns", str(part["max_turns"])) if part.get("max_turns") else ()
-            if refused := ledger.reserve(where):
+            if refused := ledger.reserve(where, started=bool(row["parts"])):
                 row["stop"] = refused
                 return row
             print(f"run {task['id']} {group} #{repeat} {'review' if review else 'part ' + label}", flush=True)
@@ -510,7 +584,7 @@ def run_one(args, framework, base, out, cli, env, startup, task, task_dir, group
             if stop:
                 row["stop"] = f"{where}: {stop}"
                 return row
-            answer, failed = result.get("text") or "", record["failed"]
+            answer, failed = printable(result.get("text")), record["failed"]
             if failed:
                 break
         (out / "outputs").mkdir(exist_ok=True)
@@ -523,7 +597,7 @@ def run_one(args, framework, base, out, cli, env, startup, task, task_dir, group
             (kept / f"{name}.start.json").write_text(json.dumps(start) + "\n", encoding="utf-8")
             row["artifact"] = name
         if failed:
-            row.update(passed=False, failures=[failed], **({"items": {item["id"]: False for item in items}} if items else {}))
+            row.update(passed=False, failures=[failed], **_no_item_holds(task))
         else:
             verdict = check(task, work, answer, task_dir, start=start)
             if "infrastructure" in verdict:
@@ -537,30 +611,42 @@ def run_one(args, framework, base, out, cli, env, startup, task, task_dir, group
         shutil.rmtree(private, ignore_errors=True)
 
 
+def _no_item_holds(task: dict) -> dict:
+    items = task["checks"].get("items")
+    return {"items": {item["id"]: False for item in items}} if items else {}
+
+
+def rejudge(task: dict, task_dir: Path, folder: Path, row: dict) -> dict:
+    """A row judged from what the subject left, without a session."""
+    kept, name = Path(row.get("kept_in") or folder), row["artifact"]
+    judged = {key: value for key, value in row.items() if key not in ("stop", "items", "passed", "failures")}
+    judged["kept_in"] = str(kept)
+    if failed := next((part["failed"] for part in row["parts"] if part.get("failed")), None):
+        return {**judged, "passed": False, "failures": [failed], **_no_item_holds(task)}
+    answer = (kept / "outputs" / f"{name}.md").read_text(encoding="utf-8")[:-1]
+    start = json.loads((kept / "artifacts" / f"{name}.start.json").read_text(encoding="utf-8"))
+    found = check(task, kept / "artifacts" / name, answer, task_dir, start=start)
+    if "infrastructure" in found:
+        return {**judged, "stop": f"{name} check: infrastructure: {found['infrastructure']}"}
+    return {**judged, **found}
+
+
 def regrade(args: argparse.Namespace) -> int:
     """Judge the kept work again, for a corrected task file; nothing is paid."""
     source, out, task_file = args.source.resolve(), args.out.resolve(), args.tasks.resolve()
     if (out / "results.json").exists():
         raise SystemExit(f"--out already has results: {out}")
     data = json.loads((source / "results.json").read_text(encoding="utf-8"))
-    kept = Path(data.get("artifacts_in") or source)
     _, tasks = load_tasks(task_file)
-    for row in data["runs"]:
-        if not row.get("artifact") or "passed" not in row:
-            continue
-        task, name = tasks[row["task"]], row["artifact"]
-        if any(part.get("failed") for part in row["parts"]):
-            row["items"] = {item["id"]: False for item in task["checks"]["items"]}
-            continue
-        answer = (kept / "outputs" / f"{name}.md").read_text(encoding="utf-8")[:-1]
-        start = json.loads((kept / "artifacts" / f"{name}.start.json").read_text(encoding="utf-8"))
-        found = check(task, kept / "artifacts" / name, answer, task_file.parent, start=start)
-        if "infrastructure" in found:
-            raise SystemExit(f"{name}: {found['infrastructure']}")
-        row.update(found)
-    data.update(regraded_from=data["tasks_sha256"], artifacts_in=str(kept), tasks_sha256=hashlib.sha256(task_file.read_bytes()).hexdigest())
+    for index, row in enumerate(data["runs"]):
+        if row.get("artifact"):
+            judged = rejudge(tasks[row["task"]], task_file.parent, source, row)
+            if judged.get("stop"):
+                raise SystemExit(judged["stop"])
+            data["runs"][index] = judged
+    data.update(regraded_from=data["tasks_sha256"], tasks_sha256=hashlib.sha256(task_file.read_bytes()).hexdigest())
     out.mkdir(parents=True, exist_ok=True)
-    (out / "results.json").write_text(json.dumps(data, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    write_json(out / "results.json", data)
     return 0
 
 
@@ -644,7 +730,8 @@ def combine(named: list[tuple[str, dict]]) -> dict:
     stopped = [f"{name}: {data['stopped']}" for name, data in named if data.get("stopped")]
     return {**{key: first[key] for key in (*SAME_SETUP, "confinement") if key in first}, "cli_version": versions[0] if versions else None,
             "model": first["model"], "switch_model": first.get("switch_model"), "framework_commit": ", ".join(commits),
-            "spent_usd": round(sum(data["spent_usd"] for _, data in named), 6),
+            # Set aside and never given back: the attempt was killed, and may have spent it.
+            "spent_usd": round(sum(data["spent_usd"] + data.get("reserved_usd", 0) for _, data in named), 6),
             "stopped": "; ".join(stopped) or None, "runs": [row for _, data in named for row in data["runs"]]}
 
 
@@ -695,6 +782,8 @@ def main() -> int:
     one.add_argument("--jobs", type=int, default=1, help="blocks (a task with its groups) that run side by side")
     one.add_argument("--first-repeat", type=int, default=0, help="number of the first repeat, for a later stage")
     one.add_argument("--resume", type=Path, action="append", default=[], help="an earlier --out: skip what it completed, count what it spent")
+    one.add_argument("--overshoot", type=float, default=0.0, help="also set this aside per session: the host checks its budget after a call")
+    one.add_argument("--spent-before", type=float, default=0.0, help="spend of attempts that cannot be resumed, counted into the cap")
     one.add_argument("--cli-version", help="stop when a session reports another version")
     one.add_argument("--pid-file", type=Path)
     one.add_argument("--cli")

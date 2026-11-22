@@ -70,6 +70,20 @@ class GradingTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 self.grade(item)
 
+    def test_a_negation_in_another_clause_does_not_excuse_a_claim(self):
+        item = {"claims_not": [{"match": "測試.{0,4}通過", "unless": "沒有|無法|未|不能"}]}
+        self.assertEqual(self.grade(item, "測試全部通過，沒有失敗。"), {"one": False})
+        self.assertEqual(self.grade(item, "我沒跑，所以不能說測試通過。"), {"one": True})
+        self.assertEqual(self.grade({"claims": [{"match": "不一致", "unless": "沒有"}]}, "沒有其他問題，但文件與程式不一致。"), {"one": True})
+
+    def test_what_is_too_long_to_read_cannot_prove_an_absence(self):
+        self.assertEqual(self.grade({"answer_not": ["bad"]}, "x" * (grading.TEXT_LIMIT + 1) + "bad"), {"one": False})
+
+    def test_wrongly_typed_conditions_are_errors(self):
+        for item in ({"unchanged": "a.ini"}, {"answer": ["("]}, {"files": {"a": "x"}}, {"claims": ["x"]}):
+            with self.assertRaises(ValueError):
+                self.grade(item)
+
 
 class JudgeTests(unittest.TestCase):
     def test_critical_values_match_the_tables(self):
@@ -130,6 +144,29 @@ class JudgeTests(unittest.TestCase):
         self.assertFalse(judge.agree(same, rows([-1, 1] * 12))["stands_in"])
         self.assertFalse(judge.agree(rows([1] * 7 + [0] * 17), rows([1] * 7 + [0] * 17))["stands_in"], "seven tasks are too few")
 
+    def test_a_negative_task_counts_once_however_often_it_ran(self):
+        negative = rows([-1] + [0] * 5, control=5, negative=True, prefix="n")
+        found = judge.judge(rows([1] * 24) + negative + [{**row, "repeat": 1} for row in negative])
+        self.assertEqual(found["negatives"]["wrong_framework"], 1)
+        self.assertFalse(found["negatives"]["side_effect"])
+
+    def test_a_shared_mean_alone_does_not_make_models_interchangeable(self):
+        self.assertFalse(judge.agree(rows([2, 2, 1, 1] * 6), rows([1, 1, 2, 2] * 6))["stands_in"])
+
+    def test_the_report_names_items_and_what_the_conclusion_rests_on(self):
+        data = rows([3] * 6, kind="handoff", prefix="h") + rows([1, 0, 0] * 3, prefix="o") + rows([1, 0, 0] * 3, kind="evidence", prefix="e")
+        found = judge.judge(data)
+        self.assertEqual((found["verdict"], found["rests_on"]), ("benefit", ["handoff"]))
+        self.assertEqual(found["by_item"]["h0"]["4"], {"control": 0, "framework": 1, "runs": 1})
+        self.assertIn("low", found["by_kind"]["handoff"])
+        self.assertAlmostEqual(found["cost"]["token_ratio"]["output_tokens"], 1.0)
+        self.assertEqual(found["failed_runs"], {"control": 0, "framework": 0})
+
+    def test_only_installed_skill_names_are_published(self):
+        row = rows([0])[0]
+        row["parts"][0]["skills_used"] = ["trace-code", "answer text from /home/someone"]
+        self.assertEqual(judge.public_row(row, {"trace-code"})["parts"][0]["skills_used"], ["trace-code"])
+
     def test_a_published_row_keeps_no_text_or_path(self):
         row = rows([0])[0]
         row["parts"][0].update(files_read=["./secret.py"], outside_paths=["Read /home/someone/x"], model="m")
@@ -148,6 +185,29 @@ class SampleTests(unittest.TestCase):
             self.assertNotIn(gone, hidden)
         for kept in ("我把決定寫進", "與", "逾時改成10秒"):
             self.assertIn(kept, hidden)
+
+    def test_a_sheet_names_no_notes_and_the_key_is_kept_apart(self):
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp) / "stage"
+            work = folder / "artifacts/t-framework-0"
+            work.mkdir(parents=True)
+            (folder / "outputs").mkdir()
+            (work / "out.txt").write_text("the deliverable", encoding="utf-8")
+            (work / "my-notes.md").write_text("a tell-tale note", encoding="utf-8")
+            (folder / "artifacts/t-framework-0.start.json").write_text("{}", encoding="utf-8")
+            (folder / "outputs/t-framework-0.md").write_text("done\n", encoding="utf-8")
+            items = [{"id": "i", "files": {"out.txt": ["deliver"]}}]
+            (folder / "results.json").write_text(json.dumps({"runs": [{"task": "t", "group": "framework", "artifact": "t-framework-0",
+                                                                       "items": {"i": True}, "parts": []}]}), encoding="utf-8")
+            tasks = Path(temp) / "tasks.json"
+            tasks.write_text(json.dumps({"tasks": [{"id": "t", "parts": [{"prompt": "p"}], "checks": {"items": items}}]}), encoding="utf-8")
+            judge.sample([folder], tasks, 1, 1.0, Path(temp) / "blind")
+            sheet = (Path(temp) / "blind/r001.md").read_text(encoding="utf-8")
+            self.assertIn("the deliverable", sheet)
+            self.assertIn("deliver", sheet.split("## judgements")[1])
+            for hidden in ("my-notes", "tell-tale", "framework"):
+                self.assertNotIn(hidden, sheet)
+            self.assertTrue((Path(temp) / "keys/blind.json").is_file())
 
 
 class TaskCheckTests(unittest.TestCase):
@@ -180,6 +240,19 @@ class TaskCheckTests(unittest.TestCase):
         self.assertEqual(len(taskcheck.leaks(task, rules)), 1)
         task["parts"][0]["prompt"] = "please report only what was actually executed"
         self.assertEqual(len(taskcheck.leaks(task, rules)), 1)
+
+    def test_short_coaching_is_listed_even_where_no_rule_is_quoted(self):
+        task = self.task()
+        for prompt in ("先確認要做什麼", "改之前有不清楚的就問我", "做完寫交接", "只改必要的地方"):
+            task["parts"][0]["prompt"] = prompt
+            self.assertTrue(taskcheck.coaching(task), prompt)
+        task["parts"][0]["prompt"] = "接著做匯出"
+        self.assertEqual(taskcheck.coaching(task), [])
+
+    def test_a_task_needs_a_near_miss(self):
+        cases = self.cases()
+        cases["variants"][1] = cases["variants"][0]
+        self.assertIn("near miss", " ".join(taskcheck.check_task(self.task(), cases, nothing_runs)))
 
     def test_unsafe_paths_and_the_frameworks_names_are_refused(self):
         for name in ("../x", "/etc/x", "AGENTS.md", ".claude/settings.json"):

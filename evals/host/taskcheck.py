@@ -9,10 +9,11 @@ CASES maps each task id to worked cases; none of them is ever in a subject's dir
      "null":     {...},                                                       at most one item holds
      "variants": [{..., "expect": {item id: true|false}}, ...]}               other wordings and near misses
 
-Every item has to hold in two cases at least and fail in one, and doing nothing at all may not get more
-than one item either. A negative task's null only has to fail. Snippets run only in sandbox.py's container.
-With --framework, wording that the tasks share with the installed rules and skills is listed as well: such
-a task would hand the control group the treatment.
+Every item has to hold in two cases at least and fail in one, some variant has to be right throughout and
+some a near miss, and doing nothing at all may not get more than one item either. A negative task's null only has to fail. Snippets run only in sandbox.py's container.
+The startup has to be empty. With --framework, wording that the tasks share with the installed rules and
+skills is listed, and so are short coaching phrases: such a task would hand the control group the treatment.
+Those lists are for a person to read; a short phrase can be chance.
 """
 from __future__ import annotations
 
@@ -32,6 +33,11 @@ import trigger  # noqa: E402
 ITEMS = 5
 RESERVED = ("claude.md", "claude.local.md", "agents.md", "gemini.md", ".agf", ".claude", ".agents", ".git", ".mcp.json")
 LEAK = 8.0  # eight Chinese characters or five words in a row
+LEAK_IN_PROMPT = 6.0  # six and four
+COACHING = re.compile(
+    r"先[^，。\n]{0,4}(問|確認|釐清)|不要(猜|臆測|亂|自己)|別(猜|亂改|自己)|(不清楚|不確定|有疑問|有問題)[^。\n]{0,6}問"
+    r"|只(改|修)必要|最小[^。\n]{0,3}(修改|改動)|(怎麼|如何)驗證|交接|記下來|寫下來|不必(詢)?問|沒跑[^。\n]{0,4}(說|講)"
+    r"|不要假|誠實|本次範圍|不推送|不部署|handoff|hand-over|checkpoint|ask me|don't guess|minimal (change|diff)", re.IGNORECASE)
 TOKEN = re.compile(r"[㐀-鿿]|[a-z0-9_]+")
 
 
@@ -40,23 +46,24 @@ def unsafe(name: str) -> bool:
     return path.is_absolute() or "\\" in name or ".." in path.parts or any(part.lower() in RESERVED for part in path.parts)
 
 
-def judged(task: dict, case: dict, runner) -> dict[str, bool]:
+def judged(task: dict, case: dict, runner, task_dir: Path | None = None) -> dict[str, bool]:
     with tempfile.TemporaryDirectory(prefix="agf-case-") as folder:
         work = Path(folder)
-        impact.materialize(task, work, work)
+        task_dir = task_dir or work
+        impact.materialize(task, task_dir, work)
         start = grading.fingerprint(work)
         for name in case.get("delete", []):
             (work / name).unlink()
         for name, text in case.get("files", {}).items():
             (work / name).parent.mkdir(parents=True, exist_ok=True)
             (work / name).write_text(text, encoding="utf-8")
-        found = impact.check(task, work, case.get("answer", ""), work, runner, start)
+        found = impact.check(task, work, case.get("answer", ""), task_dir, runner, start)
         if "infrastructure" in found:
-            raise SystemExit(f"{task['id']}: {found['infrastructure']}")
+            raise ValueError(found["infrastructure"])
         return found["items"]
 
 
-def check_task(task: dict, cases: dict, runner=sandbox.run) -> list[str]:
+def check_task(task: dict, cases: dict, runner=sandbox.run, task_dir: Path | None = None) -> list[str]:
     items = task.get("checks", {}).get("items", [])
     try:
         grading.validate(items)
@@ -71,19 +78,22 @@ def check_task(task: dict, cases: dict, runner=sandbox.run) -> list[str]:
     if len(items) != ITEMS or not task.get("parts") or "oracle" not in cases or "null" not in cases or len(variants) < 2:
         return [f"needs {ITEMS} items, parts, an oracle, a null and two variants"]
     problems, seen = [], []
+    expectations = [list(case.get("expect", {}).values()) for case in variants]
+    if not any(False in values for values in expectations) or not any(values == [True] * ITEMS for values in expectations):
+        problems.append("needs a variant that is right throughout and a near miss")
     try:
-        oracle = judged(task, cases["oracle"], runner)
+        oracle = judged(task, cases["oracle"], runner, task_dir)
         seen.append(oracle)
         if not all(oracle.values()):
             problems.append(f"oracle fails {[key for key, value in oracle.items() if not value]}")
         for label, case in (("null", cases["null"]), ("untouched", {})):
-            found = judged(task, case, runner)
+            found = judged(task, case, runner, task_dir)
             seen.append(found)
             right = [key for key, value in found.items() if value]
             if len(right) == ITEMS or (not task.get("negative") and len(right) > 1):
                 problems.append(f"{label} gets {right}")
         for number, case in enumerate(variants):
-            found = judged(task, case, runner)
+            found = judged(task, case, runner, task_dir)
             seen.append(found)
             expected = case.get("expect", {})
             if not expected:
@@ -103,18 +113,24 @@ def leaks(task: dict, rules: dict[str, str]) -> list[str]:
     """Runs of words a task shares with the rules, long enough not to be chance."""
     known = [" " + " ".join(TOKEN.findall(text.lower())) + " " for text in rules.values()]
     found = []
-    texts = [part["prompt"] for part in task["parts"]] + list(task.get("files", {}).values()) + list(task.get("files", {}))
-    for text in texts:
+    texts = [(part["prompt"], LEAK_IN_PROMPT) for part in task["parts"]]
+    texts += [(text, LEAK) for text in (*task.get("files", {}).values(), *task.get("files", {}))]
+    for text, enough in texts:
         words, reached = TOKEN.findall(text.lower()), 0
         for first in range(len(words)):
             last = first
             while last < len(words) and any(f" {' '.join(words[first:last + 1])} " in rule for rule in known):
                 last += 1
             run = words[first:last]
-            if last > reached and sum(1 if "㐀" <= word[0] <= "鿿" else 1.6 for word in run) >= LEAK - 1e-9:
+            if last > reached and sum(1 if "㐀" <= word[0] <= "鿿" else 1.6 for word in run) >= enough - 1e-9:
                 found.append(" ".join(run))
                 reached = last
     return found
+
+
+def coaching(task: dict) -> list[str]:
+    """Short ways to tell a subject how to work, quoted from the rules or not."""
+    return [found.group(0) for part in task["parts"] for found in COACHING.finditer(part["prompt"])]
 
 
 def installed_rules(framework: Path) -> dict[str, str]:
@@ -133,19 +149,23 @@ def main() -> int:
     parser.add_argument("--ids")
     parser.add_argument("--framework", type=Path)
     args = parser.parse_args()
-    _, tasks = impact.load_tasks(args.tasks)
+    startup, tasks = impact.load_tasks(args.tasks)
+    if startup:
+        print("startup: has to be empty, every group would get it")
     cases = json.loads(args.cases.read_text(encoding="utf-8"))
     chosen = [key for key in (args.ids.split(",") if args.ids else tasks)]
     rules = installed_rules(args.framework.resolve()) if args.framework else {}
     bad = 0
     for name in chosen:
-        problems = check_task(tasks[name], cases.get(name, {}))
-        problems += [f"shared with the rules: {text}" for text in leaks(tasks[name], rules)] if rules else []
+        problems = check_task(tasks[name], cases.get(name, {}), task_dir=args.tasks.resolve().parent)
+        if rules:
+            problems += [f"shared with the rules: {text}" for text in leaks(tasks[name], rules)]
+            problems += [f"coaching: {text}" for text in coaching(tasks[name])]
         bad += bool(problems)
         for problem in problems:
             print(f"{name}: {problem}")
     print(f"{len(chosen) - bad} of {len(chosen)} tasks have no problem")
-    return 1 if bad else 0
+    return 1 if bad or startup else 0
 
 
 if __name__ == "__main__":

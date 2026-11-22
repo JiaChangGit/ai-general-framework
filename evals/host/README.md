@@ -65,7 +65,7 @@ python evals/host/impact.py report /tmp/agf-impact-out
 - `--hooks` 用到的框架檔案會複製進受試目錄，設定檔不寫框架的路徑。但 shared 模式的安裝仍會把框架路徑寫進 `.agf/managed/agf-cli.md`（見上面「框架本身的路徑」），所以每次都要看讀取工作目錄以外的次數。
 - 受試者能用 Read、Grep、Glob、Edit、Write、Skill（只有這次安裝的 skill），Bash 整個拿掉；讀寫只限工作目錄。`--base` 必須在家目錄以外（否則家目錄的 `CLAUDE.md` 會被當成上層規則載入，開跑前會擋下）；不載入使用者層的設定、外掛 MCP 與自動記憶，所以和 S18 以前的數字不能直接比。預檢和 `trigger.py` 相同。
 - 任務可以用 `source`（任務檔旁的目錄）當材料、用 `sandbox`（image 與命令）給受試者一個不收參數的 `run_tests`、用 `checks.hidden` 與 `checks.command` 放隱藏測試。所有會執行受試者程式的檢查都只在容器裡跑（Python 片段以隔離模式執行、要印出跑到最後的記號才算通過；隱藏測試命令只覆蓋測試檔，擋不住受試者改 conftest、建置設定或故意造假，量測後要看 `files_changed`）：要先有 Docker 與 `python:3.12-slim`，缺了就在花錢之前停下。
-- 逾時與用完單次預算算失敗；額度、Docker 故障等會停下，不算失敗。每次執行記錄材料與隱藏測試的雜湊，`report` 不合併雜湊不同的同一格。
+- 模型答過之後逾時、用完單次預算、回覆超過輸出上限算失敗；額度、模型沒有回應、Docker 故障等會停下，不算失敗。兩組都不能寫宿主會自動載入的指示檔（`CLAUDE.md`、`AGENTS.md`、`.agf/managed/`）。每次執行記錄材料與隱藏測試的雜湊，`report` 不合併雜湊不同的同一格。
 - `--env NAME` 不帶值時，從目前的環境複製那個變數，例如在 CI 裡傳 API key，不必把它寫在命令列上。
 - 每個條件只跑一兩次時，差異可能是雜訊。要比較時固定模型、任務與 CLI 版本；Claude Code 的快取在訂閱方案內是 1 小時、其他情況 5 分鐘，跑的先後會影響 cache read 的多寡，所以 token 要分開看，不只看總數。
 

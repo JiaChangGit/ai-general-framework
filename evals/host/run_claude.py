@@ -93,8 +93,14 @@ def _paths(tool: str, given: dict) -> list[str]:
 def outside(paths: list[str], inside: Path) -> list[str]:
     """Paths that resolve outside `inside`; relative paths count from `inside`, the session's working directory."""
     base = inside.resolve()
-    return [value for value in paths
-            if not (Path(value) if Path(value).is_absolute() else base / value).resolve().is_relative_to(base)]
+
+    def escapes(value: str) -> bool:
+        try:
+            path = Path(value).expanduser()
+            return not (path if path.is_absolute() else base / path).resolve().is_relative_to(base)
+        except (OSError, ValueError, RuntimeError):
+            return True  # not a path that could be inside
+    return [value for value in paths if escapes(value)]
 
 
 def summarize(path: Path, inside: Path | None = None) -> dict:
@@ -103,10 +109,13 @@ def summarize(path: Path, inside: Path | None = None) -> dict:
                "files_read": [], "tool_errors": [],
                "bash_ran": [], "models": [], "result": None}
     pending, commands, skills = {}, {}, {}
-    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+    # Not splitlines(): it also breaks at characters such as U+0085, which an answer may contain.
+    for line in path.read_text(encoding="utf-8", errors="replace").split("\n"):
         try:
             event = json.loads(line)
         except json.JSONDecodeError:
+            continue
+        if not isinstance(event, dict):
             continue
         kind = event.get("type")
         if kind == "system" and event.get("subtype") == "init":

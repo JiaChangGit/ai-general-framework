@@ -19,13 +19,29 @@ import json, os, sys
 from pathlib import Path
 mode = os.environ.get("FAKE_MODE", "fix")
 served = "another-model" if mode == "other" else sys.argv[sys.argv.index("--model") + 1]
+seen_model = lambda: print(json.dumps({{"type": "assistant", "message": {{"model": served, "content": []}}}}), flush=True)
 if mode == "echo":
+    seen_model()
     print(json.dumps({{"type": "result", "is_error": False, "subtype": "success", "total_cost_usd": 0.01,
                       "result": sys.argv[sys.argv.index("-p") + 1]}}))
     sys.exit(0)
-if mode == "hang":
+if mode in ("hang", "silent"):
+    if mode == "hang":
+        seen_model()
     import time; time.sleep(30)
+if mode in ("notice", "toolong"):
+    seen_model()
+    said = "You've reached your weekly limit, resets 6:50am (Some/Where)" if mode == "notice" else "API Error: Claude's response exceeded the 32000 output token maximum"
+    print(json.dumps({{"type": "result", "is_error": mode == "toolong", "subtype": "success", "total_cost_usd": 0.02, "result": said}}))
+    sys.exit(1 if mode == "toolong" else 0)
+if mode == "odd":
+    seen_model()
+    line = json.dumps({{"type": "result", "is_error": False, "subtype": "success", "total_cost_usd": 0.01, "result": "renamed ODD"}})
+    print(line.replace("ODD", chr(0x85) + chr(92) + "ud800"))
+    sys.exit(0)
 if mode in ("budget", "limit"):
+    if mode == "budget":
+        seen_model()
     subtype = "error_max_budget_usd" if mode == "budget" else "success"
     print(json.dumps({{"type": "result", "is_error": True, "subtype": subtype, "total_cost_usd": 0.02,
                       "result": "You've hit your 5-hour limit, resets 6:50am (Some/Where)"}}))
@@ -88,6 +104,50 @@ class SandboxTests(unittest.TestCase):
         self.assertEqual(settings, {"disableAllHooks": True, "disableSkillShellExecution": True})
         self.assertIn("--strict-mcp-config", given["extra"])
         self.assertNotIn("mcp__bench__run_tests", sandbox.confinement(self.work)["allowed"])
+
+    def test_neither_group_can_write_instructions_the_host_loads_by_itself(self):
+        # CLAUDE.md imports both in an installed project: only that group could leave itself auto-loaded notes.
+        denied = sandbox.confinement(self.work)["disallowed"]
+        self.assertIn("Edit(./AGENTS.md)", denied)
+        self.assertIn("Edit(./.agf/managed/**)", denied)
+
+    def test_a_docker_client_that_hung_or_was_killed_is_infrastructure(self):
+        hung = [subprocess.TimeoutExpired("docker", 1), subprocess.CompletedProcess([], 0, b"", b"")]
+        with patch.object(sandbox.subprocess, "run", side_effect=hung):
+            self.assertTrue(sandbox._contained(self.work, "image", "true", 5, None)["infrastructure"])
+        for code in (-9, 130, 143):
+            with patch.object(sandbox.subprocess, "run", return_value=subprocess.CompletedProcess([], code, b"", b"")):
+                self.assertTrue(sandbox._contained(self.work, "image", "true", 5, None)["infrastructure"], code)
+
+    def test_restoring_does_not_hide_what_the_subject_changed(self):
+        (self.work / "conftest.py").write_text("original\n", encoding="utf-8")
+        start = impact.fingerprint(self.work)
+        (self.work / "conftest.py").write_text("cheat\n", encoding="utf-8")
+        task = {"files": {"conftest.py": "original\n"},
+                "checks": {"restore": ["conftest.py"], "items": [{"id": "kept", "unchanged": ["conftest.py"]}]}}
+        self.assertEqual(impact.check(task, self.work, "", self.work, start=start)["items"], {"kept": False})
+
+    def test_regexes_that_do_not_finish_are_the_graders_failure(self):
+        task = {"checks": {"items": [{"id": "slow", "answer": [r"^(\w+\s?)*:"]}]}}
+        with patch.object(impact.grading, "DEADLINE", 1):
+            self.assertIn("infrastructure", impact.check(task, self.work, "a" * 40 + "!", self.work, start={}))
+
+    def test_a_reservation_is_saved_before_the_session_and_a_started_run_may_finish(self):
+        results, saved = {"spent_usd": 0.0, "runs": [], "stopped": None}, []
+        ledger = impact.Ledger(results, lambda: saved.append(dict(results)), budget=0.8, total=2.0, overshoot=0.2)
+        self.assertIsNone(ledger.reserve("a"))
+        self.assertAlmostEqual(saved[-1]["reserved_usd"], 1.0)
+        ledger.charge(0.3)
+        self.assertEqual(saved[-1]["reserved_usd"], 0)
+        ledger.stop("SIGTERM")
+        self.assertIsNotNone(ledger.reserve("b"))
+        self.assertIsNone(ledger.reserve("a, part 2", started=True))
+
+    def test_a_task_id_may_appear_once(self):
+        path = self.work / "tasks.json"
+        path.write_text(json.dumps({"tasks": [{"id": "a", "checks": {}}, {"id": "a", "checks": {}}]}), encoding="utf-8")
+        with self.assertRaises(ValueError):
+            impact.load_tasks(path)
 
     @unittest.skipIf(sys.platform == "win32", "POSIX permissions")
     def test_the_snapshot_is_readable_and_does_not_follow_links(self):
@@ -476,6 +536,67 @@ class ImpactTests(unittest.TestCase):
         self.assertIn("version", data["stopped"])
         self.assertTrue(impact.same_model("claude-x-1", "claude-x-1-20261101"))
         self.assertFalse(impact.same_model("claude-x-1", "claude-x-1-5"))
+
+    def test_no_model_response_and_limit_notices_are_not_scores(self):
+        for number, (mode, reason) in enumerate((("silent", "no model response"), ("notice", "usage limit reached"))):
+            result, data = self.run_impact("--ids", "edit", "--runs", "1", "--group", "control", "--timeout", "2",
+                                           mode=mode, base_name=f"base{number}", out=f"out{number}")
+            self.assertEqual(result.returncode, 3, mode)
+            self.assertIn(reason, data["stopped"])
+            self.assertNotIn("passed", data["runs"][0])
+            self.assertNotIn("Some/Where", json.dumps(data))
+
+    def test_an_answer_over_the_output_limit_is_the_subjects_failure(self):
+        result, data = self.run_impact("--ids", "edit", "--runs", "1", "--group", "control", mode="toolong")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((data["runs"][0]["passed"], data["stopped"]), (False, None))
+
+    def test_odd_characters_from_the_subject_do_not_lose_the_run(self):
+        result, data = self.run_impact("--ids", "answer", "--runs", "1", "--group", "control", mode="odd")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(data["runs"][0]["failures"], ["answer lacks /nothing like this/"])
+
+    def test_the_margin_for_overshoot_is_kept_free(self):
+        _, data = self.run_impact("--ids", "edit", "--runs", "6", "--group", "control", "--budget", "0.05", "--overshoot", "0.05",
+                                  "--total-budget", "0.15")
+        self.assertEqual(sum("passed" in row for row in data["runs"]), 3)
+
+    def test_what_a_killed_attempt_had_reserved_counts_as_spent(self):
+        self.run_impact("--ids", "edit", "--runs", "1", "--group", "control")
+        path = self.temp / "out/results.json"
+        killed = json.loads(path.read_text())
+        killed["reserved_usd"] = 0.05
+        path.write_text(json.dumps(killed))
+        result, data = self.run_impact("--ids", "edit", "--runs", "2", "--group", "control", "--budget", "0.05",
+                                       "--total-budget", "0.11", "--resume", str(self.temp / "out"), base_name="base2", out="out2")
+        self.assertEqual((result.returncode, data["spent_usd"]), (3, 0))
+
+    def test_work_whose_check_broke_is_judged_again_and_not_paid_again(self):
+        self.item_tasks()
+        self.run_impact("--runs", "1", "--group", "control")
+        path = self.temp / "out/results.json"
+        broken = json.loads(path.read_text())
+        row = broken["runs"][0]
+        for key in ("passed", "items", "failures"):
+            del row[key]
+        row["stop"] = "itemised-control check: infrastructure: docker"
+        path.write_text(json.dumps(broken))
+        result, data = self.run_impact("--runs", "1", "--group", "control", "--resume", str(self.temp / "out"), base_name="base2", out="out2")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(data["spent_usd"], 0)
+        self.assertEqual(data["runs"][0]["items"]["renamed"], True)
+        self.assertIsNone(data["runs"][0].get("stop"))
+
+    def test_a_changed_setup_stops_before_it_is_paid_for(self):
+        self.run_impact("--ids", "edit", "--runs", "1", "--group", "control")
+        path = self.temp / "out/results.json"
+        before = json.loads(path.read_text())
+        before["runs"][0]["setup_sha256"] = "other"
+        path.write_text(json.dumps(before))
+        result, data = self.run_impact("--ids", "edit", "--runs", "2", "--group", "control", "--resume", str(self.temp / "out"),
+                                       base_name="base2", out="out2")
+        self.assertEqual((result.returncode, data["spent_usd"]), (3, 0))
+        self.assertIn("setup", data["stopped"])
 
     def test_the_shipped_task_file_loads_and_every_check_is_hidden(self):
         startup, tasks = impact.load_tasks(ROOT / "evals/impact/tasks.json")
