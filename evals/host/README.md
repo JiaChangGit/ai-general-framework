@@ -38,7 +38,7 @@ Bash 預設用 `--disallowedTools Bash` 整個拿掉：Claude Code 2.1.325 實�
   但它同時不載入使用者、專案與本機的設定檔；這會不會改變 skill 與 `CLAUDE.md` 的載入，還沒有驗證，所以 `trigger.py` 沒有用它。
 - **其他行程。** 允許 `ps` 之類的命令時，受試者看得到主持實驗的 session 與它的命令列。`trigger.py` 預設拿掉 Bash。
 - **Windows。** `run_claude.py` 在 Windows 會多保留幾個系統變數（`SYSTEMROOT`、`USERPROFILE` 等）；這些工具還沒在 Windows 上跑過，`stop` 也只在 Linux 上核對行程。
-- **框架本身的路徑。** shared 模式的安裝會把框架的絕對路徑寫進受試目錄的規則檔與 manifest（那是工具入口，設計如此），受試者可能照著去讀框架的按需參考；`outside_paths` 會記下這些讀取。預檢只搜尋 `--forbid` 給的路徑，報告也會列出它讀不了的檔。
+- **框架本身的路徑。** shared 模式的安裝會把框架的絕對路徑寫進受試目錄的 `.agf/managed/agf-cli.md`（S20 以前是規則檔）與 manifest（那是工具入口，設計如此），受試者可能照著去讀框架的按需參考；`outside_paths` 會記下這些讀取。預檢只搜尋 `--forbid` 給的路徑，報告也會列出它讀不了的檔。
 - **使用者層的設定照樣載入。** 受試 session 仍會載入使用者的全域設定（例如 hook、全域 `CLAUDE.md`、使用者層級的 skill），兩組相同；解讀結果時要記得它們存在。
 
 ## 框架到底有沒有幫助、多花多少：`impact.py`

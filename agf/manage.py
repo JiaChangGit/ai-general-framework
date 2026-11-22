@@ -27,6 +27,10 @@ MANIFEST = ".agf/manifest.json"
 SCHEMA = 1
 GUIDES = ("workflow.md", "writing.md", "writing-short.md", "tools.md", "delivery.md", "practices.md")
 RULES = ".agf/managed/project-rules.md"
+# How to run agf, read on demand; the resident rules only point at it.
+CLI_NOTE = ".agf/managed/agf-cli.md"
+# The line of templates/project-rules.md that is only written when skills are installed.
+SKILL_RULE = "- **skill。**"
 # Claude Code and Gemini CLI load these files and follow their @-imports.
 # Codex and OpenCode read AGENTS.md, which can only point to the rules.
 IMPORT_ENTRIES = {"claude": ("CLAUDE.md", ".claude/CLAUDE.md"), "gemini": ("GEMINI.md",)}
@@ -284,10 +288,17 @@ def _desired(source: Path, root: Path, hosts: list[str], old: dict | None, selec
         raise AgfError(f"Missing framework project rules: {rules}")
     script = str(source / "scripts/agf.py") if tools_mode == "shared" else ".agf/managed/runtime/scripts/agf.py"
     mode_note = "原始框架目錄要保持可用" if tools_mode == "shared" else "離線快照，不需要原始框架目錄"
-    instructions = rules.read_text(encoding="utf-8").rstrip() + "\n\n"
+    # An update that names some skills keeps the others (see _plan), so look at what will stay installed.
+    kept = {name.split("/")[2] for name in (old or {}).get("files", {}) if name.startswith(".agents/skills/")}
+    has_skills = bool(selected) or any((skills / name / "SKILL.md").is_file() for name in kept)
+    lines = rules.read_text(encoding="utf-8").rstrip().split("\n")
+    instructions = "\n".join(line for line in lines if has_skills or not line.startswith(SKILL_RULE)) + "\n\n"
     where = "" if tools_mode == "shared" else "在專案根目錄"
-    instructions += (f"工具模式：`{tools_mode}`（{mode_note}）。執行 `agf`：{where}用 Python 跑 `\"{script}\"`（`python3 -B`；沒有 python3 時用 `python` 或 `py -3`）；"
-                     "skill 裡的 `scripts/agf.py` 換成這個路徑，其餘參數不變。\n")
+    cli_note = (f"# 執行 agf\n\n工具模式：`{tools_mode}`（{mode_note}）。執行 `agf`：{where}用 Python 跑 `\"{script}\"`（`python3 -B`；沒有 python3 時用 `python` 或 `py -3`）；"
+                "skill 與指引裡的 `scripts/agf.py` 換成這個路徑，其餘參數不變。\n\n"
+                "指引說的「框架根目錄」是這個路徑中 `scripts/` 的上一層。\n")
+    add(CLI_NOTE, cli_note.encode("utf-8"), "generated:agf-cli")
+    instructions += f"執行 `agf` 前先讀 `{CLI_NOTE}`。\n"
     instructions += "其他指引在 `.agf/managed/guides/`（workflow、writing-short、writing、tools、delivery），需要時才讀。\n"
     if ai_traces == "exclude":
         excluded = ("AI 工具檔已由 `.git/info/exclude` 排除，不要加進版本庫" if traces.is_toplevel(root) else

@@ -56,11 +56,11 @@ Commit／PR 遵循目標專案的語言與慣例。讓未參與對話的人理�
 
 ## 資料與跨格式作品
 
-整理資料成果，或製作 PDF、HTML、圖片、漫畫、聲音、歌曲與影片時，按需讀框架根目錄的 `templates/outputs/README.md`；根目錄是專案規則所列 CLI 路徑中 `scripts/` 的上一層。shared 使用共享來源，copy 使用 `.agf/managed/runtime/templates/outputs/README.md`。依任務選相關段落處理來源、素材、內容與格式驗收；一般文字修句不必載入。
+整理資料成果，或製作 PDF、HTML、圖片、漫畫、聲音、歌曲與影片時，按需讀框架根目錄的 `templates/outputs/README.md`；根目錄是 `.agf/managed/agf-cli.md` 所列 CLI 路徑中 `scripts/` 的上一層。shared 使用共享來源，copy 使用 `.agf/managed/runtime/templates/outputs/README.md`。依任務選相關段落處理來源、素材、內容與格式驗收；一般文字修句不必載入。
 
 ## 簡報與月報
 
-製作、修改或匯出簡報時，讀框架根目錄的 `templates/presentations/README.md`；根目錄是專案規則所列 CLI 路徑中 `scripts/` 的上一層。shared 使用共享來源，copy 使用 `.agf/managed/runtime/templates/presentations/README.md`。這份按需指引涵蓋內容與版型分工、缺值、編輯性、逐頁檢查、配音及分享；一般文字修改不必讀。
+製作、修改或匯出簡報時，讀框架根目錄的 `templates/presentations/README.md`；根目錄是 `.agf/managed/agf-cli.md` 所列 CLI 路徑中 `scripts/` 的上一層。shared 使用共享來源，copy 使用 `.agf/managed/runtime/templates/presentations/README.md`。這份按需指引涵蓋內容與版型分工、缺值、編輯性、逐頁檢查、配音及分享；一般文字修改不必讀。
 
 有資料支持的分析頁可以用結論作標題，背景與定義頁直接說主題。AI 可先起草主張，但不編數字、補造原因或把缺值當成零；待確認的推論需讓審閱者辨認。使用者提供主題、材料或作品連結即可，代理選既有工具處理；不將某個平台的能力當成本框架內建功能。
 

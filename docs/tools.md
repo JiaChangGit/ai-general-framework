@@ -2,7 +2,7 @@
 
 需要執行、整理資料或補足外部能力時才讀相關段落；省 token 評估只在比較這類工具時讀。先用已可用且符合任務的原生工具；不為了使用框架而多包一層，也不因工具存在就取得操作權限。副作用與保留操作見 [delivery.md](delivery.md)。
 
-跨資料來源、需要區分文件檢索／圖譜／SQL／媒體能力時，再讀框架根目錄的 `templates/tool-selection/README.md`；根目錄是專案規則所列 CLI 中 `scripts/` 的上一層。shared 讀共享來源，copy 讀 `.agf/managed/runtime/templates/tool-selection/README.md`。此參考保留能力狀態、證據範圍與最小路由紀錄，不新增自動啟動的 router。慢 SQL 或資料庫變更則由選配的 `review-sql` 處理；一般欄位查詢直接用已有的唯讀資料工具。
+跨資料來源、需要區分文件檢索／圖譜／SQL／媒體能力時，再讀框架根目錄的 `templates/tool-selection/README.md`；根目錄是 `.agf/managed/agf-cli.md` 所列 CLI 路徑中 `scripts/` 的上一層。shared 讀共享來源，copy 讀 `.agf/managed/runtime/templates/tool-selection/README.md`。此參考保留能力狀態、證據範圍與最小路由紀錄，不新增自動啟動的 router。慢 SQL 或資料庫變更則由選配的 `review-sql` 處理；一般欄位查詢直接用已有的唯讀資料工具。
 
 ## 原生 CLI 與小型 helper
 
@@ -16,7 +16,7 @@ AGF 提供原生工具欠缺的預覽、範圍、證據或還原能力時才選�
 
 ### 二進位：用固定讀取器核對 byte 與 bit
 
-要求從已儲存的二進位檔讀某個 offset（檔案起點算起的位移）、擷取 bit field（由數個位元組成的欄位）或 hex dump（十六進位逐列檢視）時，用既有 `binary bytes|bits|dump`，不每次重寫讀檔程式。入口依專案規則的 CLI 路徑，參數查對應 `--help`。讀取只限一般檔案，不讀即時裝置、pipe 或硬體暫存器；副檔名不限 `.bin`。
+要求從已儲存的二進位檔讀某個 offset（檔案起點算起的位移）、擷取 bit field（由數個位元組成的欄位）或 hex dump（十六進位逐列檢視）時，用既有 `binary bytes|bits|dump`，不每次重寫讀檔程式。入口依 `.agf/managed/agf-cli.md` 所列 CLI 路徑，參數查對應 `--help`。讀取只限一般檔案，不讀即時裝置、pipe 或硬體暫存器；副檔名不限 `.bin`。
 
 `bytes` 預設 unsigned little-endian（無號、低位元組在前），明確為 big-endian 的格式才加 `--endian big`；預設不代表已確認檔案格式。`bits` 固定 little-endian、LSB-first：第一個 byte 的最低位元是 bit 0，讀滿該 byte 後接下一個 byte 的低位元。big-endian 多 byte 欄位、MSB 編號（最高位元編為 0）或 signed（有號）數值，先釐清規格對照，不能直接套用此 bit 命令。`dump` 呈現原始排列，沒有端序轉換。
 
@@ -28,7 +28,7 @@ AGF 提供原生工具欠缺的預覽、範圍、證據或還原能力時才選�
 
 「畫個圖」「幫我畫流程圖」「把這個視覺化」等技術圖解請求，都先選合適樣板，再產生簡短 Mermaid 文字（`.mmd`）；預設交已可用的 mermaid-cli（命令 `mmdc`）渲染 SVG，需 PNG 時仍由工具輸出。AI 不手寫 SVG、圖片像素或改用圖像生成服務。需要可拖曳編輯的 draw.io 成品時，先寫 XML 圖源，再交原生工具渲染。渲染器缺少時如實交付圖源與命令；不自行安裝或宣稱已畫好圖片。
 
-樣板與完整操作放在 **框架根目錄的 `templates/diagrams/README.md`**；框架根目錄是專案規則所列 CLI 路徑中 `scripts/` 目錄的上一層。shared 讀共享來源，copy 讀 `.agf/managed/runtime/templates/diagrams/`，不用載入全部樣板。流程用 flowchart、互動用 sequence、狀態用 state、方塊排列用 block、事件用 timeline、排程與近似訊號持續時間用 gantt；多層架構採 `flowchart LR`，詳見該指引的選圖表。
+樣板與完整操作放在 **框架根目錄的 `templates/diagrams/README.md`**；框架根目錄是 `.agf/managed/agf-cli.md` 所列 CLI 路徑中 `scripts/` 目錄的上一層。shared 讀共享來源，copy 讀 `.agf/managed/runtime/templates/diagrams/`，不用載入全部樣板。流程用 flowchart、互動用 sequence、狀態用 state、方塊排列用 block、事件用 timeline、排程與近似訊號持續時間用 gantt；多層架構採 `flowchart LR`，詳見該指引的選圖表。
 
 每張圖最多 15 個節點，節點顯示文字合計最多 12 字，必要時用 `<br/>` 換行，長名稱以短別名搭配圖外對照；超過就依模組拆圖，不截掉證據。每個判斷的出線標明條件，二元判斷用「是／否」；其他情況保留實際條件。只畫使用者敘述、原始碼或資料能支持的失敗、重試與回饋路徑；未知去向標在圖外，影響結果才問。共用邏輯用具名子圖或另一張圖重用，避免重複展開。所有新 `.mmd` 的 frontmatter（檔頭設定）在 `config:` 下第一行放 `look: neo`，以 UTF-8 儲存並沿用樣板字型；neo 的實際外觀仍受圖型與工具版本影響。
 

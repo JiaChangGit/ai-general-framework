@@ -591,11 +591,14 @@ class ProjectTests(unittest.TestCase):
         self.assertEqual(result["available_skills"], ["trace"])
         value = json.loads((self.root / ".agf/manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(value["skills"], [])
-        self.assertEqual(len(value["files"]), 1 + len(manage.GUIDES) + 1, "rules, guides (practices.md since S14), AGENTS.md")
+        self.assertEqual(len(value["files"]), 2 + len(manage.GUIDES) + 1, "rules, agf-cli.md (S20), guides, AGENTS.md")
         self.assertFalse((self.root / ".agents").exists())
         self.assertFalse((self.root / ".agf/managed/runtime").exists())
         self.assertFalse((self.root / ".agf/managed/profile.example.json").exists())
-        self.assertIn(str(self.source / "scripts/agf.py"), (self.root / ".agf/managed/project-rules.md").read_text(encoding="utf-8"))
+        self.assertIn(str(self.source / "scripts/agf.py"), (self.root / ".agf/managed/agf-cli.md").read_text(encoding="utf-8"))
+        rules = (self.root / ".agf/managed/project-rules.md").read_text(encoding="utf-8")
+        self.assertNotIn(str(self.source / "scripts/agf.py"), rules, "the path is read on demand (S20)")
+        self.assertIn("`.agf/managed/agf-cli.md`", rules)
 
     def test_shared_status_reports_missing_tools_even_when_managed_files_are_clean(self):
         self.run_project("install", True, tools="shared")
@@ -695,6 +698,59 @@ class ProjectTests(unittest.TestCase):
         self.run_project("rollback", True)
         self.assertEqual(self.run_project("status")["tools_mode"], "shared")
         self.assertFalse((self.root / ".agf/managed/runtime/scripts/agf.py").is_file())
+
+    def use_real_rules(self):
+        shutil.copyfile(manage.SOURCE / "templates/project-rules.md", self.source / "templates/project-rules.md")
+        return self.root / ".agf/managed/project-rules.md"
+
+    def test_the_real_template_has_one_skill_rule_to_make_conditional(self):
+        lines = (manage.SOURCE / "templates/project-rules.md").read_text(encoding="utf-8").splitlines()
+        self.assertEqual(sum(line.startswith("- **skill。**") for line in lines), 1)
+
+    def test_the_skill_rule_follows_the_skills_that_end_up_installed(self):
+        rules = self.use_real_rules()
+        present = lambda: "**skill。**" in rules.read_text(encoding="utf-8")
+        self.run_project("install", True, skills=[])
+        self.assertFalse(present())
+        for kept in ("**對齊。**", "**驗證。**", "**Git 與授權。**", "practices.md"):
+            self.assertIn(kept, rules.read_text(encoding="utf-8"))
+        self.run_project("update", True, skills=["trace"])
+        self.assertTrue(present())
+        self.run_project("rollback", True)
+        self.assertFalse(present())
+
+    def test_an_update_that_preserves_skills_keeps_the_skill_rule(self):
+        rules = self.use_real_rules()
+        self.run_project("install", True, skills=["trace"])
+        self.run_project("update", True, skills=[])  # nothing refreshed, trace stays installed
+        self.assertTrue((self.root / ".agents/skills/trace/SKILL.md").is_file())
+        self.assertIn("**skill。**", rules.read_text(encoding="utf-8"))
+        shutil.rmtree(self.source / "skills/trace")
+        (self.source / "skills").mkdir(exist_ok=True)
+        self.run_project("update", True, skills=[])
+        self.assertFalse((self.root / ".agents/skills/trace/SKILL.md").exists())
+        self.assertNotIn("**skill。**", rules.read_text(encoding="utf-8"))
+
+    def test_the_cli_note_follows_the_tools_mode_and_never_overwrites_a_users_file(self):
+        note = self.root / ".agf/managed/agf-cli.md"
+        note.parent.mkdir(parents=True)
+        note.write_text("mine", encoding="utf-8")
+        with self.assertRaises(AgfError):
+            self.run_project("install", True)
+        self.assertEqual(note.read_text(encoding="utf-8"), "mine")
+        note.unlink()
+        self.run_project("install", True, tools="shared")
+        self.assertIn("`shared`", note.read_text(encoding="utf-8"))
+        self.run_project("update", True, tools="copy")
+        self.assertIn(".agf/managed/runtime/scripts/agf.py", note.read_text(encoding="utf-8"))
+        self.run_project("rollback", True)
+        self.assertIn("`shared`", note.read_text(encoding="utf-8"))
+
+    def test_deployed_text_points_at_the_cli_note_for_the_path(self):
+        for name in ("docs/tools.md", "docs/writing.md", "docs/cli.md", "templates/diagrams/README.md"):
+            text = (manage.SOURCE / name).read_text(encoding="utf-8")
+            self.assertNotRegex(text, r"規則所列|專案規則的 CLI|project-rules\.md` 的 CLI", name)
+            self.assertIn("agf-cli.md", text, name)
 
     def test_legacy_manifest_without_mode_keeps_copy_behavior(self):
         self.run_project("install", True, tools="copy")

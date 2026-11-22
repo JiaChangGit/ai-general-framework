@@ -22,7 +22,7 @@
 
 已有文字流程時，直接修改一份 `.mmd`，不再讓 AI 重寫同內容的 JSON；只有先計算統計或需共用模型匯出兩種格式時，才用 `diagram create`。樣板日期與例外分支必須換成本次有根據的內容，不因樣板已有就保留。
 
-已配置專案先讀 `.agf/managed/project-rules.md` 的 CLI 路徑。找到該路徑的 `scripts/` 目錄，再往上一層就是框架根目錄，其中有 `templates/diagrams/`：共享模式位於來源 checkout，工具副本模式位於目標專案 `.agf/managed/runtime/templates/diagrams/`。副本帶有這份說明與樣板，不需回讀原始 checkout；更新時沿用現有 `project plan/update` 流程，勿直接修改受管理的樣板。
+已配置專案先讀 `.agf/managed/agf-cli.md` 的 CLI 路徑。找到該路徑的 `scripts/` 目錄，再往上一層就是框架根目錄，其中有 `templates/diagrams/`：共享模式位於來源 checkout，工具副本模式位於目標專案 `.agf/managed/runtime/templates/diagrams/`。副本帶有這份說明與樣板，不需回讀原始 checkout；更新時沿用現有 `project plan/update` 流程，勿直接修改受管理的樣板。
 
 ## 2. 寫圖源並核對內容
 

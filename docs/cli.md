@@ -1,6 +1,6 @@
 # CLI 操作
 
-在 framework checkout 用 `python scripts/agf.py`。已配置專案的有效入口寫在 `.agf/managed/project-rules.md`；共享模式使用來源 checkout，副本模式使用專案內 `.agf/managed/runtime/scripts/agf.py`。核心不需 pip 安裝。
+在 framework checkout 用 `python scripts/agf.py`。已配置專案的有效入口寫在 `.agf/managed/agf-cli.md`（常駐規則只留一句指路；S20 以前的配置在 `project update` 之前仍寫在專案規則裡）；共享模式使用來源 checkout，副本模式使用專案內 `.agf/managed/runtime/scripts/agf.py`。核心不需 pip 安裝。
 
 CLI 輸出 JSON；`check`、`run` 等檢查失敗會回傳非零，操作錯誤通常為 2，選用能力缺失可為 3。不同命令的退出碼語意不同：`files diff` 成功完成比較時，即使發現差異也回傳 0，要檢查 JSON 中的差異內容，不能只靠退出碼。`PLAN`、`RECORDED`、`HEADER_RECOGNIZED` 與 `PASS` 意義不同，依輸出的說明判讀。
 
@@ -24,6 +24,8 @@ python scripts/agf.py profile show --no-user
 偏好來源為框架預設、使用者設定、專案 `.agf/profile.json`，較近的物件逐層合併，清單取代。Windows 使用者路徑為 `%APPDATA%/ai-general-framework/profile.json`；Linux 為 `${XDG_CONFIG_HOME:-~/.config}/ai-general-framework/profile.json`。可明示 `--user`／`--project`；`profile init --output PATH` 先預覽，`--apply` 才建立且不覆寫。個人偏好不授予工具權限。
 
 Manifest 是記錄受管理檔案、來源和模式的清單。`status` 分別顯示檔案是否被本地修改，以及工具入口是否仍可讀；檔案乾淨不代表已刪除的共享來源還能使用。工具入口可讀也不等於原生工具已登入或通過功能驗證。
+
+常駐規則的 skill 一段只在更新後仍裝有框架 skill 時寫入；只有使用者自己的 skill 或外掛 skill 時不寫。
 
 `status` 也檢查各宿主自己會讀的入口有沒有接到 `.agf/managed/project-rules.md`：Claude Code 看 `CLAUDE.md` 或 `.claude/CLAUDE.md`，Gemini CLI 看 `GEMINI.md`，沿著 `@` import 往下找，最多五層，程式碼區塊裡的不算；Codex 與 OpenCode 看 `AGENTS.md` 有沒有寫到它。沒接上時列在 `warnings`，退出碼不變。框架不改寫既有的入口檔；要每個 session 都載入規則，自己加一行 `@.agf/managed/project-rules.md`。
 
@@ -71,7 +73,7 @@ PDF 抽字需選用 pypdf，`inspect` 只查 metadata，`excerpt --pages 2,4-6` 
 
 ## 二進位檔：數值、位元欄位與 hex dump
 
-`binary` 只需標準庫，唯讀指定的已儲存檔案，任何副檔名皆可。下列步驟在框架根目錄執行；已配置專案改用規則所列的 CLI 路徑。`offset` 是從檔案開頭算起、以 byte 為單位的位移；整數參數可用十進位或 `0x` 十六進位。
+`binary` 只需標準庫，唯讀指定的已儲存檔案，任何副檔名皆可。下列步驟在框架根目錄執行；已配置專案改用 `.agf/managed/agf-cli.md` 所列 CLI 路徑。`offset` 是從檔案開頭算起、以 byte 為單位的位移；整數參數可用十進位或 `0x` 十六進位。
 
 先建立 8 bytes 的教學檔；這段只建立合成資料，若檔案已存在會拒絕覆寫。可以在 PowerShell 或 Linux shell 貼上整段：
 
