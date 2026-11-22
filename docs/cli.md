@@ -25,6 +25,8 @@ python scripts/agf.py profile show --no-user
 
 Manifest 是記錄受管理檔案、來源和模式的清單。`status` 分別顯示檔案是否被本地修改，以及工具入口是否仍可讀；檔案乾淨不代表已刪除的共享來源還能使用。工具入口可讀也不等於原生工具已登入或通過功能驗證。
 
+從 S20 以前升級的 copy 模式專案，若用專案內的舊快照執行 `project update --apply`，要跑兩次：第一次換掉快照裡的程式，第二次才會產生 `agf-cli.md`。用框架 checkout 執行時一次就好。
+
 常駐規則的 skill 一段只在更新後仍裝有框架 skill 時寫入；只有使用者自己的 skill 或外掛 skill 時不寫。
 
 `status` 也檢查各宿主自己會讀的入口有沒有接到 `.agf/managed/project-rules.md`：Claude Code 看 `CLAUDE.md` 或 `.claude/CLAUDE.md`，Gemini CLI 看 `GEMINI.md`，沿著 `@` import 往下找，最多五層，程式碼區塊裡的不算；Codex 與 OpenCode 看 `AGENTS.md` 有沒有寫到它。沒接上時列在 `warnings`，退出碼不變。框架不改寫既有的入口檔；要每個 session 都載入規則，自己加一行 `@.agf/managed/project-rules.md`。

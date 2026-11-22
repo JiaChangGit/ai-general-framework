@@ -1,12 +1,12 @@
 # 接手文件
 
-更新日期：2026-11-22（S19 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
+更新日期：2026-11-22（S20 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
 
-> **S19 做完，等使用者兩件事（2026-11-22）。**
+> **S19、S20 做完，等使用者兩件事（2026-11-22）。**
 >
-> 1. 把 `s19-benchmark` 併進 main（命令在下面「還沒做的事」），之後自己 push。
-> 2. 核准或否決 [M 報告](studies/research-2026-11/M-s19.md)的刪減清單 P1～P6（建議核准 P1～P5，P6 先不動）。核准之前不要改那些規則與 skill。
+> 1. 把 `s20-prune` 併進 main（它包含 S19；命令在下面「還沒做的事」），之後自己 push。
+> 2. 要不要花錢複測 S20（上限 1.2 美元、一個盲評子代理，見「還沒做的事」第 1 項）。沒有同意之前不要開受試 session。
 
 ## 一開始先做什麼
 
@@ -40,11 +40,11 @@ python3 -B ~/src/ai-general-framework/scripts/agf.py audit --root ~/src/ai-gener
 python3 -B ~/src/ai-general-framework/scripts/agf.py task checkpoint --help
 ```
 
-框架放在別處時才要換路徑。S12～S18 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s19`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以上面第二個命令為準。
+框架放在別處時才要換路徑。S12～S18 都在框架目錄旁的 clone 做（`../ai-general-framework-s12`～`-s20`），因為 guard hook 也擋 `git worktree add`。是否已併進 `main`，以上面第二個命令為準。
 
 ## 目前的位置
 
-修改與驗證在 [CHANGELOG.md](CHANGELOG.md)；分析與排好順序的待辦在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md)（第六輪的路線圖、第七～九輪的更新在最後）；研究與量測在 [studies/](studies/README.md)；外部資源資料庫在 [docs/ecosystem/](docs/ecosystem/README.md)。
+修改與驗證在 [CHANGELOG.md](CHANGELOG.md)；分析與排好順序的待辦在 [docs/analysis-2026-11.md](docs/analysis-2026-11.md)（第六輪的路線圖、第七～九輪的更新在最後，S20 只有 CHANGELOG）；研究與量測在 [studies/](studies/README.md)；外部資源資料庫在 [docs/ecosystem/](docs/ecosystem/README.md)。
 
 S12 的重點：
 
@@ -73,6 +73,8 @@ S18（2026-11-22）：寫作短版與讀取時機、commit-msg hook、文件對�
 
 S19（2026-11-22）：量測第一次有真正的隔離（容器加宿主限制）；S11～S18 的數字不能和之後的直接比。S18 審查找到的缺陷已修。真 bug 試跑 19 次通過 16 次，沒有確定合格的題目，所以沒有分組、沒有「框架有沒有好處」的判定；原設計的樣本數也不夠。寫作短版複測通過，維持（[M 報告](studies/research-2026-11/M-s19.md)）。
 
+S20（2026-11-22）：使用者核准的刪減 P1～P5 已做（P6 不動）。`agf` 的執行方式在 `.agf/managed/agf-cli.md`；skill 規則只在裝有框架 skill 時寫入；寫文件不再觸發 practices，兩句只在那裡的規則已補進兩份寫作指引。只做了不花錢的驗證。
+
 ## 拿框架到別的專案測試
 
 使用者會在其他聊天室用這個框架做別的專案，順便測它的表現。建議的做法：
@@ -90,15 +92,15 @@ S19（2026-11-22）：量測第一次有真正的隔離（容器加宿主限制�
 
 ## 還沒做的事
 
-把 S19 併進 main（使用者執行）：
+把 S19 與 S20 一起併進 main（使用者執行）：
 
 ```bash
-git -C ~/src/ai-general-framework pull --ff-only ~/src/ai-general-framework-s19 s19-benchmark
+git -C ~/src/ai-general-framework pull --ff-only ~/src/ai-general-framework-s20 s20-prune
 ```
 
 依分析報告第九輪的優先順序：
 
-1. （高，等使用者核准）刪減清單 P1～P6；改完做一次寫作盲評與冒煙測試，確認沒有退步。
+1. （高，等使用者同意花費）複測 S20：先寫門檻，再用 Haiku 各組冒煙一次（會不會照指路讀 `agf-cli.md`、skill 與指引還載入得到），並比較 S19 與 S20 的短版各 5 次加盲評（門檻沿用 S19：忠實度與對新手的用處都不低超過 0.5）。合計上限 1.2 美元。沒過就列給使用者，建議退掉 `0e9932a`。P6 沒有核准，不要做。
 2. （高）benchmark 換設計再花錢：先算樣本數與預算，再問使用者。S19 的算法在 `studies/research-2026-11/bench-s19/power.py`。不要直接補跑 S19 沒判完的兩題。
 3. （中）把短版「改寫只用原稿的事實」補進完整版寫作指引，再盲評一次。
 4. （中）審查沒修完的：`FILE_MARKERS` 只認 Claude、審查組只拿最後一段指示、doccheck 對 `skills/`、`examples/`、`tests/` 的缺口。
@@ -116,6 +118,7 @@ git -C ~/src/ai-general-framework pull --ff-only ~/src/ai-general-framework-s19 
 - **量測途中不要改會部署的檔案，也不要移動 HEAD。** 要試修改時複製一份框架，用 `--framework` 指過去。額度用完會留下一列未完成的紀錄，補跑寫到新的 `--out` 再合併。
 - **假的 CLI 與假的 Docker 測不出隔離。** S19 的兩個隔離錯誤（全域 `CLAUDE.md` 進到對照組、容器讀不到 0600 的安裝檔）都是真跑一次才看到。改了量測的隔離，先用真 Docker 與便宜的模型各組跑一次。
 - **`/tmp` 會不見。** WSL 重開就清掉。要留的材料、腳本與結果放 `~/.cache/agf-ecosystem/` 或 repo，`/tmp` 只放量測的 `--base`。
+- **「已經有了」要逐句查。** S19 說 P5 拿掉的內容常駐規則已有，其實兩句只在 practices。刪任何觸發條件之前，列出那個檔每一句還能從哪裡被讀到（S20）。
 - **花錢之前先算樣本數。** 每組 20 次時，20 個百分點的真實差距只有約 15% 的機率達到 p<0.05。先算再問使用者預算（S19）。
 - **題目敘述也要拿標準答案的來源核對。** S19 有一題的敘述和 Git 的實際行為相反，只能作廢。
 - **題目先試跑。** 對照組全過、或處理組沒有資訊能通過的題目，分組量幾次都沒有用（S18）。
