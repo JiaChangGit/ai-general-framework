@@ -198,6 +198,11 @@ class SampleTests(unittest.TestCase):
         for kept in ("我把決定寫進", "與", "逾時改成10秒"):
             self.assertIn(kept, hidden)
 
+    def test_the_frameworks_command_gives_no_group_away(self):
+        hidden = judge.redact("沒有 commit，也沒有執行 `agf traces check`。agflow 不變。")
+        self.assertNotIn("agf traces", hidden)
+        self.assertIn("agflow 不變", hidden)
+
     def test_a_sheet_names_no_notes_and_the_key_is_kept_apart(self):
         with tempfile.TemporaryDirectory() as temp:
             folder = Path(temp) / "stage"

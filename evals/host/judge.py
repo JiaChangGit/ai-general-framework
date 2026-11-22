@@ -44,7 +44,7 @@ CORRELATED = 0.4  # agree: above chance for 24 tasks (one-sided 0.05 is 0.344)
 EPSILON = 1e-9
 # What would tell an auditor the group. ASCII classes: Chinese has no spaces, so \S and \b would eat or miss it.
 _PATH = r"[A-Za-z0-9_./-]"
-GROUP_MARKS = rf"CLAUDE\.md|AGENTS\.md|{_PATH}*\.(?:agf|claude){_PATH}*|(?:HANDOFF|CHECKPOINT){_PATH}*|(?<![a-z])skills?(?![a-z])|專案規則|交接檔?|檢查點"
+GROUP_MARKS = rf"CLAUDE\.md|AGENTS\.md|{_PATH}*\.(?:agf|claude){_PATH}*|(?:HANDOFF|CHECKPOINT){_PATH}*|(?<![a-z])skills?(?![a-z])|(?<![a-z])agf(?![a-z])(?: traces check| [a-z]+)?|專案規則|交接檔?|檢查點"
 
 
 @lru_cache(maxsize=None)
