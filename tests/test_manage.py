@@ -771,6 +771,14 @@ class ProjectTests(unittest.TestCase):
         for kept in ("agf profile show", "以執行結果與目前的原始碼為準"):
             self.assertIn(kept, read("docs/practices.md"))
 
+    def test_both_writing_guides_state_the_rewriting_rule_in_the_same_words(self):
+        # A rule buried mid-paragraph scored lower on fidelity (S19, S21): it stands alone in both guides.
+        lines = {name: [line.removeprefix("- ") for line in (manage.SOURCE / name).read_text(encoding="utf-8").splitlines()
+                        if line.removeprefix("- ").startswith("**改寫只用原稿的事實。**")]
+                 for name in ("docs/writing.md", "docs/writing-short.md")}
+        self.assertEqual(len(lines["docs/writing.md"]), 1)
+        self.assertEqual(lines["docs/writing.md"], lines["docs/writing-short.md"])
+
     def test_deployed_text_points_at_the_cli_note_for_the_path(self):
         for name in ("docs/tools.md", "docs/writing.md", "docs/cli.md", "templates/diagrams/README.md"):
             text = (manage.SOURCE / name).read_text(encoding="utf-8")
