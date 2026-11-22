@@ -107,7 +107,7 @@ def summarize(path: Path, inside: Path | None = None) -> dict:
     summary = {"skills_listed": None, "tools_listed": None, "tool_names": None, "model": None, "version": None, "cwd": None, "first_context_tokens": None,
                "tool_uses": [], "skill_calls": [], "skill_calls_blocked": [], "skill_calls_blocked_errors": [], "skill_reads": [],
                "files_read": [], "tool_errors": [],
-               "bash_ran": [], "models": [], "result": None}
+               "bash_ran": [], "models": [], "retrying": False, "result": None}
     pending, commands, skills = {}, {}, {}
     # Not splitlines(): it also breaks at characters such as U+0085, which an answer may contain.
     for line in path.read_text(encoding="utf-8", errors="replace").split("\n"):
@@ -118,6 +118,10 @@ def summarize(path: Path, inside: Path | None = None) -> dict:
         if not isinstance(event, dict):
             continue
         kind = event.get("type")
+        if kind == "system" and event.get("subtype") == "api_retry":
+            summary["retrying"] = True
+        elif kind in ("assistant", "user", "result"):
+            summary["retrying"] = False  # the retry got through
         if kind == "system" and event.get("subtype") == "init":
             summary.update(skills_listed=event.get("skills"), tools_listed=len(event.get("tools") or []), tool_names=event.get("tools"),
                            model=event.get("model"), version=event.get("claude_code_version"), cwd=event.get("cwd"))

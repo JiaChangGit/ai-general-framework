@@ -484,7 +484,7 @@ def _session(args, out, cli, work, model, prompt, name, ledger, given, env, expe
         ledger.charge(args.budget if cost is None else cost)
     after = fingerprint(work)
     failed = None
-    if code == 124:
+    if code == 124 and not summary["retrying"]:
         failed = "session timed out"
     elif result.get("subtype") == "error_max_budget_usd":
         failed = "session budget exhausted"
@@ -508,7 +508,9 @@ def _session(args, out, cli, work, model, prompt, name, ledger, given, env, expe
         stop = f"infrastructure: served {wrong} instead of {model}"
     if stop:
         return part, result, stop
-    if not failed and LIMIT_NOTICE.match(str(result.get("text") or "")):
+    if code == 124 and summary["retrying"]:
+        stop = "infrastructure: the API was still being retried at the timeout"
+    elif not failed and LIMIT_NOTICE.match(str(result.get("text") or "")):
         stop = f"exit {code}, usage limit reached"
     elif expects_tests and summary["tool_names"] is not None and TEST_TOOL not in summary["tool_names"]:
         stop = "infrastructure: the test tool was not available"
@@ -640,6 +642,8 @@ def regrade(args: argparse.Namespace) -> int:
     _, tasks = load_tasks(task_file)
     for index, row in enumerate(data["runs"]):
         if row.get("artifact"):
+            row.setdefault("kept_in", str(source))
+        if row.get("artifact") and "passed" in row:  # what only lacked its checks is judged by a resume
             judged = rejudge(tasks[row["task"]], task_file.parent, source, row)
             if judged.get("stop"):
                 raise SystemExit(judged["stop"])

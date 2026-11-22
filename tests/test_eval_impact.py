@@ -29,6 +29,12 @@ if mode in ("hang", "silent"):
     if mode == "hang":
         seen_model()
     import time; time.sleep(30)
+if mode in ("retry", "recovered"):
+    seen_model()
+    print(json.dumps({{"type": "system", "subtype": "api_retry", "error_status": 529}}), flush=True)
+    if mode == "recovered":
+        seen_model()
+    import time; time.sleep(30)
 if mode in ("notice", "toolong"):
     seen_model()
     said = "You've reached your weekly limit, resets 6:50am (Some/Where)" if mode == "notice" else "API Error: Claude's response exceeded the 32000 output token maximum"
@@ -545,6 +551,34 @@ class ImpactTests(unittest.TestCase):
             self.assertIn(reason, data["stopped"])
             self.assertNotIn("passed", data["runs"][0])
             self.assertNotIn("Some/Where", json.dumps(data))
+
+    def test_a_timeout_spent_retrying_the_api_is_not_a_score(self):
+        result, data = self.run_impact("--ids", "edit", "--runs", "1", "--group", "control", "--timeout", "2", mode="retry")
+        self.assertEqual(result.returncode, 3)
+        self.assertNotIn("passed", data["runs"][0])
+        result, data = self.run_impact("--ids", "edit", "--runs", "1", "--group", "control", "--timeout", "2", mode="recovered",
+                                       base_name="base2", out="out2")
+        self.assertEqual((result.returncode, data["runs"][0]["passed"]), (0, False), "a retry that worked is no excuse")
+
+    def test_regrading_every_attempt_counts_no_run_twice(self):
+        self.item_tasks()
+        self.run_impact("--runs", "1", "--group", "control")
+        path = self.temp / "out/results.json"
+        broken = json.loads(path.read_text())
+        row = broken["runs"][0]
+        for key in ("passed", "items", "failures"):
+            del row[key]
+        row["stop"] = "itemised-control check: infrastructure: docker"
+        path.write_text(json.dumps(broken))
+        self.run_impact("--runs", "1", "--group", "control", "--resume", str(self.temp / "out"), base_name="base2", out="out2")
+        again = []
+        for name in ("out", "out2"):
+            done = subprocess.run([sys.executable, str(ROOT / "evals/host/impact.py"), "regrade", str(self.temp / name), "--tasks", str(self.tasks),
+                                   "--out", str(self.temp / f"re-{name}")], capture_output=True, text=True, timeout=120, env=self.env)
+            self.assertEqual(done.returncode, 0, done.stderr)
+            again.append(json.loads((self.temp / f"re-{name}/results.json").read_text()))
+        self.assertEqual(sum("passed" in row for data in again for row in data["runs"]), 1)
+        self.assertEqual(again[0]["runs"][0]["kept_in"], str((self.temp / "out").resolve()), "a resume still finds the work")
 
     def test_an_answer_over_the_output_limit_is_the_subjects_failure(self):
         result, data = self.run_impact("--ids", "edit", "--runs", "1", "--group", "control", mode="toolong")

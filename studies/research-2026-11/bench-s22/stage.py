@@ -5,7 +5,8 @@
     python3 -B stage.py run {0b,0c,1,2} --data DIR --base EMPTY_DIR [--tasks FILE] [--ids ID,...] [--dry-run]
 
 DATA holds the framework export (DATA/framework) and receives one directory per attempt (stage-1-01, ...);
-a new attempt resumes the earlier ones of its stage. Only 0b may run before the freeze, with --tasks and
+a new attempt resumes the earlier ones of its stage. After an amended freeze it resumes each attempt's
+`impact.py regrade` in DATA/regraded-<attempt>-<first 8 of the new task hash>. Only 0b may run before the freeze, with --tasks and
 --ids; everything 0b ever spent counts into its cap. The freeze has to be committed before a later stage
 starts. Stage 2 needs DATA/audit-1.json, written after the blind audit of stage 1:
 
@@ -159,7 +160,15 @@ def run(args: argparse.Namespace) -> int:
         elif args.stage == "0b":
             spent_before += earlier["spent_usd"] + earlier.get("reserved_usd", 0)  # a task was fixed: nothing to resume
         else:
-            raise SystemExit(f"{folder.name} measured another task file")
+            again = data / f"regraded-{folder.name}-{task_sha[:8]}"
+            if not (again / "results.json").is_file():
+                raise SystemExit(f"{folder.name} measured another task file: regrade it into {again.name} first")
+            regraded = json.loads((again / "results.json").read_text(encoding="utf-8"))
+            amended = [change["sha256_before"] for change in json.loads(FREEZE.read_text(encoding="utf-8")).get("amendments", [])]
+            before = TASKS.relative_to(ROOT).as_posix()
+            if regraded["tasks_sha256"] != task_sha or earlier["tasks_sha256"] not in [one.get(before) for one in amended]:
+                raise SystemExit(f"{again.name} is not a regrade along the freeze's amendments")
+            resume.append(again)
     number = 1
     while (out := data / f"stage-{args.stage}-{number:02d}").exists():
         number += 1
