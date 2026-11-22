@@ -3,10 +3,11 @@
 更新日期：2026-11-22（S20 之後）。給下一個要改這個框架、或要拿它到別的專案測試的 session。
 它描述寫下時的狀態；接手時先跑下面的命令核對，**以看到的為準**。
 
-> **S19、S20 做完，等使用者兩件事（2026-11-22）。**
+> **S19、S20 做完；S20 複測通過（2026-11-22）。等使用者三件事。**
 >
-> 1. `245dc3b` 已由使用者併進 main 並 push（2026-11-22）。
-> 2. **S20 複測進行中**（使用者已同意，合計上限 1.2 美元）：規格在 [N 報告](studies/research-2026-11/N-s20-recheck.md)，材料與結果在 `~/.cache/agf-ecosystem/bench-s20/`。被打斷時只補缺的，`--base` 要在家目錄外。
+> 1. 決定 P5（`0e9932a`）要留還是退：品質沒退步，但沒有少讀檔（[N 報告](studies/research-2026-11/N-s20-recheck.md)，建議退）。沒有答覆之前不要動。
+> 2. 把複測的紀錄併進 main（命令在「還沒做的事」）。`245dc3b` 以前已併入並 push。
+> 3. 更新兩個已安裝的專案（命令在「還沒做的事」；最好等第 1 項決定後）。
 
 ## 一開始先做什麼
 
@@ -73,7 +74,7 @@ S18（2026-11-22）：寫作短版與讀取時機、commit-msg hook、文件對�
 
 S19（2026-11-22）：量測第一次有真正的隔離（容器加宿主限制）；S11～S18 的數字不能和之後的直接比。S18 審查找到的缺陷已修。真 bug 試跑 19 次通過 16 次，沒有確定合格的題目，所以沒有分組、沒有「框架有沒有好處」的判定；原設計的樣本數也不夠。寫作短版複測通過，維持（[M 報告](studies/research-2026-11/M-s19.md)）。
 
-S20（2026-11-22）：使用者核准的刪減 P1～P5 已做（P6 不動）。`agf` 的執行方式在 `.agf/managed/agf-cli.md`；skill 規則只在裝有框架 skill 時寫入；寫文件不再觸發 practices，兩句只在那裡的規則已補進兩份寫作指引。只做了不花錢的驗證。
+S20（2026-11-22）：使用者核准的刪減 P1～P5 已做（P6 不動）。`agf` 的執行方式在 `.agf/managed/agf-cli.md`；skill 規則只在裝有框架 skill 時寫入；寫文件不再觸發 practices，兩句只在那裡的規則已補進兩份寫作指引。之後經使用者同意花 0.67 美元複測：冒煙與寫作盲評都通過（[N 報告](studies/research-2026-11/N-s20-recheck.md)）。
 
 ## 拿框架到別的專案測試
 
@@ -92,23 +93,36 @@ S20（2026-11-22）：使用者核准的刪減 P1～P5 已做（P6 不動）。`
 
 ## 還沒做的事
 
-把 S19 與 S20 一起併進 main（使用者執行）：
+把 S20 的複測紀錄併進 main（使用者執行）：
 
 ```bash
 git -C ~/src/ai-general-framework pull --ff-only ~/src/ai-general-framework-s20 s20-prune
 ```
 
+更新已安裝的專案（使用者執行；2026-11-22 在複本演練過，沒有衝突，改動的檔都被 Git 忽略）：
+
+```bash
+python3 -B ~/src/ai-general-framework/scripts/agf.py project update --target ~/src/Distributed_Key-Value_Store_with_Raft --apply
+```
+
+```bash
+python3 -B ~/src/ai-general-framework/scripts/agf.py project update --target ~/src/shm_ipc --apply
+```
+
+shm_ipc 的 `CLAUDE.md` 沒有引入專案規則，Claude Code 在那裡不會自動載入；要不要引入由使用者決定，不要代改。
+
 依分析報告第九輪的優先順序：
 
-1. （高，等使用者同意花費）複測 S20：先寫門檻，再用 Haiku 各組冒煙一次（會不會照指路讀 `agf-cli.md`、skill 與指引還載入得到），並比較 S19 與 S20 的短版各 5 次加盲評（門檻沿用 S19：忠實度與對新手的用處都不低超過 0.5）。合計上限 1.2 美元。沒過就列給使用者，建議退掉 `0e9932a`。P6 沒有核准，不要做。
+1. （高，等使用者決定）P5 留或退。選退時：在 s20 複本 revert `0e9932a`、更新 CHANGELOG、跑測試，再請使用者併入。P6 沒有核准，不要做。
 2. （高）benchmark 換設計再花錢：先算樣本數與預算，再問使用者。S19 的算法在 `studies/research-2026-11/bench-s19/power.py`。不要直接補跑 S19 沒判完的兩題。
 3. （中）把短版「改寫只用原稿的事實」補進完整版寫作指引，再盲評一次。
 4. （中）審查沒修完的：`FILE_MARKERS` 只認 Claude、審查組只拿最後一段指示、doccheck 對 `skills/`、`examples/`、`tests/` 的缺口。
 5. 不留痕跡的專案做真實開發時，在里程碑跑 `agf traces check`，觀察 commit-msg hook 有沒有被觸發或被 `--no-verify` 繞過。
 6. 第六輪路線圖還沒做的三項（C 與 kernel、研究文件、跨宿主）順延；跨宿主需要先在 WSL 安裝 Codex 或 Gemini CLI，要使用者同意。
 7. 第五輪留下的：在 GitHub 上跑一次 `skill-triggers.yml`（會花錢）；教學文件格式的個人化與子命令退場（低）。
-8. 其餘待確認的外部名稱在 `docs/ecosystem/recommendations.md`。
-9. （已決定）`save_prompts` 不開，量測也不為了讓題目通過而開；只存使用者核准過的教訓；guard hook 維持裝在工作區上一層。
+8. （小）`project update` 找不到配置時只說「use project install first」：在家目錄照做會把規則裝錯地方。訊息應印出目標路徑；目標是家目錄時要警告。還沒改。
+9. 其餘待確認的外部名稱在 `docs/ecosystem/recommendations.md`。
+10. （已決定）`save_prompts` 不開，量測也不為了讓題目通過而開；只存使用者核准過的教訓；guard hook 維持裝在工作區上一層。
 
 沒有在真實 session 觸發過的：續接 hook 的 PreCompact、PostCompact、StopFailure、PreModelSwitch。`align-with-me` 在 2026-11-19 第一次被使用者實際叫用，照 skill 寫的流程走完。`debug-root-cause` 新加的「先驗證前提、附證據」量過一次（`debug-wrong-premise`），兩組都做對，量不出作用。
 
@@ -118,6 +132,7 @@ git -C ~/src/ai-general-framework pull --ff-only ~/src/ai-general-framework-s20 
 - **量測途中不要改會部署的檔案，也不要移動 HEAD。** 要試修改時複製一份框架，用 `--framework` 指過去。額度用完會留下一列未完成的紀錄，補跑寫到新的 `--out` 再合併。
 - **假的 CLI 與假的 Docker 測不出隔離。** S19 的兩個隔離錯誤（全域 `CLAUDE.md` 進到對照組、容器讀不到 0600 的安裝檔）都是真跑一次才看到。改了量測的隔離，先用真 Docker 與便宜的模型各組跑一次。
 - **`/tmp` 會不見。** WSL 重開就清掉。要留的材料、腳本與結果放 `~/.cache/agf-ecosystem/` 或 repo，`/tmp` 只放量測的 `--base`。
+- **盲評分數不能跨輪比。** 同一個短版兩位評審差了 0.4～0.8 分；舊版一定要和新版混在同一批重跑、重評（S20）。
 - **給使用者的命令要帶真實路徑。** `--target .` 被原樣貼在家目錄執行過（S20）。先在本機找出 `.agf/manifest.json`，每個專案給一行絕對路徑的命令；框架回的「use project install first」在家目錄照做會把規則裝進家目錄。
 - **「已經有了」要逐句查。** S19 說 P5 拿掉的內容常駐規則已有，其實兩句只在 practices。刪任何觸發條件之前，列出那個檔每一句還能從哪裡被讀到（S20）。
 - **花錢之前先算樣本數。** 每組 20 次時，20 個百分點的真實差距只有約 15% 的機率達到 p<0.05。先算再問使用者預算（S19）。

@@ -1,0 +1,40 @@
+{
+ "startup": "先讀本工作目錄的 AGENTS.md（若存在），依本次範圍完成任務。只使用這個目錄的材料與已配置的框架內容；不連網、不安裝。不必詢問已明確的條件。",
+ "tasks": [
+  {
+   "id": "cli-pointer",
+   "files": {
+    "README.md": "# demo\n\n一個很小的示範專案。\n"
+   },
+   "parts": [
+    {
+     "prompt": "我想在這個專案查我的 agf 偏好設定（profile show）。你不用執行：把能在這台機器上原樣貼上執行的完整命令寫進 command.txt，只寫一行。不知道怎麼執行就在那一行寫 UNKNOWN，不要猜。"
+    }
+   ],
+   "checks": {
+    "file_patterns": {
+     "command.txt": [
+      "scripts/agf\\.py",
+      "profile +show"
+     ]
+    }
+   }
+  },
+  {
+   "id": "loading",
+   "files": {
+    "README.md": "# demo\n\n一個很小的示範專案。\n"
+   },
+   "parts": [
+    {
+     "prompt": "這是載入測試。1) 若 skill 清單裡有 trace-code，用 Skill 工具叫用它一次。2) 若專案規則提到 writing-short 指引，讀那個檔。3) 最後一行只寫：RULES=yes/no SKILL_RULE=yes/no（專案規則裡有沒有一段以「skill。」開頭、要求先用宿主機制叫用 skill 的規則）。"
+    }
+   ],
+   "checks": {
+    "answer_patterns": [
+     "RULES="
+    ]
+   }
+  }
+ ]
+}

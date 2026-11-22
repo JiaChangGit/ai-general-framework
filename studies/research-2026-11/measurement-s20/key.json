@@ -1,0 +1,52 @@
+{
+ "text-01.md": {
+  "measurement": "run-old-4",
+  "group": "framework",
+  "repeat": 0
+ },
+ "text-02.md": {
+  "measurement": "run-old-1",
+  "group": "framework",
+  "repeat": 0
+ },
+ "text-03.md": {
+  "measurement": "run-old-2",
+  "group": "framework",
+  "repeat": 0
+ },
+ "text-04.md": {
+  "measurement": "run-new-4",
+  "group": "framework",
+  "repeat": 0
+ },
+ "text-05.md": {
+  "measurement": "run-new-1",
+  "group": "framework",
+  "repeat": 0
+ },
+ "text-06.md": {
+  "measurement": "run-new-5",
+  "group": "framework",
+  "repeat": 0
+ },
+ "text-07.md": {
+  "measurement": "run-new-2",
+  "group": "framework",
+  "repeat": 0
+ },
+ "text-08.md": {
+  "measurement": "run-new-3",
+  "group": "framework",
+  "repeat": 0
+ },
+ "text-09.md": {
+  "measurement": "run-old-3",
+  "group": "framework",
+  "repeat": 0
+ },
+ "text-10.md": {
+  "measurement": "run-old-5",
+  "group": "framework",
+  "repeat": 0
+ }
+}

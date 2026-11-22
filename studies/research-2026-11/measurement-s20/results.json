@@ -1,0 +1,868 @@
+{
+ "old": "aca7a07",
+ "new": "245dc3b",
+ "measurements": [
+  {
+   "measurement": "smoke/new",
+   "model": "claude-haiku-5-5",
+   "tasks_sha256": "9a2ae382039e0b1fddc155e1fdd975b61865e1c8fec36da46bda3cc54cde6de7",
+   "confinement": "s19",
+   "spent_usd": 0.013868,
+   "stopped": null,
+   "runs": [
+    {
+     "task": "cli-pointer",
+     "kind": null,
+     "group": "control",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-haiku-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 6,
+       "cost_usd": 0.0031633399999999997,
+       "first_context_tokens": 9532,
+       "tools_listed": 6,
+       "input_tokens": 8,
+       "cache_creation_input_tokens": 11016,
+       "cache_read_input_tokens": 30084,
+       "output_tokens": 1317,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "command.txt"
+       ],
+       "files_read": [
+        "./README.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "2ceb899ad7953d9862e4bce80333041eb678241ec6a1f8fa7c74f9371951c513",
+     "passed": false,
+     "failures": [
+      "command.txt lacks /scripts/agf\\.py/",
+      "command.txt lacks /profile +show/"
+     ],
+     "handoff_files": []
+    },
+    {
+     "task": "cli-pointer",
+     "kind": null,
+     "group": "rules-only",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-haiku-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 6,
+       "cost_usd": 0.00305241,
+       "first_context_tokens": 10990,
+       "tools_listed": 6,
+       "input_tokens": 10,
+       "cache_creation_input_tokens": 7665,
+       "cache_read_input_tokens": 55691,
+       "output_tokens": 1923,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "command.txt"
+       ],
+       "files_read": [
+        "./.agf/managed/agf-cli.md"
+       ],
+       "outside_paths": [
+        "Glob <bench>/fw-new"
+       ]
+      }
+     ],
+     "setup_sha256": "16ee2b66c940f22485cfc1534637ad5df5c38cc61f630530a9d54ce799e08f79",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    },
+    {
+     "task": "cli-pointer",
+     "kind": null,
+     "group": "framework",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-haiku-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 4,
+       "cost_usd": 0.0025962100000000003,
+       "first_context_tokens": 11811,
+       "tools_listed": 6,
+       "input_tokens": 6,
+       "cache_creation_input_tokens": 7835,
+       "cache_read_input_tokens": 31361,
+       "output_tokens": 1430,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "command.txt"
+       ],
+       "files_read": [
+        "./.agf/managed/agf-cli.md",
+        "./.agf/managed/guides/practices.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "02ac520714a7bbd94bc39a3c0896e3fecf9a417ace677c32dfdb7389a1c7e209",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    },
+    {
+     "task": "loading",
+     "kind": null,
+     "group": "framework",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-haiku-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 4,
+       "cost_usd": 0.0022462100000000002,
+       "first_context_tokens": 11857,
+       "tools_listed": 6,
+       "input_tokens": 4,
+       "cache_creation_input_tokens": 7793,
+       "cache_read_input_tokens": 18121,
+       "output_tokens": 1012,
+       "skills_used": [
+        "trace-code"
+       ],
+       "tests_run": 0,
+       "files_changed": [],
+       "files_read": [
+        "./.agf/managed/guides/writing-short.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "02ac520714a7bbd94bc39a3c0896e3fecf9a417ace677c32dfdb7389a1c7e209",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    },
+    {
+     "task": "loading",
+     "kind": null,
+     "group": "rules-only",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-haiku-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 2,
+       "cost_usd": 0.0016391600000000002,
+       "first_context_tokens": 11032,
+       "tools_listed": 6,
+       "input_tokens": 4,
+       "cache_creation_input_tokens": 6164,
+       "cache_read_input_tokens": 17296,
+       "output_tokens": 466,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [],
+       "files_read": [
+        "./.agf/managed/guides/writing-short.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "16ee2b66c940f22485cfc1534637ad5df5c38cc61f630530a9d54ce799e08f79",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    },
+    {
+     "task": "loading",
+     "kind": null,
+     "group": "control",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-haiku-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 2,
+       "cost_usd": 0.00117234,
+       "first_context_tokens": 9580,
+       "tools_listed": 6,
+       "input_tokens": 4,
+       "cache_creation_input_tokens": 3765,
+       "cache_read_input_tokens": 15844,
+       "output_tokens": 521,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [],
+       "files_read": [
+        "./AGENTS.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "2ceb899ad7953d9862e4bce80333041eb678241ec6a1f8fa7c74f9371951c513",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    }
+   ]
+  },
+  {
+   "measurement": "smoke/old",
+   "model": "claude-haiku-5-5",
+   "tasks_sha256": "9a2ae382039e0b1fddc155e1fdd975b61865e1c8fec36da46bda3cc54cde6de7",
+   "confinement": "s19",
+   "spent_usd": 0.008971,
+   "stopped": null,
+   "runs": [
+    {
+     "task": "cli-pointer",
+     "kind": null,
+     "group": "rules-only",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-haiku-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 3,
+       "cost_usd": 0.00239498,
+       "first_context_tokens": 11231,
+       "tools_listed": 6,
+       "input_tokens": 6,
+       "cache_creation_input_tokens": 6666,
+       "cache_read_input_tokens": 29618,
+       "output_tokens": 1530,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "command.txt"
+       ],
+       "files_read": [],
+       "outside_paths": [
+        "Grep <bench>/fw-old/scripts/agf.py"
+       ]
+      }
+     ],
+     "setup_sha256": "3dbcf8119e781d8d37ab50db12114b1c53424a7226578f52222e705b150449e6",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    },
+    {
+     "task": "cli-pointer",
+     "kind": null,
+     "group": "framework",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-haiku-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 3,
+       "cost_usd": 0.0024975400000000004,
+       "first_context_tokens": 11953,
+       "tools_listed": 6,
+       "input_tokens": 6,
+       "cache_creation_input_tokens": 7313,
+       "cache_read_input_tokens": 31084,
+       "output_tokens": 1447,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "command.txt"
+       ],
+       "files_read": [],
+       "outside_paths": [
+        "Grep <bench>/fw-old/scripts/agf.py"
+       ]
+      }
+     ],
+     "setup_sha256": "f27302195f08394bfda8e1b1cc6220d6b2aff139c206d2cfe0fd4ec9cd403469",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    },
+    {
+     "task": "loading",
+     "kind": null,
+     "group": "framework",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-haiku-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 5,
+       "cost_usd": 0.0022261900000000003,
+       "first_context_tokens": 11995,
+       "tools_listed": 6,
+       "input_tokens": 4,
+       "cache_creation_input_tokens": 7986,
+       "cache_read_input_tokens": 18259,
+       "output_tokens": 892,
+       "skills_used": [
+        "trace-code"
+       ],
+       "tests_run": 0,
+       "files_changed": [],
+       "files_read": [
+        "./AGENTS.md",
+        "./.agf/managed/guides/writing-short.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "f27302195f08394bfda8e1b1cc6220d6b2aff139c206d2cfe0fd4ec9cd403469",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    },
+    {
+     "task": "loading",
+     "kind": null,
+     "group": "rules-only",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-haiku-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 3,
+       "cost_usd": 0.00185153,
+       "first_context_tokens": 11269,
+       "tools_listed": 6,
+       "input_tokens": 4,
+       "cache_creation_input_tokens": 6484,
+       "cache_read_input_tokens": 17533,
+       "output_tokens": 758,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [],
+       "files_read": [
+        "./AGENTS.md",
+        "./.agf/managed/guides/writing-short.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "3dbcf8119e781d8d37ab50db12114b1c53424a7226578f52222e705b150449e6",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    }
+   ]
+  },
+  {
+   "measurement": "writing/run-new-1",
+   "model": "claude-sonnet-5-5",
+   "tasks_sha256": "04209bd7fe92651be10074048908e5cd964151f5473f2697af47c354ae9eec9b",
+   "confinement": "s19",
+   "spent_usd": 0.064252,
+   "stopped": null,
+   "runs": [
+    {
+     "task": "rewrite-zh",
+     "kind": "writing",
+     "group": "framework",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-sonnet-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 5,
+       "cost_usd": 0.06425159999999999,
+       "first_context_tokens": 10984,
+       "tools_listed": 6,
+       "input_tokens": 6,
+       "cache_creation_input_tokens": 9710,
+       "cache_read_input_tokens": 30096,
+       "output_tokens": 2239,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "rewrite.md"
+       ],
+       "files_read": [
+        "./draft.md",
+        "./.agf/managed/guides/practices.md",
+        "./.agf/managed/guides/writing-short.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "f610fed940c66008ff1ba41f364553896ef55078f8e65047db7af08f88723124",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    }
+   ]
+  },
+  {
+   "measurement": "writing/run-new-2",
+   "model": "claude-sonnet-5-5",
+   "tasks_sha256": "04209bd7fe92651be10074048908e5cd964151f5473f2697af47c354ae9eec9b",
+   "confinement": "s19",
+   "spent_usd": 0.075302,
+   "stopped": null,
+   "runs": [
+    {
+     "task": "rewrite-zh",
+     "kind": "writing",
+     "group": "framework",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-sonnet-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 7,
+       "cost_usd": 0.0753025,
+       "first_context_tokens": 10984,
+       "tools_listed": 6,
+       "input_tokens": 10,
+       "cache_creation_input_tokens": 10566,
+       "cache_read_input_tokens": 58985,
+       "output_tokens": 2712,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "rewrite.md"
+       ],
+       "files_read": [
+        "./draft.md",
+        "./.agf/managed/guides/writing-short.md",
+        "./.agf/managed/guides/practices.md",
+        "./.agf/managed/agf-cli.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "f610fed940c66008ff1ba41f364553896ef55078f8e65047db7af08f88723124",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    }
+   ]
+  },
+  {
+   "measurement": "writing/run-new-3",
+   "model": "claude-sonnet-5-5",
+   "tasks_sha256": "04209bd7fe92651be10074048908e5cd964151f5473f2697af47c354ae9eec9b",
+   "confinement": "s19",
+   "spent_usd": 0.064704,
+   "stopped": null,
+   "runs": [
+    {
+     "task": "rewrite-zh",
+     "kind": "writing",
+     "group": "framework",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-sonnet-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 5,
+       "cost_usd": 0.06470419999999999,
+       "first_context_tokens": 10980,
+       "tools_listed": 6,
+       "input_tokens": 6,
+       "cache_creation_input_tokens": 9671,
+       "cache_read_input_tokens": 30082,
+       "output_tokens": 2300,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "rewrite.md"
+       ],
+       "files_read": [
+        "./draft.md",
+        "./.agf/managed/guides/writing-short.md",
+        "./.agf/managed/guides/practices.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "f610fed940c66008ff1ba41f364553896ef55078f8e65047db7af08f88723124",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    }
+   ]
+  },
+  {
+   "measurement": "writing/run-new-4",
+   "model": "claude-sonnet-5-5",
+   "tasks_sha256": "04209bd7fe92651be10074048908e5cd964151f5473f2697af47c354ae9eec9b",
+   "confinement": "s19",
+   "spent_usd": 0.063032,
+   "stopped": null,
+   "runs": [
+    {
+     "task": "rewrite-zh",
+     "kind": "writing",
+     "group": "framework",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-sonnet-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 5,
+       "cost_usd": 0.0630316,
+       "first_context_tokens": 10984,
+       "tools_listed": 6,
+       "input_tokens": 6,
+       "cache_creation_input_tokens": 9565,
+       "cache_read_input_tokens": 30096,
+       "output_tokens": 2175,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "rewrite.md"
+       ],
+       "files_read": [
+        "./draft.md",
+        "./.agf/managed/guides/practices.md",
+        "./.agf/managed/guides/writing-short.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "f610fed940c66008ff1ba41f364553896ef55078f8e65047db7af08f88723124",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    }
+   ]
+  },
+  {
+   "measurement": "writing/run-new-5",
+   "model": "claude-sonnet-5-5",
+   "tasks_sha256": "04209bd7fe92651be10074048908e5cd964151f5473f2697af47c354ae9eec9b",
+   "confinement": "s19",
+   "spent_usd": 0.072046,
+   "stopped": null,
+   "runs": [
+    {
+     "task": "rewrite-zh",
+     "kind": "writing",
+     "group": "framework",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-sonnet-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 7,
+       "cost_usd": 0.0720465,
+       "first_context_tokens": 10984,
+       "tools_listed": 6,
+       "input_tokens": 10,
+       "cache_creation_input_tokens": 10279,
+       "cache_read_input_tokens": 58605,
+       "output_tokens": 2505,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "rewrite.md"
+       ],
+       "files_read": [
+        "./draft.md",
+        "./.agf/managed/guides/writing-short.md",
+        "./.agf/managed/guides/practices.md",
+        "./.agf/managed/agf-cli.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "f610fed940c66008ff1ba41f364553896ef55078f8e65047db7af08f88723124",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    }
+   ]
+  },
+  {
+   "measurement": "writing/run-old-1",
+   "model": "claude-sonnet-5-5",
+   "tasks_sha256": "04209bd7fe92651be10074048908e5cd964151f5473f2697af47c354ae9eec9b",
+   "confinement": "s19",
+   "spent_usd": 0.070197,
+   "stopped": null,
+   "runs": [
+    {
+     "task": "rewrite-zh",
+     "kind": "writing",
+     "group": "framework",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-sonnet-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 5,
+       "cost_usd": 0.0701971,
+       "first_context_tokens": 11126,
+       "tools_listed": 6,
+       "input_tokens": 6,
+       "cache_creation_input_tokens": 10908,
+       "cache_read_input_tokens": 29331,
+       "output_tokens": 2362,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "rewrite.md"
+       ],
+       "files_read": [
+        "./draft.md",
+        "./.agf/managed/guides/writing-short.md",
+        "./.agf/managed/guides/practices.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "bd70d30a9b02cd34743bc16ab52cb4e85403e93ad99ca7ccb82b8efbafffb015",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    }
+   ]
+  },
+  {
+   "measurement": "writing/run-old-2",
+   "model": "claude-sonnet-5-5",
+   "tasks_sha256": "04209bd7fe92651be10074048908e5cd964151f5473f2697af47c354ae9eec9b",
+   "confinement": "s19",
+   "spent_usd": 0.055448,
+   "stopped": null,
+   "runs": [
+    {
+     "task": "rewrite-zh",
+     "kind": "writing",
+     "group": "framework",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-sonnet-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 4,
+       "cost_usd": 0.055447500000000004,
+       "first_context_tokens": 11134,
+       "tools_listed": 6,
+       "input_tokens": 6,
+       "cache_creation_input_tokens": 8574,
+       "cache_read_input_tokens": 29395,
+       "output_tokens": 1820,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "rewrite.md"
+       ],
+       "files_read": [
+        "./draft.md",
+        "./.agf/managed/guides/writing-short.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "bd70d30a9b02cd34743bc16ab52cb4e85403e93ad99ca7ccb82b8efbafffb015",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    }
+   ]
+  },
+  {
+   "measurement": "writing/run-old-3",
+   "model": "claude-sonnet-5-5",
+   "tasks_sha256": "04209bd7fe92651be10074048908e5cd964151f5473f2697af47c354ae9eec9b",
+   "confinement": "s19",
+   "spent_usd": 0.062316,
+   "stopped": null,
+   "runs": [
+    {
+     "task": "rewrite-zh",
+     "kind": "writing",
+     "group": "framework",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-sonnet-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 5,
+       "cost_usd": 0.0623163,
+       "first_context_tokens": 11122,
+       "tools_listed": 6,
+       "input_tokens": 6,
+       "cache_creation_input_tokens": 9548,
+       "cache_read_input_tokens": 30323,
+       "output_tokens": 2108,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "rewrite.md"
+       ],
+       "files_read": [
+        "./draft.md",
+        "./.agf/managed/guides/writing-short.md",
+        "./.agf/managed/guides/practices.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "bd70d30a9b02cd34743bc16ab52cb4e85403e93ad99ca7ccb82b8efbafffb015",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    }
+   ]
+  },
+  {
+   "measurement": "writing/run-old-4",
+   "model": "claude-sonnet-5-5",
+   "tasks_sha256": "04209bd7fe92651be10074048908e5cd964151f5473f2697af47c354ae9eec9b",
+   "confinement": "s19",
+   "spent_usd": 0.063131,
+   "stopped": null,
+   "runs": [
+    {
+     "task": "rewrite-zh",
+     "kind": "writing",
+     "group": "framework",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-sonnet-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 5,
+       "cost_usd": 0.0631314,
+       "first_context_tokens": 11126,
+       "tools_listed": 6,
+       "input_tokens": 6,
+       "cache_creation_input_tokens": 9684,
+       "cache_read_input_tokens": 30334,
+       "output_tokens": 2135,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "rewrite.md"
+       ],
+       "files_read": [
+        "./draft.md",
+        "./.agf/managed/guides/writing-short.md",
+        "./.agf/managed/guides/practices.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "bd70d30a9b02cd34743bc16ab52cb4e85403e93ad99ca7ccb82b8efbafffb015",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    }
+   ]
+  },
+  {
+   "measurement": "writing/run-old-5",
+   "model": "claude-sonnet-5-5",
+   "tasks_sha256": "04209bd7fe92651be10074048908e5cd964151f5473f2697af47c354ae9eec9b",
+   "confinement": "s19",
+   "spent_usd": 0.056688,
+   "stopped": null,
+   "runs": [
+    {
+     "task": "rewrite-zh",
+     "kind": "writing",
+     "group": "framework",
+     "repeat": 0,
+     "parts": [
+      {
+       "model": "claude-sonnet-5-5",
+       "exit": 0,
+       "subtype": "success",
+       "planned_cut": false,
+       "failed": null,
+       "turns": 4,
+       "cost_usd": 0.0566875,
+       "first_context_tokens": 11118,
+       "tools_listed": 6,
+       "input_tokens": 6,
+       "cache_creation_input_tokens": 8685,
+       "cache_read_input_tokens": 29355,
+       "output_tokens": 1900,
+       "skills_used": [],
+       "tests_run": 0,
+       "files_changed": [
+        "rewrite.md"
+       ],
+       "files_read": [
+        "./draft.md",
+        "./.agf/managed/guides/writing-short.md"
+       ],
+       "outside_paths": []
+      }
+     ],
+     "setup_sha256": "bd70d30a9b02cd34743bc16ab52cb4e85403e93ad99ca7ccb82b8efbafffb015",
+     "passed": true,
+     "failures": [],
+     "handoff_files": []
+    }
+   ]
+  }
+ ]
+}
