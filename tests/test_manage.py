@@ -746,6 +746,14 @@ class ProjectTests(unittest.TestCase):
         self.run_project("rollback", True)
         self.assertIn("`shared`", note.read_text(encoding="utf-8"))
 
+    def test_writing_guides_keep_what_documents_used_to_get_from_practices(self):
+        read = lambda name: (manage.SOURCE / name).read_text(encoding="utf-8")
+        self.assertNotIn("交接檔或文件", read("templates/project-rules.md"))
+        self.assertIn("寫交接檔之前", read("templates/project-rules.md"))
+        for name in ("docs/writing-short.md", "docs/writing.md"):
+            for kept in ("agf profile show", "以執行結果與目前的原始碼為準"):
+                self.assertIn(kept, read(name), name)
+
     def test_deployed_text_points_at_the_cli_note_for_the_path(self):
         for name in ("docs/tools.md", "docs/writing.md", "docs/cli.md", "templates/diagrams/README.md"):
             text = (manage.SOURCE / name).read_text(encoding="utf-8")
