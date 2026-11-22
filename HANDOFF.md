@@ -111,7 +111,7 @@ S22 設計（2026-11-23）：查到以前量測的 startup 與多數題目把框
 
 路線圖（舊的 S19～S21 編號已被用掉，順延重編；花費都要先問）：
 
-1. **S22 benchmark。** 設計在 [Q 報告](studies/research-2026-11/Q-s22-benchmark-design.md)：30 題分項計分、以題為樣本、Opus 5.5 兩階段。使用者的核准與開跑前的補充規格在它的第十一節。進度以 `~/.cache/agf-ecosystem/bench-s22/`（各階段的 `results.json`、題目與凍結雜湊）為準；用 `studies/research-2026-11/bench-s22/stage.py run <階段>` 續做：它只補缺的，各階段上限分開算、合計不超過 30 美元，`--base` 要在家目錄外。核准後的順序：實作第七節 → 題目與規格凍結並 commit → 0a、0b、0c → 正式階段。不要直接補跑 S19 沒判完的兩題。
+1. **S22 benchmark。** 設計在 [Q 報告](studies/research-2026-11/Q-s22-benchmark-design.md)：30 題分項計分、以題為樣本、Opus 5.5 兩階段。使用者的核准與開跑前的補充規格在它的第十一節。**題目、評分與計畫已在 `514b64a` 凍結**（`studies/research-2026-11/bench-s22/freeze.json`），所以量測期間不改 `evals/host/` 與 `bench-s22/` 裡被它列出的檔。順序是 0c（Haiku 兩次）、1（Opus）、**先 `judge.py sample` 盲查並寫 `audit-1.json`，才可以算組別差異**、只有分不出來才跑 2、報告。進度以 `~/.cache/agf-ecosystem/bench-s22/`（各階段的 `results.json`、題目與凍結雜湊）為準；用 `studies/research-2026-11/bench-s22/stage.py run <階段>` 續做：它只補缺的，各階段上限分開算、合計不超過 30 美元，`--base` 要在家目錄外。核准後的順序：實作第七節 → 題目與規格凍結並 commit → 0a、0b、0c → 正式階段。不要直接補跑 S19 沒判完的兩題。
 2. **S23 C 與 kernel 的程式追蹤。** 把確定性工具接進 `trace-code` 的 reference，用 S22 的方法在一個 kernel 子目錄比較。codegraph 的 image 先留著。
 3. **S24 研究文件。** PDF 解析與引用回查，用真實論文與中文 PDF 核對頁碼和數字。解析用的 image 要重建（Dockerfile 在 `studies/ecosystem-2026-11/trials/docparse/docker/`）。
 4. **S25 跨宿主接手。** 需要先在 WSL 安裝 Codex 或 Gemini CLI，要使用者同意。
