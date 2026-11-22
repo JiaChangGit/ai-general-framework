@@ -101,7 +101,7 @@ def summarize(path: Path, inside: Path | None = None) -> dict:
     summary = {"skills_listed": None, "tools_listed": None, "tool_names": None, "model": None, "version": None, "cwd": None, "first_context_tokens": None,
                "tool_uses": [], "skill_calls": [], "skill_calls_blocked": [], "skill_calls_blocked_errors": [], "skill_reads": [],
                "files_read": [], "tool_errors": [],
-               "bash_ran": [], "result": None}
+               "bash_ran": [], "models": [], "result": None}
     pending, commands, skills = {}, {}, {}
     for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
         try:
@@ -114,6 +114,11 @@ def summarize(path: Path, inside: Path | None = None) -> dict:
                            model=event.get("model"), version=event.get("claude_code_version"), cwd=event.get("cwd"))
         elif kind == "assistant":
             message = event.get("message", {})
+            if not isinstance(message, dict):
+                continue
+            served = message.get("model")
+            if served and served != "<synthetic>" and served not in summary["models"]:
+                summary["models"].append(served)
             usage = message.get("usage")
             if summary["first_context_tokens"] is None and isinstance(usage, dict) and message.get("model") != "<synthetic>":
                 # What the first model call read: system prompt, tools, rules, skill list, prompt.

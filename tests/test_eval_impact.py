@@ -18,6 +18,7 @@ FAKE_CLI = '''#!{python}
 import json, os, sys
 from pathlib import Path
 mode = os.environ.get("FAKE_MODE", "fix")
+served = "another-model" if mode == "other" else sys.argv[sys.argv.index("--model") + 1]
 if mode == "echo":
     print(json.dumps({{"type": "result", "is_error": False, "subtype": "success", "total_cost_usd": 0.01,
                       "result": sys.argv[sys.argv.index("-p") + 1]}}))
@@ -30,10 +31,11 @@ if mode in ("budget", "limit"):
                       "result": "You've hit your 5-hour limit, resets 6:50am (Some/Where)"}}))
     sys.exit(1)
 cut = "--max-turns" in sys.argv
-print(json.dumps({{"type": "system", "subtype": "init", "skills": [], "tools": ["Read"], "model": "fake", "cwd": os.getcwd()}}))
+print(json.dumps({{"type": "system", "subtype": "init", "skills": [], "tools": ["Read"], "model": "fake",
+                  "claude_code_version": os.environ.get("FAKE_VERSION", "1.0"), "cwd": os.getcwd()}}))
 if mode == "fix" and not cut and Path("greeting.py").exists():
     Path("greeting.py").write_text("def greet(name):\\n    return 'Hello, ' + name\\n")
-print(json.dumps({{"type": "assistant", "message": {{"content": [], "usage": {{"input_tokens": 10, "cache_creation_input_tokens": 5, "cache_read_input_tokens": 1}}}}}}))
+print(json.dumps({{"type": "assistant", "message": {{"model": served, "content": [], "usage": {{"input_tokens": 10, "cache_creation_input_tokens": 5, "cache_read_input_tokens": 1}}}}}}))
 seen = " ".join(name for name in ("CLAUDE.md", "AGENTS.md", ".agf", ".claude/skills", ".claude/settings.json") if Path(name).exists())
 print(json.dumps({{"type": "result", "is_error": cut, "subtype": "error_max_turns" if cut else "success", "num_turns": 2,
                   "total_cost_usd": 0.02, "result": "renamed n to name; saw: " + seen,
@@ -142,6 +144,22 @@ class SandboxTests(unittest.TestCase):
             self.assertLess(argv.index(flag), argv.index("image"), f"{flag} after the image would go to the program")
         self.assertIn("[ $code -ge 125 ] && [ $code -le 127 ] && exit 1", argv[-1], "the subject's own 126 or 127 is not infrastructure")
 
+    def test_named_files_are_restored_before_a_test_command_runs(self):
+        (self.work / "conftest.py").write_text("cheat\n", encoding="utf-8")
+        (self.work / "pytest.ini").write_text("planted\n", encoding="utf-8")
+        (self.work / "app.py").write_text("subject\n", encoding="utf-8")
+        seen = {}
+
+        def runner(work, *call):
+            seen.update({file.name: file.read_text(encoding="utf-8") for file in Path(work).iterdir()})
+            return {"exit": 0, "output": "", "timed_out": False, "infrastructure": False}
+
+        task = {"files": {"conftest.py": "original\n", "app.py": "start\n"},
+                "checks": {"command": "make test", "restore": ["conftest.py", "pytest.ini"]}}
+        self.assertTrue(impact.check(task, self.work, "", self.work, runner)["passed"])
+        self.assertEqual(seen, {"conftest.py": "original\n", "app.py": "subject\n"})
+        self.assertEqual((self.work / "conftest.py").read_text(encoding="utf-8"), "cheat\n", "the artefact itself is untouched")
+
     def test_checks_only_execute_through_the_container(self):
         marker = self.work / "executed-on-host"
         code = f"open({str(marker)!r}, 'w').write('x')"
@@ -186,12 +204,12 @@ class ImpactTests(unittest.TestCase):
             {"id": "answer", "files": greeting, "parts": [{"prompt": "explain"}], "checks": {"answer_patterns": ["renamed", "nothing like this"]}},
         ]}), encoding="utf-8")
 
-    def run_impact(self, *extra, mode="fix", base_name="base"):
+    def run_impact(self, *extra, mode="fix", base_name="base", out="out"):
         argv = [sys.executable, str(ROOT / "evals/host/impact.py"), "run", "--framework", str(ROOT), "--base", str(self.temp / base_name),
-                "--out", str(self.temp / "out"), "--cli", str(self.cli), "--model", "fake-model", "--tasks", str(self.tasks),
+                "--out", str(self.temp / out), "--cli", str(self.cli), "--model", "fake-model", "--tasks", str(self.tasks),
                 "--env", f"FAKE_MODE={mode}", *extra]
         result = subprocess.run(argv, capture_output=True, text=True, timeout=300, env=self.env)
-        data = json.loads((self.temp / "out" / "results.json").read_text(encoding="utf-8"))
+        data = json.loads((self.temp / out / "results.json").read_text(encoding="utf-8"))
         return result, data
 
     def test_hidden_checks_decide_and_a_planned_cut_is_not_a_failure(self):
@@ -220,7 +238,7 @@ class ImpactTests(unittest.TestCase):
     def test_timeouts_and_spent_session_budgets_are_failures(self):
         for number, (mode, reason) in enumerate((("hang", "session timed out"), ("budget", "session budget exhausted"))):
             result, data = self.run_impact("--ids", "edit", "--runs", "1", "--group", "control", "--timeout", "2",
-                                           mode=mode, base_name=f"base{number}")
+                                           mode=mode, base_name=f"base{number}", out=f"out{number}")
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(data["runs"][0]["failures"], [reason])
             self.assertGreater(data["spent_usd"], 0)
@@ -363,6 +381,101 @@ class ImpactTests(unittest.TestCase):
         result = subprocess.run(argv, capture_output=True, text=True, timeout=60, env=self.env)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("--switch-model", result.stderr)
+
+    def item_tasks(self):
+        self.tasks.write_text(json.dumps({"startup": "", "tasks": [{"id": "itemised", "kind": "evidence",
+            "files": {"greeting.py": "def greet(n):\n    return 'Hello, ' + n\n", "other.txt": "keep\n"},
+            "parts": [{"prompt": "rename"}],
+            "checks": {"items": [
+                {"id": "renamed", "python": "import greeting, inspect\nassert 'name' in inspect.signature(greeting.greet).parameters"},
+                {"id": "kept", "unchanged": ["other.txt"]},
+                {"id": "said", "answer": ["renamed"]},
+                {"id": "missing", "answer": ["nothing like this"]},
+                {"id": "only", "changed_only": ["greeting.py"]}]}}]}))
+
+    def test_items_are_judged_one_by_one_and_the_work_is_kept_for_regrading(self):
+        self.item_tasks()
+        result, data = self.run_impact("--runs", "1")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for row in data["runs"]:
+            self.assertEqual(row["items"], {"renamed": True, "kept": True, "said": True, "missing": False, "only": True})
+            self.assertEqual((row["passed"], row["failures"], row["negative"]), (False, ["missing"], False))
+        tasks = json.loads(self.tasks.read_text())
+        tasks["tasks"][0]["checks"]["items"][3]["answer"] = ["saw:"]
+        self.tasks.write_text(json.dumps(tasks))
+        again = subprocess.run([sys.executable, str(ROOT / "evals/host/impact.py"), "regrade", str(self.temp / "out"), "--tasks", str(self.tasks),
+                                "--out", str(self.temp / "regraded")], capture_output=True, text=True, timeout=120, env=self.env)
+        self.assertEqual(again.returncode, 0, again.stderr)
+        regraded = json.loads((self.temp / "regraded/results.json").read_text())
+        self.assertEqual([row["passed"] for row in regraded["runs"]], [True, True])
+        self.assertEqual(regraded["spent_usd"], data["spent_usd"])
+        self.assertNotEqual(regraded["tasks_sha256"], data["tasks_sha256"])
+
+    def test_a_timeout_fails_every_item(self):
+        self.item_tasks()
+        _, data = self.run_impact("--runs", "1", "--group", "control", "--timeout", "2", mode="hang")
+        self.assertEqual(list(data["runs"][0]["items"].values()), [False] * 5)
+
+    def test_an_empty_startup_adds_nothing_to_the_prompt(self):
+        tasks = json.loads(self.tasks.read_text())
+        tasks["startup"] = ""
+        self.tasks.write_text(json.dumps(tasks))
+        self.run_impact("--ids", "answer", "--runs", "1", "--group", "control", mode="echo")
+        self.assertEqual((self.temp / "out/outputs/answer-control-0.md").read_text(encoding="utf-8"), "explain\n")
+
+    def test_a_seed_shuffles_tasks_and_alternates_which_group_goes_first(self):
+        ids = [f"t{number}" for number in range(24)]
+        plan = impact.planned_order(ids, ["framework", "control"], range(1), 20261123)
+        self.assertEqual(plan, impact.planned_order(ids, ["framework", "control"], range(1), 20261123))
+        self.assertNotEqual([task for _, task, _ in plan], ids)
+        self.assertEqual(sorted(task for _, task, _ in plan), sorted(ids))
+        first = [order[0] for _, _, order in plan]
+        self.assertEqual(first.count("control"), 12)
+        self.assertTrue(all(one != two for one, two in zip(first, first[1:])))
+        unseeded = impact.planned_order(["a", "b"], ["framework", "control"], range(1), None)
+        self.assertEqual(unseeded, [(0, "a", ["framework", "control"]), (0, "b", ["control", "framework"])])
+
+    def test_blocks_run_side_by_side_without_passing_the_cap(self):
+        result, data = self.run_impact("--runs", "3", "--jobs", "3", "--seed", "7")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len({(row["task"], row["group"], row["repeat"]) for row in data["runs"]}), 18)
+        self.assertAlmostEqual(data["spent_usd"], 0.48)
+        self.assertFalse(any((self.temp / "base").iterdir()))
+        result, data = self.run_impact("--ids", "edit,answer", "--runs", "5", "--jobs", "3", "--budget", "0.05",
+                                       "--total-budget", "0.13", base_name="base2", out="out2")
+        self.assertEqual(result.returncode, 3)
+        self.assertIn("total budget", data["stopped"])
+        self.assertLessEqual(data["spent_usd"], 0.13)
+        self.assertGreaterEqual(sum("passed" in row for row in data["runs"]), 4, "a waiting session is not a spent budget")
+
+    def test_a_resumed_run_only_does_what_is_missing_and_counts_what_was_spent(self):
+        self.run_impact("--ids", "edit", "--runs", "1", "--group", "control")
+        result, data = self.run_impact("--ids", "edit", "--runs", "2", "--resume", str(self.temp / "out"), base_name="base2", out="out2")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(sorted((row["group"], row["repeat"]) for row in data["runs"]),
+                         [("control", 1), ("framework", 0), ("framework", 1)])
+        self.assertAlmostEqual(data["spent_usd"], 0.06)
+        stopped, capped = self.run_impact("--ids", "edit", "--runs", "3", "--budget", "0.05", "--total-budget", "0.1",
+                                          "--resume", str(self.temp / "out"), "--resume", str(self.temp / "out2"), base_name="base3", out="out3")
+        self.assertEqual(stopped.returncode, 3)
+        self.assertEqual(capped["spent_usd"], 0, "the earlier spend leaves no room for a session")
+
+    def test_results_are_never_overwritten(self):
+        self.run_impact("--ids", "edit", "--runs", "1", "--group", "control")
+        again, data = self.run_impact("--ids", "edit", "--runs", "1", "--group", "framework", base_name="base2")
+        self.assertNotEqual(again.returncode, 0)
+        self.assertEqual([row["group"] for row in data["runs"]], ["control"])
+
+    def test_another_served_model_or_version_stops_the_experiment(self):
+        result, data = self.run_impact("--ids", "edit", "--runs", "1", mode="other")
+        self.assertEqual(result.returncode, 3)
+        self.assertIn("served", data["stopped"])
+        self.assertNotIn("passed", data["runs"][0])
+        result, data = self.run_impact("--ids", "edit", "--runs", "1", "--cli-version", "2.0", base_name="base2", out="out2")
+        self.assertEqual(result.returncode, 3)
+        self.assertIn("version", data["stopped"])
+        self.assertTrue(impact.same_model("claude-x-1", "claude-x-1-20261101"))
+        self.assertFalse(impact.same_model("claude-x-1", "claude-x-1-5"))
 
     def test_the_shipped_task_file_loads_and_every_check_is_hidden(self):
         startup, tasks = impact.load_tasks(ROOT / "evals/impact/tasks.json")

@@ -1,0 +1,277 @@
+#!/usr/bin/env python3
+"""From impact.py's rows to a verdict (the method of studies/research-2026-11/Q-s22-benchmark-design.md).
+
+    python evals/host/judge.py judge RESULTS [RESULTS ...] [--alpha 0.0294]
+    python evals/host/judge.py agree --one RESULTS ... --other RESULTS ...
+    python evals/host/judge.py sample OUT_DIR [OUT_DIR ...] --tasks FILE --seed N --to EMPTY_DIR [--share 0.2]
+    python evals/host/judge.py export RESULTS [RESULTS ...] --to FILE
+
+RESULTS is an output directory of `impact.py run` or a file written by `export`. Scores need tasks with
+checks.items: a run scores the share of its items that hold. The task is the sample: d is the mean score
+with the framework minus the mean without it, over the repeats both groups completed.
+
+    benefit          the interval's lower end is above 0, the mean at least the margin, and an exact
+                     sign-flip permutation test is significant too
+    harm             the interval's upper end is below 0
+    not worth it     the upper end is below the margin
+    inconclusive     anything else
+
+Negative tasks are not part of the score. Run `sample` and read it before `judge`, so that the checks of
+the judgements cannot follow the groups' results.
+"""
+from __future__ import annotations
+
+import argparse
+from collections import defaultdict
+from fractions import Fraction
+from functools import lru_cache
+import json
+from math import ceil, exp, lcm, lgamma, log, pi, sqrt
+from pathlib import Path
+import random
+import re
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import grading  # noqa: E402
+import impact  # noqa: E402
+
+TREATED, CONTROL = "framework", "control"
+ALPHA = 0.0294  # Pocock's boundary for two looks
+MARGIN, LARGE, MIN_TASKS = 0.10, 0.25, 20
+EPSILON = 1e-9
+
+
+@lru_cache(maxsize=None)
+def t_critical(alpha: float, freedom: int) -> float:
+    """Two-sided critical value of Student's t."""
+    scale = exp(lgamma((freedom + 1) / 2) - lgamma(freedom / 2) - 0.5 * log(freedom * pi))
+
+    def central(limit: float, steps: int = 2000) -> float:  # P(|T| < limit), Simpson's rule
+        width, total = limit / steps, 0.0
+        for step in range(steps + 1):
+            weight = 1 if step in (0, steps) else 4 if step % 2 else 2
+            total += weight * (1 + (step * width) ** 2 / freedom) ** (-(freedom + 1) / 2)
+        return 2 * scale * total * width / 3
+
+    low, high = 0.0, 100.0
+    for _ in range(50):
+        middle = (low + high) / 2
+        low, high = (middle, high) if central(middle) < 1 - alpha else (low, middle)
+    return (low + high) / 2
+
+
+def sign_flip(differences: list) -> float:
+    """Exact two-sided p of the mean when every task's sign could as well have been the other."""
+    exact = [Fraction(value).limit_denominator(10000) for value in differences]
+    unit = lcm(*(value.denominator for value in exact))
+    values = [int(value * unit) for value in exact]
+    sums = {0: 1}
+    for size in map(abs, values):
+        following = defaultdict(int)
+        for total, count in sums.items():
+            following[total + size] += count
+            following[total - size] += count
+        sums = following
+    return sum(count for total, count in sums.items() if abs(total) >= abs(sum(values))) / 2 ** len(values)
+
+
+def interval(values: list[float], alpha: float) -> tuple[float, float, float]:
+    mean = sum(values) / len(values)
+    deviation = sqrt(sum((value - mean) ** 2 for value in values) / (len(values) - 1))
+    half = t_critical(alpha, len(values) - 1) * deviation / sqrt(len(values))
+    return mean, mean - half, mean + half
+
+
+def decide(differences: list, alpha: float = ALPHA, margin: float = MARGIN, large: float = LARGE) -> dict:
+    mean, low, high = interval([float(value) for value in differences], alpha)
+    p = sign_flip(differences)
+    if low > EPSILON and mean >= margin - EPSILON and p <= alpha:
+        verdict = "benefit"
+    elif high < -EPSILON:
+        verdict = "harm"
+    elif high < margin - EPSILON:
+        verdict = "not worth it"
+    else:
+        verdict = "inconclusive"
+    return {"verdict": verdict, "mean": mean, "low": low, "high": high, "p_sign_flip": p, "rules_out_large": high < large - EPSILON}
+
+
+def paired(rows: list[dict]) -> dict[str, list[tuple[dict, dict]]]:
+    """Per task, the (without, with) rows of every repeat both groups completed."""
+    cells = defaultdict(dict)
+    for row in rows:
+        if row.get("items") is None or row["group"] not in (TREATED, CONTROL):
+            continue
+        cell = cells[row["task"], row["repeat"]]
+        if row["group"] in cell:
+            raise ValueError(f"completed twice: {row['task']} {row['group']} #{row['repeat']}")
+        cell[row["group"]] = row
+    tasks = defaultdict(list)
+    for (task, _), cell in sorted(cells.items()):
+        if len(cell) == 2:
+            tasks[task].append((cell[CONTROL], cell[TREATED]))
+    return dict(tasks)
+
+
+def score(row: dict) -> Fraction:
+    return Fraction(sum(map(bool, row["items"].values())), len(row["items"]))
+
+
+def differences(tasks: dict[str, list[tuple[dict, dict]]]) -> dict[str, Fraction]:
+    return {task: sum((score(new) - score(old) for old, new in pairs), Fraction(0)) / len(pairs) for task, pairs in tasks.items()}
+
+
+def spending(tasks: dict[str, list[tuple[dict, dict]]], alpha: float) -> dict:
+    logs, totals = [], {group: defaultdict(float) for group in (CONTROL, TREATED)}
+    for pairs in tasks.values():
+        costs = [0.0, 0.0]
+        for pair in pairs:
+            for side, (group, row) in enumerate(zip((CONTROL, TREATED), pair)):
+                for part in row.get("parts", []):
+                    costs[side] += part.get("cost_usd") or 0
+                    for key in ("cost_usd", *impact.TOKEN_KEYS):
+                        totals[group][key] += part.get(key) or 0
+        if all(costs):
+            logs.append(log(costs[1] / costs[0]))
+    found = {"totals": {group: dict(total) for group, total in totals.items()}, "cache_read_share": {}}
+    for group, total in totals.items():
+        read = total["cache_read_input_tokens"]
+        sent = read + total["input_tokens"] + total["cache_creation_input_tokens"]
+        found["cache_read_share"][group] = read / sent if sent else None
+    if len(logs) > 1:
+        found.update(zip(("ratio", "ratio_low", "ratio_high"), map(exp, interval(logs, alpha))))
+    return found
+
+
+def judge(rows: list[dict], alpha: float = ALPHA, min_tasks: int = MIN_TASKS) -> dict:
+    tasks = paired([row for row in rows if not row.get("negative")])
+    negatives = paired([row for row in rows if row.get("negative")])
+    change = differences(tasks)
+    if len(change) < max(2, min_tasks):
+        found = {"verdict": "no conclusion"}
+    else:
+        found = decide(list(change.values()), alpha)
+    found.update(tasks=len(change), alpha=alpha, second_stage=found["verdict"] == "inconclusive")
+    wrong = [sum(not all(pair[side]["items"].values()) for pairs in negatives.values() for pair in pairs) for side in (0, 1)]
+    found["negatives"] = {"tasks": len(negatives), "wrong_control": wrong[0], "wrong_framework": wrong[1],
+                          "side_effect": wrong[1] - wrong[0] >= 2}
+    if len(change) < 2:
+        return found
+    means = {side: [float(sum((score(pair[side]) for pair in pairs), Fraction(0)) / len(pairs)) for pairs in tasks.values()] for side in (0, 1)}
+    found["score"] = {CONTROL: sum(means[0]) / len(change), TREATED: sum(means[1]) / len(change)}
+    found["control_at_ceiling"] = sum(value == 1 for value in means[0])
+    found["cost"] = spending(tasks, alpha)
+    found["per_task"] = {task: float(value) for task, value in change.items()}
+    kinds = {task: pairs[0][0].get("kind") for task, pairs in tasks.items()}
+    # Directions only: a handful of tasks each.
+    found["by_kind"], found["without_kind"] = {}, {}
+    for kind in sorted(set(kinds.values()), key=str):
+        inside = [value for task, value in change.items() if kinds[task] == kind]
+        others = [value for task, value in change.items() if kinds[task] != kind]
+        found["by_kind"][kind] = {"tasks": len(inside), "mean": float(sum(inside) / len(inside))}
+        if len(others) > 1:
+            found["without_kind"][kind] = decide(others, alpha)  # does the conclusion rest on this one kind?
+    return found
+
+
+def agree(one: list[dict], other: list[dict]) -> dict:
+    """Can one model stand in for the other (the rule fixed before the S22 runs)?"""
+    first, second = (differences(paired([row for row in rows if not row.get("negative")])) for rows in (one, other))
+    common = sorted(first.keys() & second.keys())
+    both = [task for task in common if first[task] and second[task]]
+    same = sum((first[task] > 0) == (second[task] > 0) for task in both)
+    apart = abs(float(sum(first[task] - second[task] for task in common) / len(common))) if common else None
+    return {"tasks": len(common), "both_nonzero": len(both), "same_sign": same, "mean_apart": apart,
+            "stands_in": len(both) >= 8 and same >= 0.75 * len(both) and apart <= MARGIN + EPSILON}
+
+
+def public_row(row: dict) -> dict:
+    """Judgements, counts and spend only: no text, no path."""
+    keys = ("task", "kind", "negative", "group", "repeat", "position", "passed", "items", "setup_sha256")
+    part_keys = ("model", "served", "cli_version", "subtype", "failed", "turns", "cost_usd", "cost_is_upper_bound",
+                 "first_context_tokens", "tools_listed", *impact.TOKEN_KEYS, "skills_used")
+    return {**{key: row[key] for key in keys if key in row},
+            "outside_reads": sum(len(part.get("outside_paths") or []) for part in row.get("parts", [])),
+            "parts": [{key: part[key] for key in part_keys if key in part} for part in row.get("parts", [])]}
+
+
+def load(paths: list[Path]) -> dict:
+    files = [path / "results.json" if path.is_dir() else path for path in paths]
+    return impact.combine([(path.name, json.loads(file.read_text(encoding="utf-8"))) for path, file in zip(paths, files)])
+
+
+def sample(folders: list[Path], task_file: Path, seed: int, share: float, to: Path) -> int:
+    """Runs to read without knowing their group. The key goes to a separate file."""
+    _, tasks = impact.load_tasks(task_file)
+    runs = []
+    for folder in folders:
+        data = json.loads((folder / "results.json").read_text(encoding="utf-8"))
+        kept = Path(data.get("artifacts_in") or folder)
+        runs += [(kept, row) for row in data["runs"] if row.get("artifact") and row.get("items") is not None]
+    chosen = random.Random(f"audit/{seed}").sample(runs, ceil(share * len(runs)))
+    to.mkdir(parents=True, exist_ok=True)
+    if any(to.iterdir()):
+        raise SystemExit(f"--to must be empty: {to}")
+    hide = re.compile(r"CLAUDE\.md|AGENTS\.md|\S*\.agf\S*|\S*\.claude\S*|HANDOFF\S*|CHECKPOINT\S*|\bskills?\b", re.IGNORECASE)
+    key = {}
+    for number, (folder, row) in enumerate(chosen, 1):
+        name, task = f"r{number:03d}", tasks[row["task"]]
+        work = folder / "artifacts" / row["artifact"]
+        start = json.loads((folder / "artifacts" / f"{row['artifact']}.start.json").read_text(encoding="utf-8"))
+        lines = [f"# {name}: {row['task']}", "", *(f"> {part['prompt']}" for part in task["parts"]), "", "## answer", "",
+                 hide.sub("<hidden>", (folder / "outputs" / f"{row['artifact']}.md").read_text(encoding="utf-8")), "## changes", ""]
+        for changed in grading.changes(start, work):
+            label = "<hidden>" if hide.search(changed) else changed
+            file = work / changed
+            text = file.read_text(encoding="utf-8", errors="replace") if file.is_file() and not file.is_symlink() else "(gone or not a file)"
+            lines += [f"### {label}", "", hide.sub("<hidden>", text[:6000]), ""]
+        lines += ["## judgements", ""]
+        lines += [f"- {item['id']}: {'holds' if row['items'].get(item['id']) else 'fails'} -- {item.get('means', '')}"
+                  for item in task["checks"]["items"]]
+        (to / f"{name}.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+        key[name] = {"dir": folder.name, "artifact": row["artifact"], "group": row["group"]}
+    to.with_name(to.name + ".key.json").write_text(json.dumps(key, indent=1) + "\n", encoding="utf-8")
+    print(f"{len(chosen)} of {len(runs)} runs")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = parser.add_subparsers(dest="command", required=True)
+    one = sub.add_parser("judge")
+    one.add_argument("results", type=Path, nargs="+")
+    one.add_argument("--alpha", type=float, default=ALPHA)
+    two = sub.add_parser("agree")
+    two.add_argument("--one", type=Path, nargs="+", required=True)
+    two.add_argument("--other", type=Path, nargs="+", required=True)
+    three = sub.add_parser("sample")
+    three.add_argument("results", type=Path, nargs="+")
+    three.add_argument("--tasks", type=Path, required=True)
+    three.add_argument("--seed", type=int, required=True)
+    three.add_argument("--share", type=float, default=0.2)
+    three.add_argument("--to", type=Path, required=True)
+    four = sub.add_parser("export")
+    four.add_argument("results", type=Path, nargs="+")
+    four.add_argument("--to", type=Path, required=True)
+    args = parser.parse_args()
+    try:
+        if args.command == "sample":
+            return sample(args.results, args.tasks, args.seed, args.share, args.to)
+        if args.command == "judge":
+            print(json.dumps(judge(load(args.results)["runs"], args.alpha), ensure_ascii=False, indent=1))
+        elif args.command == "agree":
+            print(json.dumps(agree(load(args.one)["runs"], load(args.other)["runs"]), indent=1))
+        else:
+            data = load(args.results)
+            kept = {key: data.get(key) for key in (*impact.SAME_SETUP, "confinement", "cli_version", "framework_commit", "spent_usd")}
+            kept.update(stopped=bool(data["stopped"]), runs=[public_row(row) for row in data["runs"]])
+            args.to.write_text(json.dumps(kept, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    except ValueError as error:
+        print(f"judge: {error}", file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
