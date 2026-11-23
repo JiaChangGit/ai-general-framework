@@ -1,0 +1,5052 @@
+{
+ "model": "claude-haiku-5-5",
+ "switch_model": null,
+ "review_model": null,
+ "tools": "Read Grep Glob Edit Write Skill",
+ "skills": [
+  "align-with-me",
+  "debug-root-cause",
+  "guide-learning",
+  "read-research",
+  "review-change",
+  "review-sql",
+  "trace-code"
+ ],
+ "hooks": null,
+ "tasks_sha256": "1e1edcb0906935931339c4b0c422a2a12ba90c113d668a0338020bcb61dcb7b8",
+ "confinement": "s22",
+ "cli_version": "2.1.325",
+ "framework_commit": "6aece63ca71d0c02817f7d939417ccb1bbfe6228",
+ "spent_usd": 0.639242,
+ "stopped": true,
+ "runs": [
+  {
+   "task": "ask-render-jobs",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "jobs-left": false,
+    "ask-raster": false,
+    "ask-fps": false,
+    "ask-subtitles": false,
+    "ask-duration": false
+   },
+   "setup_sha256": "2c3122f10d9e88a13b94b300c3a74eeaaeba7b48d1bfed7143c9a467e58bf0bf",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.0048036,
+     "first_context_tokens": 11714,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 11123,
+     "cache_read_input_tokens": 46820,
+     "output_tokens": 4220,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-backtest-costs",
+   "kind": "ask",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "engine-left": false,
+    "ask-cost": false,
+    "ask-stop-size": true,
+    "ask-stop-base": false,
+    "ask-stop-fill": false
+   },
+   "setup_sha256": "24b98da9099ef1bd02e0a03836b4d6960099b9e02fed2a12eabfeb6138afe901",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00421816,
+     "first_context_tokens": 9407,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 7275,
+     "cache_read_input_tokens": 49066,
+     "output_tokens": 4543,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-prune-artifacts",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "report-sorted": true,
+    "rules-left": false,
+    "ask-kinds": false,
+    "ask-limit": false,
+    "ask-action": false
+   },
+   "setup_sha256": "e3147444bd461ac4e7561cd57310755892947df8583cfdbebe621ef377f44143",
+   "outside_reads": 1,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 14,
+     "cost_usd": 0.00730406,
+     "first_context_tokens": 11745,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 15313,
+     "cache_read_input_tokens": 106556,
+     "output_tokens": 6349,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-render-jobs",
+   "kind": "ask",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "jobs-left": false,
+    "ask-raster": false,
+    "ask-fps": false,
+    "ask-subtitles": false,
+    "ask-duration": false
+   },
+   "setup_sha256": "80b48a1aeea79e05729bebb0d8cb01c4e68f2373e0303b14feef39d0ab1622c2",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.0025353199999999998,
+     "first_context_tokens": 9413,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 5242,
+     "cache_read_input_tokens": 36612,
+     "output_tokens": 2240,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-prune-artifacts",
+   "kind": "ask",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "report-sorted": true,
+    "rules-left": false,
+    "ask-kinds": false,
+    "ask-limit": false,
+    "ask-action": false
+   },
+   "setup_sha256": "aef8b49a18e73ca87713b885302c7cbbd83825e7714ebb49d834b13847a4d955",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.00367604,
+     "first_context_tokens": 9434,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 7405,
+     "cache_read_input_tokens": 51154,
+     "output_tokens": 3365,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-handoff-regs-json",
+   "kind": "handoff",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "names": true,
+    "offsets": true,
+    "access": true,
+    "resets": true,
+    "no-extra": true
+   },
+   "setup_sha256": "715448787dd4c61b249a579ae19f33552898ed603d091196d7904753fa8934df",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00341564,
+     "first_context_tokens": 11753,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 8678,
+     "cache_read_input_tokens": 73184,
+     "output_tokens": 1894,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-orders-api",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "page-zero": false,
+    "default-size": false,
+    "max-size": false,
+    "order": false,
+    "no-cancelled": false
+   },
+   "setup_sha256": "333b45b8c0c47351112479c7b5fd025c43fe9267dfbbe0ef1f32b4dd4d7b13c0",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.00211763,
+     "first_context_tokens": 9504,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 4422,
+     "cache_read_input_tokens": 46723,
+     "output_tokens": 1530,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.0037511700000000003,
+     "first_context_tokens": 9399,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 7121,
+     "cache_read_input_tokens": 72957,
+     "output_tokens": 3192,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-backtest-costs",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "engine-left": false,
+    "ask-cost": false,
+    "ask-stop-size": false,
+    "ask-stop-base": false,
+    "ask-stop-fill": false
+   },
+   "setup_sha256": "7d40699e490ae3d700d843194eaba2bc7604a8d8c5d00128ddebdd02b4e0d72a",
+   "outside_reads": 1,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00817884,
+     "first_context_tokens": 11719,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 15117,
+     "cache_read_input_tokens": 65444,
+     "output_tokens": 9000,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-handoff-regs-json",
+   "kind": "handoff",
+   "negative": true,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "names": true,
+    "offsets": true,
+    "access": true,
+    "resets": true,
+    "no-extra": true
+   },
+   "setup_sha256": "7aac717fe371ef7c768bfbc0db8b73a09a2f4ab2d12da846c42ba70df0254d02",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 3,
+     "cost_usd": 0.00149363,
+     "first_context_tokens": 9433,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 3872,
+     "cache_read_input_tokens": 25813,
+     "output_tokens": 921,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-rust-sync",
+   "kind": "ask",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "depth": true,
+    "sync-left": false,
+    "ask-direction": false,
+    "ask-conflict": false,
+    "ask-deletion": false
+   },
+   "setup_sha256": "cfe8a74275d5b9f6f53e1a1d2f3dbcaccb950001e137ad170f434f9aed29023b",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.006208030000000001,
+     "first_context_tokens": 9446,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10024,
+     "cache_read_input_tokens": 52823,
+     "output_tokens": 7348,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-rust-panic",
+   "kind": "evidence",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "preview": true,
+    "tag": true,
+    "not-parse": true,
+    "doc": false,
+    "no-run": true
+   },
+   "setup_sha256": "f58e90c710c88fc8637c5c42b3bb89faee538484401c85c589ede522de0d9e93",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 13,
+     "cost_usd": 0.00680385,
+     "first_context_tokens": 11754,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 13627,
+     "cache_read_input_tokens": 78325,
+     "output_tokens": 6588,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-orders-api",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "page-zero": false,
+    "default-size": false,
+    "max-size": false,
+    "order": false,
+    "no-cancelled": false
+   },
+   "setup_sha256": "bf84b89ad39676dae619196e7d7f5c497d23f57f89c456233064dd01069d0e3b",
+   "outside_reads": 1,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.0034175200000000003,
+     "first_context_tokens": 11810,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 8359,
+     "cache_read_input_tokens": 58872,
+     "output_tokens": 2312,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.00651786,
+     "first_context_tokens": 11705,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 13105,
+     "cache_read_input_tokens": 82566,
+     "output_tokens": 6140,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-rust-panic",
+   "kind": "evidence",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "preview": true,
+    "tag": true,
+    "not-parse": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "60cf1f8f67bcbc665560bfca246bf6ae59e1f31b4e9903cdc23c4a1069d9b719",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 14,
+     "cost_usd": 0.0049314300000000005,
+     "first_context_tokens": 9441,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 8878,
+     "cache_read_input_tokens": 78993,
+     "output_tokens": 4729,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-rust-retry",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "attempts": false,
+    "base": false,
+    "cap": false,
+    "jitter": false,
+    "statuses": false
+   },
+   "setup_sha256": "848bab2250af09f25a92df96c0efe8bd236de907854df73a92f1033b40f8b19e",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 3,
+     "cost_usd": 0.0012442400000000002,
+     "first_context_tokens": 9479,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 3515,
+     "cache_read_input_tokens": 25864,
+     "output_tokens": 564,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.0019378,
+     "first_context_tokens": 9392,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 4584,
+     "cache_read_input_tokens": 26290,
+     "output_tokens": 1515,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-rust-sync",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "depth": true,
+    "sync-left": false,
+    "ask-direction": false,
+    "ask-conflict": false,
+    "ask-deletion": false
+   },
+   "setup_sha256": "a22043b7766613063b7278bd196f18eb786a7757023f1934fc18ab36534c33c3",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.00796002,
+     "first_context_tokens": 11755,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 15641,
+     "cache_read_input_tokens": 86762,
+     "output_tokens": 7926,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-firmware-failsafe",
+   "kind": "ask",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "crc-name": true,
+    "control-left": false,
+    "ask-threshold": false,
+    "ask-safe-state": false,
+    "ask-recovery": false
+   },
+   "setup_sha256": "e9ec9ebfb381a04c3e6eb412622117931ff1f4d6ea2c47df22342e5837d9e6b6",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.00437791,
+     "first_context_tokens": 9432,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 8322,
+     "cache_read_input_tokens": 52701,
+     "output_tokens": 4371,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-rust-retry",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "attempts": false,
+    "base": false,
+    "cap": false,
+    "jitter": false,
+    "statuses": false
+   },
+   "setup_sha256": "9c2d6d4c9e3d6601733dac9c62062700dee05f3d4a5c383d4217f9028474cb78",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00311673,
+     "first_context_tokens": 11793,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 8171,
+     "cache_read_input_tokens": 72583,
+     "output_tokens": 1511,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.005234980000000001,
+     "first_context_tokens": 11706,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 14918,
+     "cache_read_input_tokens": 51758,
+     "output_tokens": 3466,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-backtest-lookahead",
+   "kind": "evidence",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "fill-timing": true,
+    "window": true,
+    "not-slippage": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "9acbdcb33b2957545e7eaa991ca0a2c0c086603455c5a8591f950c2252159e52",
+   "outside_reads": 1,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 12,
+     "cost_usd": 0.00966138,
+     "first_context_tokens": 11732,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 17501,
+     "cache_read_input_tokens": 112328,
+     "output_tokens": 10073,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-probe-defer",
+   "kind": "evidence",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "vdd-error": true,
+    "clk-error": true,
+    "not-dt": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "f9704ff47ab40c4e2534c056f8a4923fabb89e9f5a461e1056979fd11becb2ee",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.00536414,
+     "first_context_tokens": 11779,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 11861,
+     "cache_read_input_tokens": 61344,
+     "output_tokens": 4755,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-firmware-failsafe",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "crc-name": true,
+    "control-left": false,
+    "ask-threshold": false,
+    "ask-safe-state": false,
+    "ask-recovery": false
+   },
+   "setup_sha256": "8e90d9ba71c4d4702a9bdbf9f34ea1c57f7e68bf7449bf17befc340a69663514",
+   "outside_reads": 1,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 13,
+     "cost_usd": 0.007132020000000001,
+     "first_context_tokens": 11750,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 14935,
+     "cache_read_input_tokens": 99712,
+     "output_tokens": 6293,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-probe-defer",
+   "kind": "evidence",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "vdd-error": true,
+    "clk-error": true,
+    "not-dt": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "854abdd5edf4700af15dda5af9c3d94ce2ffe32825d086cd92e248fa1d698e9e",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00383356,
+     "first_context_tokens": 9466,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 7615,
+     "cache_read_input_tokens": 37726,
+     "output_tokens": 3865,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-judgement-refactor",
+   "kind": "judgement",
+   "negative": true,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "approved": true,
+    "no-defect": true,
+    "same-output": true,
+    "callers": true,
+    "scope": true
+   },
+   "setup_sha256": "bfbf0073de198d145fe19d433b59bfa0537172efd4e4a94969f0b02742ca934c",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.00288833,
+     "first_context_tokens": 9470,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 5703,
+     "cache_read_input_tokens": 48723,
+     "output_tokens": 2519,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-judgement-refactor",
+   "kind": "judgement",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "approved": true,
+    "no-defect": true,
+    "same-output": true,
+    "callers": true,
+    "scope": true
+   },
+   "setup_sha256": "76effeedc15a375fa83a898cae9aa01625a310885fc10dbb16b2e50f60e108a3",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00397418,
+     "first_context_tokens": 11781,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10043,
+     "cache_read_input_tokens": 63208,
+     "output_tokens": 2665,
+     "skills_used": [
+      "review-change"
+     ]
+    }
+   ]
+  },
+  {
+   "task": "evidence-backtest-lookahead",
+   "kind": "evidence",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "fill-timing": true,
+    "window": true,
+    "not-slippage": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "d4f4bb6cd02d2461d63044655d2bd2f6951e1c76449f259d9d7d0e2b5ab0a025",
+   "outside_reads": 1,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.0072391999999999995,
+     "first_context_tokens": 9421,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 12024,
+     "cache_read_input_tokens": 71220,
+     "output_tokens": 8242,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-kconfig-gateway",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "rx-ring": false,
+    "budget": false,
+    "offload": false,
+    "irq": false,
+    "debugfs": false
+   },
+   "setup_sha256": "8911f8c55603b39d547e0926d17a16a46a366cad92127c50bd2f58eafef416f2",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.0039245799999999996,
+     "first_context_tokens": 11830,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 9319,
+     "cache_read_input_tokens": 89388,
+     "output_tokens": 2331,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.0033840700000000003,
+     "first_context_tokens": 11725,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 8653,
+     "cache_read_input_tokens": 58397,
+     "output_tokens": 2137,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-frame-spec",
+   "kind": "judgement",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "r3": true,
+    "r4": true,
+    "r6": true,
+    "r7": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "1977ffd8fa87701036dea2b57648b66dd7e4edf0339b8a70e150c23e76cc2cee",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.0030568500000000007,
+     "first_context_tokens": 9475,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 6675,
+     "cache_read_input_tokens": 27375,
+     "output_tokens": 2895,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-session-expiry",
+   "kind": "evidence",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "idle-base": true,
+    "saved": true,
+    "not-tz": true,
+    "doc": false,
+    "no-run": true
+   },
+   "setup_sha256": "c4d54ab69e3f753150defb35d26b47724344cc09a4313ffa019a44930521eeae",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 12,
+     "cost_usd": 0.0052053,
+     "first_context_tokens": 11742,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 11520,
+     "cache_read_input_tokens": 97340,
+     "output_tokens": 3853,
+     "skills_used": [
+      "debug-root-cause"
+     ]
+    }
+   ]
+  },
+  {
+   "task": "handoff-kconfig-gateway",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "rx-ring": false,
+    "budget": false,
+    "offload": false,
+    "irq": false,
+    "debugfs": false
+   },
+   "setup_sha256": "a1472981922eae287598a23acdfe905281d07a8170e1615879cc6cf2eebd7d4a",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00278765,
+     "first_context_tokens": 9507,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 5687,
+     "cache_read_input_tokens": 59655,
+     "output_tokens": 2105,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00298165,
+     "first_context_tokens": 9402,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 5941,
+     "cache_read_input_tokens": 58275,
+     "output_tokens": 2419,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-session-expiry",
+   "kind": "evidence",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "idle-base": true,
+    "saved": false,
+    "not-tz": true,
+    "doc": false,
+    "no-run": true
+   },
+   "setup_sha256": "bf4eb86d13e9151cec01dab846725621f7f41f27c21e317c75a1e436e10beb27",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00298125,
+     "first_context_tokens": 9432,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 6106,
+     "cache_read_input_tokens": 48655,
+     "output_tokens": 2545,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-frame-spec",
+   "kind": "judgement",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "r3": true,
+    "r4": true,
+    "r6": true,
+    "r7": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "3b829d4f52b37f4fa08ffabe6affbc4c90fe6b1a28d19ea6a8f36a164e1daa59",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00482969,
+     "first_context_tokens": 11793,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 11661,
+     "cache_read_input_tokens": 49869,
+     "output_tokens": 3996,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-ask-irqstat-min",
+   "kind": "ask",
+   "negative": true,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "filters": true,
+    "inclusive": true,
+    "default": true,
+    "scope": true,
+    "no-question": true
+   },
+   "setup_sha256": "441ea360ae00e3c5d132d5134a9cf7d6de14e03b57f1e01f86044c84ec48d741",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.0017381200000000001,
+     "first_context_tokens": 9410,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 4318,
+     "cache_read_input_tokens": 36422,
+     "output_tokens": 1019,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-notes-claims",
+   "kind": "judgement",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "c2": true,
+    "c3": true,
+    "c5": true,
+    "c8": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "ab7a8a9e4e41d60456c7fa9fd2043bd961cc8d2699d91f400ef207684d578760",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.0028185800000000002,
+     "first_context_tokens": 9460,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 6124,
+     "cache_read_input_tokens": 27018,
+     "output_tokens": 2646,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-ask-irqstat-min",
+   "kind": "ask",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "filters": true,
+    "inclusive": true,
+    "default": true,
+    "scope": true,
+    "no-question": true
+   },
+   "setup_sha256": "b5421ba435d01d7cd4d8d6350f1e5b679cee48a587bc59875a9e9f82c27f9907",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.00279466,
+     "first_context_tokens": 11723,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 8169,
+     "cache_read_input_tokens": 31276,
+     "output_tokens": 1695,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-notes-claims",
+   "kind": "judgement",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "c2": true,
+    "c3": true,
+    "c5": true,
+    "c8": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "70394bce507f348990fb5c2facafca252c3d83c63bcfd99bfb8ab21ddb30bb9e",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.00377473,
+     "first_context_tokens": 11771,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 9711,
+     "cache_read_input_tokens": 32343,
+     "output_tokens": 3017,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-evidence-heartbeat",
+   "kind": "evidence",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "fixed": true,
+    "reset-kept": true,
+    "scope": true,
+    "no-doubt": true,
+    "no-question": true
+   },
+   "setup_sha256": "6cd876eff3652e8bc1a42de4581c52fe6cce173a995d9afe8f225978f907945c",
+   "outside_reads": 1,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.0037458300000000003,
+     "first_context_tokens": 11765,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 9350,
+     "cache_read_input_tokens": 59733,
+     "output_tokens": 2555,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-evidence-heartbeat",
+   "kind": "evidence",
+   "negative": true,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "fixed": true,
+    "reset-kept": true,
+    "scope": true,
+    "no-doubt": true,
+    "no-question": true
+   },
+   "setup_sha256": "97940518b2bf4ef90c69607e43652612dec965ac57529954da2188a3e89f14e8",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.00190908,
+     "first_context_tokens": 9449,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 4741,
+     "cache_read_input_tokens": 37058,
+     "output_tokens": 1179,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-backtest-summary",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "year": false,
+    "warmup": false,
+    "minimum": false,
+    "win": false,
+    "worst": false
+   },
+   "setup_sha256": "597becd31ce51e108a4c34a4f97eac21b026153d0016dcd5d8b9cfa1db1f93a9",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00418966,
+     "first_context_tokens": 11824,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10247,
+     "cache_read_input_tokens": 63276,
+     "output_tokens": 3013,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00655892,
+     "first_context_tokens": 11719,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 16143,
+     "cache_read_input_tokens": 72682,
+     "output_tokens": 5205,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-voice-sheet",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "exclude": false,
+    "order": false,
+    "cue": false,
+    "rate": false,
+    "takes": false
+   },
+   "setup_sha256": "8d4046977a35aa014e8afb1ddfbda8d3bea2c19627635535753c17aefb60f7a7",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.0018058200000000003,
+     "first_context_tokens": 9537,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 4120,
+     "cache_read_input_tokens": 36602,
+     "output_tokens": 1230,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.0029594,
+     "first_context_tokens": 9399,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 5839,
+     "cache_read_input_tokens": 48110,
+     "output_tokens": 2619,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-experiment-plan",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "metric": false,
+    "repeats": false,
+    "warmup": false,
+    "host": false,
+    "void": false
+   },
+   "setup_sha256": "103c8ef036ae38946aaa05253693d673be170e713ad704afab2349cf0f102f8e",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 3,
+     "cost_usd": 0.0025333300000000003,
+     "first_context_tokens": 11795,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 7181,
+     "cache_read_input_tokens": 30453,
+     "output_tokens": 1584,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00454156,
+     "first_context_tokens": 11708,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 11466,
+     "cache_read_input_tokens": 63086,
+     "output_tokens": 3233,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-backtest-summary",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "year": false,
+    "warmup": false,
+    "minimum": false,
+    "win": false,
+    "worst": false
+   },
+   "setup_sha256": "e0a1f293898203c3d418978fc358345669c0c5d5b5bb7e15e70c7c301da5d787",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.0018195700000000002,
+     "first_context_tokens": 9502,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 4155,
+     "cache_read_input_tokens": 36527,
+     "output_tokens": 1245,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.0030446900000000005,
+     "first_context_tokens": 9397,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 5898,
+     "cache_read_input_tokens": 48809,
+     "output_tokens": 2752,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-experiment-plan",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "metric": false,
+    "repeats": false,
+    "warmup": false,
+    "host": false,
+    "void": false
+   },
+   "setup_sha256": "7dd34a591d726e18997ede49823e34ddffc22edaed824bf7c029e7de447e1295",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 3,
+     "cost_usd": 0.0016298600000000001,
+     "first_context_tokens": 9493,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 3767,
+     "cache_read_input_tokens": 26136,
+     "output_tokens": 1229,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.00241611,
+     "first_context_tokens": 9406,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 4993,
+     "cache_read_input_tokens": 46551,
+     "output_tokens": 1902,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-voice-sheet",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "exclude": false,
+    "order": false,
+    "cue": false,
+    "rate": false,
+    "takes": false
+   },
+   "setup_sha256": "53ef78ab7ed6df9499cc3cfefabfe00acd1b58255bcc6f7d2624a20a83c0ac23",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.0032555900000000005,
+     "first_context_tokens": 11859,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 8383,
+     "cache_read_input_tokens": 45219,
+     "output_tokens": 2252,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.006986249999999999,
+     "first_context_tokens": 11721,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 17356,
+     "cache_read_input_tokens": 90885,
+     "output_tokens": 5210,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-ci-false-green",
+   "kind": "evidence",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "unit": true,
+    "e2e": true,
+    "not-cache": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "1cb3fe269c4d9e59f084bb3c97f880ecd95877bad1389e4867cbf975f536e149",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 13,
+     "cost_usd": 0.006448379999999999,
+     "first_context_tokens": 9450,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 10784,
+     "cache_read_input_tokens": 84018,
+     "output_tokens": 6900,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-handoff-node-bump",
+   "kind": "handoff",
+   "negative": true,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "image": true,
+    "key": true,
+    "test-job": true,
+    "steps": true,
+    "no-extra": true
+   },
+   "setup_sha256": "994e9bb8df95fbf95e1bd3a021b5148a1023146d221292a6af6a865ac61befc7",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.00161608,
+     "first_context_tokens": 9414,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 4105,
+     "cache_read_input_tokens": 36128,
+     "output_tokens": 866,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-handoff-node-bump",
+   "kind": "handoff",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "image": true,
+    "key": true,
+    "test-job": true,
+    "steps": true,
+    "no-extra": true
+   },
+   "setup_sha256": "063fbb726d0548e338938358f4429e6f9e4e18e1ec6a7bf3593ede2c606371c9",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00318552,
+     "first_context_tokens": 11725,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 8409,
+     "cache_read_input_tokens": 58422,
+     "output_tokens": 1837,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-uart-ring",
+   "kind": "evidence",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "wrap": true,
+    "width": true,
+    "not-race": true,
+    "doc": false,
+    "no-run": true
+   },
+   "setup_sha256": "0b309cc7ae8bceddc813b463cd8f74fe2bafaaf7e6dd62d7923343caf43a5447",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 14,
+     "cost_usd": 0.00925996,
+     "first_context_tokens": 11759,
+     "tools_listed": 6,
+     "input_tokens": 16,
+     "cache_creation_input_tokens": 16569,
+     "cache_read_input_tokens": 123706,
+     "output_tokens": 9415,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-ci-false-green",
+   "kind": "evidence",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "unit": true,
+    "e2e": true,
+    "not-cache": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "82ebd760c1c5f2e8301859ac04811bbb9867686af41792c78e1b33152b352d77",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 15,
+     "cost_usd": 0.00824571,
+     "first_context_tokens": 11760,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 15871,
+     "cache_read_input_tokens": 109461,
+     "output_tokens": 7951,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-tapbuf-review",
+   "kind": "judgement",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "read-sleeps": true,
+    "write-wraps": true,
+    "info-leaks": true,
+    "init-leaks": true,
+    "none-made-up": false
+   },
+   "setup_sha256": "331fed6f56cd256d655031b001c8fb37cb6d61573f85aa80714223f77eabc45b",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.006047080000000001,
+     "first_context_tokens": 11758,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 13607,
+     "cache_read_input_tokens": 52588,
+     "output_tokens": 5598,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-api-review",
+   "kind": "judgement",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "sort-injection": true,
+    "mass-assign": true,
+    "weak-token": true,
+    "no-role-check": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "c3cf0b457771ed422d50626556b2e2dc252891898442aac1815b1f0e5d71c29d",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.00408943,
+     "first_context_tokens": 9470,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 8348,
+     "cache_read_input_tokens": 38103,
+     "output_tokens": 4076,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-tapbuf-review",
+   "kind": "judgement",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "read-sleeps": true,
+    "write-wraps": true,
+    "info-leaks": true,
+    "init-leaks": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "63a227943185572c71f076ff13b4ee3539bd6b73674944c5377fd18031e6108d",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.00478643,
+     "first_context_tokens": 9457,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 9499,
+     "cache_read_input_tokens": 37633,
+     "output_tokens": 5019,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-uart-ring",
+   "kind": "evidence",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "wrap": true,
+    "width": true,
+    "not-race": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "657bcf1de01705f79bcfbfa988a7b03f2183d23cc393ca335a273369f905e9e0",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 18,
+     "cost_usd": 0.008935089999999998,
+     "first_context_tokens": 9442,
+     "tools_listed": 6,
+     "input_tokens": 20,
+     "cache_creation_input_tokens": 14383,
+     "cache_read_input_tokens": 139299,
+     "output_tokens": 9327,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-api-review",
+   "kind": "judgement",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "sort-injection": true,
+    "mass-assign": true,
+    "weak-token": true,
+    "no-role-check": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "ffa06b5db894c2b4c379791521ed6ea009884582d987f67e84a926cf7ce4d542",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00461299,
+     "first_context_tokens": 11792,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 11308,
+     "cache_read_input_tokens": 46909,
+     "output_tokens": 3763,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-account-delete",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "backend-left": false,
+    "ask-mode": false,
+    "ask-posts": false,
+    "ask-invoices": false,
+    "ask-owner": false
+   },
+   "setup_sha256": "ec0e1edaf2d9665982d8316d58241eaef4e636d246354e683dbda7f48beb40fd",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 12,
+     "cost_usd": 0.00603036,
+     "first_context_tokens": 11718,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 14612,
+     "cache_read_input_tokens": 86776,
+     "output_tokens": 4478,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-config-trace",
+   "kind": "judgement",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "timeout": true,
+    "workers": true,
+    "verbose": true,
+    "hooks": true,
+    "loaded": true
+   },
+   "setup_sha256": "2a189ff393271a66bb4565425a9bad335cc3ebb24aa3893a48f1f9226b0dd79d",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 12,
+     "cost_usd": 0.00538076,
+     "first_context_tokens": 9492,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 9326,
+     "cache_read_input_tokens": 67236,
+     "output_tokens": 5684,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-rust-semver",
+   "kind": "judgement",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "struct-field": true,
+    "enum-variant": true,
+    "trait-method": true,
+    "fn-signature": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "3dae14226fc881679396a1ff1371bd4ac5dc9a120436ce55d4fd07fd30bb4168",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00506306,
+     "first_context_tokens": 11804,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 11413,
+     "cache_read_input_tokens": 66096,
+     "output_tokens": 4237,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-account-delete",
+   "kind": "ask",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "backend-left": false,
+    "ask-mode": false,
+    "ask-posts": false,
+    "ask-invoices": false,
+    "ask-owner": false
+   },
+   "setup_sha256": "4c0cb9b0bc3ba7142a085100785d47ab502d649429ae731b99037d96d9797230",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.0037165999999999996,
+     "first_context_tokens": 9403,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 7553,
+     "cache_read_input_tokens": 37870,
+     "output_tokens": 3653,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-rust-semver",
+   "kind": "judgement",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "struct-field": true,
+    "enum-variant": true,
+    "trait-method": true,
+    "fn-signature": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "090bd069245661a4f7dd8710ee1e97c9e6630c64c502d4f9f7d25af1b2af9b2f",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.00325152,
+     "first_context_tokens": 9488,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 6705,
+     "cache_read_input_tokens": 37322,
+     "output_tokens": 3073,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-ask-rename-item",
+   "kind": "ask",
+   "negative": true,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "definition": true,
+    "recipes": true,
+    "script": true,
+    "string-key": true,
+    "no-question": true
+   },
+   "setup_sha256": "48c932ed1b30593c82473474cf8cde3b6a2e21e9b548b4aebd06f2c5875f8f3e",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 12,
+     "cost_usd": 0.00344601,
+     "first_context_tokens": 9457,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 7220,
+     "cache_read_input_tokens": 63781,
+     "output_tokens": 2726,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-config-trace",
+   "kind": "judgement",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "timeout": true,
+    "workers": true,
+    "verbose": true,
+    "hooks": true,
+    "loaded": true
+   },
+   "setup_sha256": "4f51655abc5df31aecdce3f547264efb374376f3a2f15a91d0dbfdd86a87da07",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 14,
+     "cost_usd": 0.00681807,
+     "first_context_tokens": 11807,
+     "tools_listed": 6,
+     "input_tokens": 16,
+     "cache_creation_input_tokens": 14480,
+     "cache_read_input_tokens": 115897,
+     "output_tokens": 5523,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-handoff-node-bump",
+   "kind": "handoff",
+   "negative": true,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "image": true,
+    "key": true,
+    "test-job": true,
+    "steps": true,
+    "no-extra": true
+   },
+   "setup_sha256": "063fbb726d0548e338938358f4429e6f9e4e18e1ec6a7bf3593ede2c606371c9",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.0031590000000000003,
+     "first_context_tokens": 11733,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 8256,
+     "cache_read_input_tokens": 72160,
+     "output_tokens": 1570,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-ask-rename-item",
+   "kind": "ask",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "definition": true,
+    "recipes": true,
+    "script": true,
+    "string-key": true,
+    "no-question": true
+   },
+   "setup_sha256": "640c99e9cccb75f31a878299d3afb472f5ac5008e1b68fda3feb6efd20e44888",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 13,
+     "cost_usd": 0.00466634,
+     "first_context_tokens": 11768,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 11137,
+     "cache_read_input_tokens": 62694,
+     "output_tokens": 3622,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-handoff-node-bump",
+   "kind": "handoff",
+   "negative": true,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "image": true,
+    "key": true,
+    "test-job": true,
+    "steps": true,
+    "no-extra": true
+   },
+   "setup_sha256": "994e9bb8df95fbf95e1bd3a021b5148a1023146d221292a6af6a865ac61befc7",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.00170344,
+     "first_context_tokens": 9414,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 4216,
+     "cache_read_input_tokens": 36344,
+     "output_tokens": 992,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-orders-api",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "page-zero": false,
+    "default-size": false,
+    "max-size": false,
+    "order": false,
+    "no-cancelled": false
+   },
+   "setup_sha256": "333b45b8c0c47351112479c7b5fd025c43fe9267dfbbe0ef1f32b4dd4d7b13c0",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.00230966,
+     "first_context_tokens": 9505,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 4737,
+     "cache_read_input_tokens": 47076,
+     "output_tokens": 1781,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00343301,
+     "first_context_tokens": 9400,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 6333,
+     "cache_read_input_tokens": 59771,
+     "output_tokens": 3135,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-rust-semver",
+   "kind": "judgement",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "struct-field": true,
+    "enum-variant": true,
+    "trait-method": true,
+    "fn-signature": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "090bd069245661a4f7dd8710ee1e97c9e6630c64c502d4f9f7d25af1b2af9b2f",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.0032189899999999997,
+     "first_context_tokens": 9490,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 6779,
+     "cache_read_input_tokens": 27409,
+     "output_tokens": 3177,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-api-review",
+   "kind": "judgement",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "sort-injection": true,
+    "mass-assign": true,
+    "weak-token": true,
+    "no-role-check": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "ffa06b5db894c2b4c379791521ed6ea009884582d987f67e84a926cf7ce4d542",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.0045683,
+     "first_context_tokens": 11780,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 11366,
+     "cache_read_input_tokens": 46780,
+     "output_tokens": 3653,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-rust-semver",
+   "kind": "judgement",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "struct-field": true,
+    "enum-variant": true,
+    "trait-method": true,
+    "fn-signature": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "3dae14226fc881679396a1ff1371bd4ac5dc9a120436ce55d4fd07fd30bb4168",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.00475661,
+     "first_context_tokens": 11808,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 11262,
+     "cache_read_input_tokens": 45891,
+     "output_tokens": 4089,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-api-review",
+   "kind": "judgement",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "sort-injection": true,
+    "mass-assign": true,
+    "weak-token": true,
+    "no-role-check": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "c3cf0b457771ed422d50626556b2e2dc252891898442aac1815b1f0e5d71c29d",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.0037691300000000003,
+     "first_context_tokens": 9475,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 7907,
+     "cache_read_input_tokens": 38343,
+     "output_tokens": 3607,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-orders-api",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "page-zero": false,
+    "default-size": false,
+    "max-size": false,
+    "order": false,
+    "no-cancelled": false
+   },
+   "setup_sha256": "bf84b89ad39676dae619196e7d7f5c497d23f57f89c456233064dd01069d0e3b",
+   "outside_reads": 1,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.0034989900000000004,
+     "first_context_tokens": 11806,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 8620,
+     "cache_read_input_tokens": 59149,
+     "output_tokens": 2365,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00556745,
+     "first_context_tokens": 11701,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 12565,
+     "cache_read_input_tokens": 63395,
+     "output_tokens": 4839,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-notes-claims",
+   "kind": "judgement",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "c2": true,
+    "c3": true,
+    "c5": true,
+    "c8": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "ab7a8a9e4e41d60456c7fa9fd2043bd961cc8d2699d91f400ef207684d578760",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.0028637899999999997,
+     "first_context_tokens": 9461,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 6063,
+     "cache_read_input_tokens": 27109,
+     "output_tokens": 2759,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-notes-claims",
+   "kind": "judgement",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "c2": true,
+    "c3": true,
+    "c5": true,
+    "c8": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "70394bce507f348990fb5c2facafca252c3d83c63bcfd99bfb8ab21ddb30bb9e",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.00367146,
+     "first_context_tokens": 11771,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 9707,
+     "cache_read_input_tokens": 32396,
+     "output_tokens": 2811,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-experiment-plan",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "metric": false,
+    "repeats": false,
+    "warmup": false,
+    "host": false,
+    "void": false
+   },
+   "setup_sha256": "103c8ef036ae38946aaa05253693d673be170e713ad704afab2349cf0f102f8e",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.00299559,
+     "first_context_tokens": 11807,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 8217,
+     "cache_read_input_tokens": 45589,
+     "output_tokens": 1791,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.005414609999999999,
+     "first_context_tokens": 11720,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 12832,
+     "cache_read_input_tokens": 65071,
+     "output_tokens": 4393,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-voice-sheet",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "exclude": false,
+    "order": false,
+    "cue": false,
+    "rate": false,
+    "takes": false
+   },
+   "setup_sha256": "53ef78ab7ed6df9499cc3cfefabfe00acd1b58255bcc6f7d2624a20a83c0ac23",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.0031576400000000006,
+     "first_context_tokens": 11851,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 8165,
+     "cache_read_input_tokens": 58864,
+     "output_tokens": 1870,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.00586789,
+     "first_context_tokens": 11713,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 15196,
+     "cache_read_input_tokens": 72569,
+     "output_tokens": 4204,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-experiment-plan",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "metric": false,
+    "repeats": false,
+    "warmup": false,
+    "host": false,
+    "void": false
+   },
+   "setup_sha256": "7dd34a591d726e18997ede49823e34ddffc22edaed824bf7c029e7de447e1295",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 3,
+     "cost_usd": 0.00165353,
+     "first_context_tokens": 9491,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 4094,
+     "cache_read_input_tokens": 26063,
+     "output_tokens": 1147,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00308241,
+     "first_context_tokens": 9404,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 5935,
+     "cache_read_input_tokens": 46641,
+     "output_tokens": 2856,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-backtest-lookahead",
+   "kind": "evidence",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "fill-timing": true,
+    "window": true,
+    "not-slippage": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "d4f4bb6cd02d2461d63044655d2bd2f6951e1c76449f259d9d7d0e2b5ab0a025",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.0065534,
+     "first_context_tokens": 9423,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10697,
+     "cache_read_input_tokens": 53350,
+     "output_tokens": 7759,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-voice-sheet",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "exclude": false,
+    "order": false,
+    "cue": false,
+    "rate": false,
+    "takes": false
+   },
+   "setup_sha256": "8d4046977a35aa014e8afb1ddfbda8d3bea2c19627635535753c17aefb60f7a7",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.00185338,
+     "first_context_tokens": 9538,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 4151,
+     "cache_read_input_tokens": 36688,
+     "output_tokens": 1311,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00291526,
+     "first_context_tokens": 9400,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 5858,
+     "cache_read_input_tokens": 48816,
+     "output_tokens": 2509,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-ask-irqstat-min",
+   "kind": "ask",
+   "negative": true,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "filters": true,
+    "inclusive": true,
+    "default": true,
+    "scope": true,
+    "no-question": true
+   },
+   "setup_sha256": "b5421ba435d01d7cd4d8d6350f1e5b679cee48a587bc59875a9e9f82c27f9907",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.0029211099999999998,
+     "first_context_tokens": 11723,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 8170,
+     "cache_read_input_tokens": 45181,
+     "output_tokens": 1669,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-ask-irqstat-min",
+   "kind": "ask",
+   "negative": true,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "filters": true,
+    "inclusive": true,
+    "default": true,
+    "scope": true,
+    "no-question": true
+   },
+   "setup_sha256": "441ea360ae00e3c5d132d5134a9cf7d6de14e03b57f1e01f86044c84ec48d741",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.0018615,
+     "first_context_tokens": 9405,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 4459,
+     "cache_read_input_tokens": 36390,
+     "output_tokens": 1210,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-probe-defer",
+   "kind": "evidence",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "vdd-error": true,
+    "clk-error": true,
+    "not-dt": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "854abdd5edf4700af15dda5af9c3d94ce2ffe32825d086cd92e248fa1d698e9e",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00383937,
+     "first_context_tokens": 9466,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 7673,
+     "cache_read_input_tokens": 37697,
+     "output_tokens": 3854,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-probe-defer",
+   "kind": "evidence",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "setup_sha256": "f9704ff47ab40c4e2534c056f8a4923fabb89e9f5a461e1056979fd11becb2ee",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.00485974,
+     "first_context_tokens": 11783,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 10627,
+     "cache_read_input_tokens": 46904,
+     "output_tokens": 4529,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-backtest-lookahead",
+   "kind": "evidence",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "fill-timing": true,
+    "window": true,
+    "not-slippage": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "9acbdcb33b2957545e7eaa991ca0a2c0c086603455c5a8591f950c2252159e52",
+   "outside_reads": 1,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 12,
+     "cost_usd": 0.00858988,
+     "first_context_tokens": 11736,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 16531,
+     "cache_read_input_tokens": 87298,
+     "output_tokens": 8819,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-backtest-costs",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "engine-left": false,
+    "ask-cost": false,
+    "ask-stop-size": true,
+    "ask-stop-base": false,
+    "ask-stop-fill": false
+   },
+   "setup_sha256": "7d40699e490ae3d700d843194eaba2bc7604a8d8c5d00128ddebdd02b4e0d72a",
+   "outside_reads": 1,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00843172,
+     "first_context_tokens": 11719,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 15419,
+     "cache_read_input_tokens": 84422,
+     "output_tokens": 9005,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-config-trace",
+   "kind": "judgement",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "timeout": false,
+    "workers": true,
+    "verbose": true,
+    "hooks": false,
+    "loaded": false
+   },
+   "setup_sha256": "2a189ff393271a66bb4565425a9bad335cc3ebb24aa3893a48f1f9226b0dd79d",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.00493595,
+     "first_context_tokens": 9494,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 10633,
+     "cache_read_input_tokens": 36405,
+     "output_tokens": 4889,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-probe-defer",
+   "kind": "evidence",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "vdd-error": true,
+    "clk-error": true,
+    "not-dt": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "f9704ff47ab40c4e2534c056f8a4923fabb89e9f5a461e1056979fd11becb2ee",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 14,
+     "cost_usd": 0.007493680000000001,
+     "first_context_tokens": 11795,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 17526,
+     "cache_read_input_tokens": 94808,
+     "output_tokens": 6078,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-backtest-costs",
+   "kind": "ask",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "engine-left": false,
+    "ask-cost": false,
+    "ask-stop-size": false,
+    "ask-stop-base": false,
+    "ask-stop-fill": false
+   },
+   "setup_sha256": "24b98da9099ef1bd02e0a03836b4d6960099b9e02fed2a12eabfeb6138afe901",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00676039,
+     "first_context_tokens": 9409,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 12627,
+     "cache_read_input_tokens": 65529,
+     "output_tokens": 7157,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-config-trace",
+   "kind": "judgement",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "timeout": true,
+    "workers": true,
+    "verbose": true,
+    "hooks": true,
+    "loaded": true
+   },
+   "setup_sha256": "4f51655abc5df31aecdce3f547264efb374376f3a2f15a91d0dbfdd86a87da07",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00565183,
+     "first_context_tokens": 11823,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 12720,
+     "cache_read_input_tokens": 78163,
+     "output_tokens": 4650,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-ask-rename-item",
+   "kind": "ask",
+   "negative": true,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "definition": true,
+    "recipes": true,
+    "script": true,
+    "string-key": true,
+    "no-question": true
+   },
+   "setup_sha256": "48c932ed1b30593c82473474cf8cde3b6a2e21e9b548b4aebd06f2c5875f8f3e",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 13,
+     "cost_usd": 0.0038244300000000006,
+     "first_context_tokens": 9460,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 7956,
+     "cache_read_input_tokens": 61953,
+     "output_tokens": 3225,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-rust-panic",
+   "kind": "evidence",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "preview": true,
+    "tag": true,
+    "not-parse": false,
+    "doc": false,
+    "no-run": true
+   },
+   "setup_sha256": "f58e90c710c88fc8637c5c42b3bb89faee538484401c85c589ede522de0d9e93",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 15,
+     "cost_usd": 0.006589660000000001,
+     "first_context_tokens": 11770,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 14113,
+     "cache_read_input_tokens": 84636,
+     "output_tokens": 5839,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-ask-rename-item",
+   "kind": "ask",
+   "negative": true,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "definition": true,
+    "recipes": true,
+    "script": true,
+    "string-key": true,
+    "no-question": true
+   },
+   "setup_sha256": "640c99e9cccb75f31a878299d3afb472f5ac5008e1b68fda3feb6efd20e44888",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 12,
+     "cost_usd": 0.005165370000000001,
+     "first_context_tokens": 11784,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 11662,
+     "cache_read_input_tokens": 65347,
+     "output_tokens": 4357,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-rust-sync",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "depth": true,
+    "sync-left": false,
+    "ask-direction": false,
+    "ask-conflict": false,
+    "ask-deletion": true
+   },
+   "setup_sha256": "a22043b7766613063b7278bd196f18eb786a7757023f1934fc18ab36534c33c3",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.009558249999999999,
+     "first_context_tokens": 11775,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 16732,
+     "cache_read_input_tokens": 108795,
+     "output_tokens": 10245,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-backtest-summary",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "year": false,
+    "warmup": false,
+    "minimum": false,
+    "win": false,
+    "worst": false
+   },
+   "setup_sha256": "e0a1f293898203c3d418978fc358345669c0c5d5b5bb7e15e70c7c301da5d787",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.00188813,
+     "first_context_tokens": 9504,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 4544,
+     "cache_read_input_tokens": 36153,
+     "output_tokens": 1234,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.0029459200000000003,
+     "first_context_tokens": 9399,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 5898,
+     "cache_read_input_tokens": 47732,
+     "output_tokens": 2576,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-rust-panic",
+   "kind": "evidence",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "preview": true,
+    "tag": true,
+    "not-parse": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "60cf1f8f67bcbc665560bfca246bf6ae59e1f31b4e9903cdc23c4a1069d9b719",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 13,
+     "cost_usd": 0.00490575,
+     "first_context_tokens": 9444,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 8982,
+     "cache_read_input_tokens": 63165,
+     "output_tokens": 4953,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-rust-sync",
+   "kind": "ask",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "depth": true,
+    "sync-left": false,
+    "ask-direction": false,
+    "ask-conflict": false,
+    "ask-deletion": false
+   },
+   "setup_sha256": "cfe8a74275d5b9f6f53e1a1d2f3dbcaccb950001e137ad170f434f9aed29023b",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 13,
+     "cost_usd": 0.00856052,
+     "first_context_tokens": 9450,
+     "tools_listed": 6,
+     "input_tokens": 18,
+     "cache_creation_input_tokens": 13890,
+     "cache_read_input_tokens": 118972,
+     "output_tokens": 9182,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-tapbuf-review",
+   "kind": "judgement",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "read-sleeps": true,
+    "write-wraps": true,
+    "info-leaks": true,
+    "init-leaks": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "331fed6f56cd256d655031b001c8fb37cb6d61573f85aa80714223f77eabc45b",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.00558927,
+     "first_context_tokens": 11786,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 13240,
+     "cache_read_input_tokens": 33167,
+     "output_tokens": 5218,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-backtest-summary",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "year": false,
+    "warmup": false,
+    "minimum": false,
+    "win": false,
+    "worst": false
+   },
+   "setup_sha256": "597becd31ce51e108a4c34a4f97eac21b026153d0016dcd5d8b9cfa1db1f93a9",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.0034363500000000003,
+     "first_context_tokens": 11820,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 9269,
+     "cache_read_input_tokens": 47025,
+     "output_tokens": 2223,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.005346180000000001,
+     "first_context_tokens": 11715,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 12531,
+     "cache_read_input_tokens": 83678,
+     "output_tokens": 4004,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-prune-artifacts",
+   "kind": "ask",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "report-sorted": true,
+    "rules-left": false,
+    "ask-kinds": false,
+    "ask-limit": false,
+    "ask-action": false
+   },
+   "setup_sha256": "aef8b49a18e73ca87713b885302c7cbbd83825e7714ebb49d834b13847a4d955",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.00387394,
+     "first_context_tokens": 9435,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 7809,
+     "cache_read_input_tokens": 51514,
+     "output_tokens": 3592,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-tapbuf-review",
+   "kind": "judgement",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "read-sleeps": true,
+    "write-wraps": true,
+    "info-leaks": true,
+    "init-leaks": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "63a227943185572c71f076ff13b4ee3539bd6b73674944c5377fd18031e6108d",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.00405002,
+     "first_context_tokens": 9460,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 8739,
+     "cache_read_input_tokens": 37292,
+     "output_tokens": 3857,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-prune-artifacts",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "report-sorted": true,
+    "rules-left": true,
+    "ask-kinds": true,
+    "ask-limit": true,
+    "ask-action": true
+   },
+   "setup_sha256": "e3147444bd461ac4e7561cd57310755892947df8583cfdbebe621ef377f44143",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.00519697,
+     "first_context_tokens": 11761,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 11727,
+     "cache_read_input_tokens": 65057,
+     "output_tokens": 4400,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-render-jobs",
+   "kind": "ask",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "jobs-left": false,
+    "ask-raster": true,
+    "ask-fps": false,
+    "ask-subtitles": false,
+    "ask-duration": false
+   },
+   "setup_sha256": "80b48a1aeea79e05729bebb0d8cb01c4e68f2373e0303b14feef39d0ab1622c2",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.00313411,
+     "first_context_tokens": 9413,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 6279,
+     "cache_read_input_tokens": 36301,
+     "output_tokens": 3029,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-frame-spec",
+   "kind": "judgement",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "r3": true,
+    "r4": true,
+    "r6": true,
+    "r7": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "3b829d4f52b37f4fa08ffabe6affbc4c90fe6b1a28d19ea6a8f36a164e1daa59",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.004026,
+     "first_context_tokens": 11801,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 10361,
+     "cache_read_input_tokens": 32670,
+     "output_tokens": 3253,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-ci-false-green",
+   "kind": "evidence",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "unit": true,
+    "e2e": true,
+    "not-cache": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "82ebd760c1c5f2e8301859ac04811bbb9867686af41792c78e1b33152b352d77",
+   "outside_reads": 1,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 18,
+     "cost_usd": 0.01046389,
+     "first_context_tokens": 11776,
+     "tools_listed": 6,
+     "input_tokens": 18,
+     "cache_creation_input_tokens": 18940,
+     "cache_read_input_tokens": 154209,
+     "output_tokens": 10264,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-render-jobs",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "jobs-left": false,
+    "ask-raster": false,
+    "ask-fps": false,
+    "ask-subtitles": false,
+    "ask-duration": false
+   },
+   "setup_sha256": "2c3122f10d9e88a13b94b300c3a74eeaaeba7b48d1bfed7143c9a467e58bf0bf",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00416617,
+     "first_context_tokens": 11726,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 10456,
+     "cache_read_input_tokens": 46017,
+     "output_tokens": 3228,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "judgement-frame-spec",
+   "kind": "judgement",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "r3": true,
+    "r4": true,
+    "r6": true,
+    "r7": true,
+    "none-made-up": true
+   },
+   "setup_sha256": "1977ffd8fa87701036dea2b57648b66dd7e4edf0339b8a70e150c23e76cc2cee",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.0026703100000000004,
+     "first_context_tokens": 9478,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 6517,
+     "cache_read_input_tokens": 27031,
+     "output_tokens": 2192,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-firmware-failsafe",
+   "kind": "ask",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "crc-name": true,
+    "control-left": false,
+    "ask-threshold": false,
+    "ask-safe-state": false,
+    "ask-recovery": false
+   },
+   "setup_sha256": "e9ec9ebfb381a04c3e6eb412622117931ff1f4d6ea2c47df22342e5837d9e6b6",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.0042718800000000005,
+     "first_context_tokens": 9433,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 8311,
+     "cache_read_input_tokens": 63948,
+     "output_tokens": 3938,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-ci-false-green",
+   "kind": "evidence",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "unit": true,
+    "e2e": true,
+    "not-cache": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "1cb3fe269c4d9e59f084bb3c97f880ecd95877bad1389e4867cbf975f536e149",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 14,
+     "cost_usd": 0.005184620000000001,
+     "first_context_tokens": 9454,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 9345,
+     "cache_read_input_tokens": 50062,
+     "output_tokens": 5628,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-evidence-heartbeat",
+   "kind": "evidence",
+   "negative": true,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "fixed": true,
+    "reset-kept": true,
+    "scope": true,
+    "no-doubt": true,
+    "no-question": true
+   },
+   "setup_sha256": "6cd876eff3652e8bc1a42de4581c52fe6cce173a995d9afe8f225978f907945c",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00415847,
+     "first_context_tokens": 11773,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 9795,
+     "cache_read_input_tokens": 75577,
+     "output_tokens": 2885,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-evidence-heartbeat",
+   "kind": "evidence",
+   "negative": true,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "fixed": true,
+    "reset-kept": true,
+    "scope": true,
+    "no-doubt": true,
+    "no-question": true
+   },
+   "setup_sha256": "97940518b2bf4ef90c69607e43652612dec965ac57529954da2188a3e89f14e8",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.00217516,
+     "first_context_tokens": 9454,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 5093,
+     "cache_read_input_tokens": 46956,
+     "output_tokens": 1372,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-kconfig-gateway",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "rx-ring": false,
+    "budget": false,
+    "offload": false,
+    "irq": false,
+    "debugfs": true
+   },
+   "setup_sha256": "a1472981922eae287598a23acdfe905281d07a8170e1615879cc6cf2eebd7d4a",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00254709,
+     "first_context_tokens": 9513,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 5510,
+     "cache_read_input_tokens": 58539,
+     "output_tokens": 1717,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.0033274900000000002,
+     "first_context_tokens": 9408,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 6681,
+     "cache_read_input_tokens": 58259,
+     "output_tokens": 2815,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-firmware-failsafe",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "crc-name": true,
+    "control-left": false,
+    "ask-threshold": false,
+    "ask-safe-state": false,
+    "ask-recovery": false
+   },
+   "setup_sha256": "8e90d9ba71c4d4702a9bdbf9f34ea1c57f7e68bf7449bf17befc340a69663514",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 15,
+     "cost_usd": 0.008721580000000001,
+     "first_context_tokens": 11758,
+     "tools_listed": 6,
+     "input_tokens": 16,
+     "cache_creation_input_tokens": 19982,
+     "cache_read_input_tokens": 140358,
+     "output_tokens": 6640,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-judgement-refactor",
+   "kind": "judgement",
+   "negative": true,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "approved": true,
+    "no-defect": true,
+    "same-output": true,
+    "callers": true,
+    "scope": true
+   },
+   "setup_sha256": "76effeedc15a375fa83a898cae9aa01625a310885fc10dbb16b2e50f60e108a3",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.00497101,
+     "first_context_tokens": 11793,
+     "tools_listed": 6,
+     "input_tokens": 16,
+     "cache_creation_input_tokens": 10873,
+     "cache_read_input_tokens": 108081,
+     "output_tokens": 3428,
+     "skills_used": [
+      "review-change"
+     ]
+    }
+   ]
+  },
+  {
+   "task": "handoff-rust-retry",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "attempts": false,
+    "base": false,
+    "cap": false,
+    "jitter": false,
+    "statuses": false
+   },
+   "setup_sha256": "848bab2250af09f25a92df96c0efe8bd236de907854df73a92f1033b40f8b19e",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 3,
+     "cost_usd": 0.00132208,
+     "first_context_tokens": 9482,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 3894,
+     "cache_read_input_tokens": 25518,
+     "output_tokens": 575,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.00223156,
+     "first_context_tokens": 9395,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 5138,
+     "cache_read_input_tokens": 36566,
+     "output_tokens": 1675,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-judgement-refactor",
+   "kind": "judgement",
+   "negative": true,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "approved": true,
+    "no-defect": true,
+    "same-output": true,
+    "callers": true,
+    "scope": true
+   },
+   "setup_sha256": "bfbf0073de198d145fe19d433b59bfa0537172efd4e4a94969f0b02742ca934c",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.0029727200000000003,
+     "first_context_tokens": 9473,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 6037,
+     "cache_read_input_tokens": 58012,
+     "output_tokens": 2368,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-kconfig-gateway",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "rx-ring": false,
+    "budget": false,
+    "offload": false,
+    "irq": false,
+    "debugfs": false
+   },
+   "setup_sha256": "8911f8c55603b39d547e0926d17a16a46a366cad92127c50bd2f58eafef416f2",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00410146,
+     "first_context_tokens": 11826,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 9578,
+     "cache_read_input_tokens": 89096,
+     "output_tokens": 2587,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 12,
+     "cost_usd": 0.00538527,
+     "first_context_tokens": 11721,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 11815,
+     "cache_read_input_tokens": 90887,
+     "output_tokens": 4224,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-account-delete",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "backend-left": false,
+    "ask-mode": false,
+    "ask-posts": false,
+    "ask-invoices": false,
+    "ask-owner": false
+   },
+   "setup_sha256": "ec0e1edaf2d9665982d8316d58241eaef4e636d246354e683dbda7f48beb40fd",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00457047,
+     "first_context_tokens": 11718,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 11294,
+     "cache_read_input_tokens": 47287,
+     "output_tokens": 3676,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-account-delete",
+   "kind": "ask",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "backend-left": false,
+    "ask-mode": false,
+    "ask-posts": false,
+    "ask-invoices": false,
+    "ask-owner": false
+   },
+   "setup_sha256": "4c0cb9b0bc3ba7142a085100785d47ab502d649429ae731b99037d96d9797230",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00289226,
+     "first_context_tokens": 9407,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 6425,
+     "cache_read_input_tokens": 36496,
+     "output_tokens": 2483,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-rust-retry",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "attempts": false,
+    "base": false,
+    "cap": false,
+    "jitter": false,
+    "statuses": false
+   },
+   "setup_sha256": "9c2d6d4c9e3d6601733dac9c62062700dee05f3d4a5c383d4217f9028474cb78",
+   "outside_reads": 1,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.0034687000000000003,
+     "first_context_tokens": 11801,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 8549,
+     "cache_read_input_tokens": 72320,
+     "output_tokens": 2069,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.005881859999999999,
+     "first_context_tokens": 11714,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 13134,
+     "cache_read_input_tokens": 101316,
+     "output_tokens": 4481,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-uart-ring",
+   "kind": "evidence",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "wrap": true,
+    "width": true,
+    "not-race": true,
+    "doc": false,
+    "no-run": false
+   },
+   "setup_sha256": "657bcf1de01705f79bcfbfa988a7b03f2183d23cc393ca335a273369f905e9e0",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.004935800000000001,
+     "first_context_tokens": 9445,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 9220,
+     "cache_read_input_tokens": 36850,
+     "output_tokens": 5445,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-handoff-regs-json",
+   "kind": "handoff",
+   "negative": true,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "names": true,
+    "offsets": true,
+    "access": true,
+    "resets": true,
+    "no-extra": true
+   },
+   "setup_sha256": "715448787dd4c61b249a579ae19f33552898ed603d091196d7904753fa8934df",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.00310306,
+     "first_context_tokens": 11761,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 8158,
+     "cache_read_input_tokens": 58646,
+     "output_tokens": 1768,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-session-expiry",
+   "kind": "evidence",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "idle-base": true,
+    "saved": false,
+    "not-tz": true,
+    "doc": false,
+    "no-run": true
+   },
+   "setup_sha256": "bf4eb86d13e9151cec01dab846725621f7f41f27c21e317c75a1e436e10beb27",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.00385906,
+     "first_context_tokens": 9437,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 7574,
+     "cache_read_input_tokens": 62106,
+     "output_tokens": 3444,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-handoff-regs-json",
+   "kind": "handoff",
+   "negative": true,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "names": true,
+    "offsets": true,
+    "access": true,
+    "resets": true,
+    "no-extra": true
+   },
+   "setup_sha256": "7aac717fe371ef7c768bfbc0db8b73a09a2f4ab2d12da846c42ba70df0254d02",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 3,
+     "cost_usd": 0.0014532500000000001,
+     "first_context_tokens": 9439,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 4055,
+     "cache_read_input_tokens": 25515,
+     "output_tokens": 773,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-session-expiry",
+   "kind": "evidence",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "idle-base": true,
+    "saved": false,
+    "not-tz": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "c4d54ab69e3f753150defb35d26b47724344cc09a4313ffa019a44930521eeae",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.004824970000000001,
+     "first_context_tokens": 11758,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 10866,
+     "cache_read_input_tokens": 77557,
+     "output_tokens": 3750,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "evidence-uart-ring",
+   "kind": "evidence",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "wrap": true,
+    "width": true,
+    "not-race": true,
+    "doc": true,
+    "no-run": true
+   },
+   "setup_sha256": "0b309cc7ae8bceddc813b463cd8f74fe2bafaaf7e6dd62d7923343caf43a5447",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 14,
+     "cost_usd": 0.00952181,
+     "first_context_tokens": 11763,
+     "tools_listed": 6,
+     "input_tokens": 16,
+     "cache_creation_input_tokens": 17470,
+     "cache_read_input_tokens": 127371,
+     "output_tokens": 9505,
+     "skills_used": []
+    }
+   ]
+  }
+ ]
+}
