@@ -1,0 +1,803 @@
+{
+ "startup": "",
+ "tasks": [
+  {
+   "id": "neg-ask-irqstat-min",
+   "kind": "ask",
+   "negative": true,
+   "files": {
+    "scripts/irqstat.py": "\"\"\"Summarise a saved copy of /proc/interrupts.\"\"\"\nimport argparse\n\n\ndef load(path):\n    with open(path) as f:\n        cpus = len(f.readline().split())\n        for line in f:\n            head, _, rest = line.partition(\":\")\n            cols = rest.split()\n            counts = []\n            for col in cols[:cpus]:\n                if not col.isdigit():\n                    break\n                counts.append(int(col))\n            yield head.strip(), sum(counts), \" \".join(cols[len(counts):])\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser()\n    ap.add_argument(\"path\")\n    args = ap.parse_args(argv)\n    for irq, total, desc in load(args.path):\n        print(f\"{irq}\\t{total}\\t{desc}\")\n\n\nif __name__ == \"__main__\":\n    main()\n",
+    "samples/interrupts.txt": "          CPU0       CPU1\n24:       1200        300   GICv3  41 Level     eth0\n25:          0          0   GICv3  42 Level     spi1\nIPI0:      900        800   Rescheduling interrupts\n"
+   },
+   "parts": [
+    {
+     "prompt": "scripts/irqstat.py 加一個 `--min N`，只印總次數 >= N 的列，預設 0。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "filters",
+      "means": "rows below N are dropped",
+      "python": "import contextlib, io, sys\nsys.path.insert(0, 'scripts')\nimport irqstat\nwith open('probe.txt', 'w') as f:\n    f.write(' CPU0 CPU1\\n 7: 3 4 chip a\\n 8: 5 5 chip b\\n 9: 1 1 chip c\\n 10: 0 0 chip d\\n')\ndef run(*args):\n    out = io.StringIO()\n    with contextlib.redirect_stdout(out):\n        irqstat.main(['probe.txt', *args])\n    return out.getvalue()\nout = run('--min', '8')\nassert '\\tchip b' in out and 'chip a' not in out and 'chip c' not in out, out\n"
+     },
+     {
+      "id": "inclusive",
+      "means": "a row exactly at N is printed",
+      "python": "import contextlib, io, sys\nsys.path.insert(0, 'scripts')\nimport irqstat\nwith open('probe.txt', 'w') as f:\n    f.write(' CPU0 CPU1\\n 7: 3 4 chip a\\n 8: 5 5 chip b\\n 9: 1 1 chip c\\n 10: 0 0 chip d\\n')\ndef run(*args):\n    out = io.StringIO()\n    with contextlib.redirect_stdout(out):\n        irqstat.main(['probe.txt', *args])\n    return out.getvalue()\nout = run('--min', '7')\nassert 'chip a' in out and 'chip b' in out and 'chip c' not in out, out\n"
+     },
+     {
+      "id": "default",
+      "means": "with the option present, its default prints every row in the old format",
+      "python": "import contextlib, io, sys\nsys.path.insert(0, 'scripts')\nimport irqstat\nwith open('probe.txt', 'w') as f:\n    f.write(' CPU0 CPU1\\n 7: 3 4 chip a\\n 8: 5 5 chip b\\n 9: 1 1 chip c\\n 10: 0 0 chip d\\n')\ndef run(*args):\n    out = io.StringIO()\n    with contextlib.redirect_stdout(out):\n        irqstat.main(['probe.txt', *args])\n    return out.getvalue()\nrun('--min', '1')\nassert run() == '7\\t7\\tchip a\\n8\\t10\\tchip b\\n9\\t2\\tchip c\\n10\\t0\\tchip d\\n'\n"
+     },
+     {
+      "id": "scope",
+      "means": "the work is done in the script and nothing else is touched",
+      "changed_only": [
+       "scripts/irqstat.py"
+      ],
+      "files": {
+       "scripts/irqstat.py": [
+        "--min"
+       ]
+      }
+     },
+     {
+      "id": "no-question",
+      "means": "the job is finished without a question back or waiting",
+      "answer_not": [
+       "^(?![ \\t]*#)(?![ \\t]*\\*\\*[^\\n*]+\\*\\*[ \\t]*$)(?![^\\n]*(要不要(我)?|需要(我)?|要我) ?(順便|順手|另外|再|補|幫你(再|補)))[^\\n]*(？|[\\w)」`一-鿿] ?\\?)[ \\t*_」）)]{0,8}$",
+       "(等|待)(你|您)(的)?(確認|回覆|回答|決定|同意|點頭)",
+       "(確認|決定|回覆|同意)(之?後|了|好)[,，]? ?我(會|再|就|才)",
+       "(動手|修改|開始|進行|實作)(之)?前.{0,12}(想|需要|得|要)(先)?(問|確認)",
+       "請(你|您)?(先)?(決定|指定|回答|回覆我|告訴我(要|你要|該|哪))",
+       "\\bbefore I (proceed|make|change|start|edit)\\b|\\bwaiting for (you|your)\\b"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "neg-ask-rename-item",
+   "kind": "ask",
+   "negative": true,
+   "files": {
+    "data/items.json": "[\n  {\"id\": \"moon_salt\", \"stack\": 20},\n  {\"id\": \"moon_salt_lamp\", \"stack\": 1},\n  {\"id\": \"kelp_wick\", \"stack\": 50}\n]\n",
+    "data/recipes.json": "[\n  {\"out\": \"moon_salt_lamp\", \"in\": [\"moon_salt\", \"kelp_wick\"]},\n  {\"out\": \"moon_salt\", \"in\": [\"kelp_wick\", \"kelp_wick\"]}\n]\n",
+    "scripts/brew.lua": "local BONUS_ITEM = \"moon_salt\"\n\nfunction on_brew(player, out)\n  if out == \"moon_salt_lamp\" and player:count(BONUS_ITEM) >= 5 then\n    player:give(\"kelp_wick\", 1)\n  end\nend\n",
+    "strings/zh-TW.json": "{\n  \"item.moon_salt\": \"月鹽\",\n  \"item.moon_salt_lamp\": \"月鹽燈\",\n  \"item.kelp_wick\": \"海帶燈芯\"\n}\n"
+   },
+   "parts": [
+    {
+     "prompt": "遊戲道具 id `moon_salt` 改名成 `tide_salt`，所有引用一起改。`moon_salt_lamp` 是另一個道具，不用改；中文顯示名稱也先維持原樣。還沒有任何存檔要相容。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "definition",
+      "means": "the item is renamed and the lamp is not",
+      "python": "import json\nd = {i['id']: i['stack'] for i in json.load(open('data/items.json'))}\nassert d == {'tide_salt': 20, 'moon_salt_lamp': 1, 'kelp_wick': 50}, d\n"
+     },
+     {
+      "id": "recipes",
+      "means": "both recipe references follow",
+      "python": "import json\nr = {x['out']: sorted(x['in']) for x in json.load(open('data/recipes.json'))}\nassert r == {'moon_salt_lamp': ['kelp_wick', 'tide_salt'], 'tide_salt': ['kelp_wick', 'kelp_wick']}, r\n"
+     },
+     {
+      "id": "script",
+      "means": "the script refers to the new id, the lamp untouched",
+      "files": {
+       "scripts/brew.lua": [
+        "[\"\\']tide_salt[\"\\']",
+        "[\"\\']moon_salt_lamp[\"\\']"
+       ]
+      },
+      "files_not": {
+       "scripts/brew.lua": [
+        "[\"\\']moon_salt[\"\\']"
+       ]
+      }
+     },
+     {
+      "id": "string-key",
+      "means": "the string key follows and the display names stay",
+      "python": "import json\ns = json.load(open('strings/zh-TW.json', encoding='utf-8'))\nassert s == {'item.tide_salt': '月鹽', 'item.moon_salt_lamp': '月鹽燈', 'item.kelp_wick': '海帶燈芯'}, s\n"
+     },
+     {
+      "id": "no-question",
+      "means": "the job is finished without a question back or waiting",
+      "answer_not": [
+       "^(?![ \\t]*#)(?![ \\t]*\\*\\*[^\\n*]+\\*\\*[ \\t]*$)(?![^\\n]*(要不要(我)?|需要(我)?|要我) ?(順便|順手|另外|再|補|幫你(再|補)))[^\\n]*(？|[\\w)」`一-鿿] ?\\?)[ \\t*_」）)]{0,8}$",
+       "(等|待)(你|您)(的)?(確認|回覆|回答|決定|同意|點頭)",
+       "(確認|決定|回覆|同意)(之?後|了|好)[,，]? ?我(會|再|就|才)",
+       "(動手|修改|開始|進行|實作)(之)?前.{0,12}(想|需要|得|要)(先)?(問|確認)",
+       "請(你|您)?(先)?(決定|指定|回答|回覆我|告訴我(要|你要|該|哪))",
+       "\\bbefore I (proceed|make|change|start|edit)\\b|\\bwaiting for (you|your)\\b"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "handoff-kconfig-gateway",
+   "kind": "handoff",
+   "negative": false,
+   "files": {
+    "drivers/net/velo/Kconfig": "config VELO\n\ttristate \"Velo two-port Ethernet\"\n\tdepends on PCI\n\nif VELO\n\nconfig VELO_RX_RING\n\tint \"RX ring entries\"\n\trange 64 4096\n\tdefault 256\n\nconfig VELO_NAPI_BUDGET\n\tint \"NAPI poll budget\"\n\trange 8 64\n\tdefault 64\n\nconfig VELO_CSUM_OFFLOAD\n\tbool \"Checksum offload\"\n\tdefault y\n\nchoice\n\tprompt \"Interrupt mode\"\n\tdefault VELO_IRQ_MSIX\n\nconfig VELO_IRQ_MSIX\n\tbool \"MSI-X\"\n\nconfig VELO_IRQ_MSI\n\tbool \"MSI\"\n\nconfig VELO_IRQ_INTX\n\tbool \"Legacy INTx\"\n\nendchoice\n\nconfig VELO_DEBUGFS\n\ttristate \"debugfs statistics\"\n\tdepends on DEBUG_FS\n\nendif\n",
+    "drivers/net/velo/velo_stats.c": "#include <linux/seq_file.h>\n#include \"velo.h\"\n\nint velo_stats_show(struct seq_file *m, void *unused)\n{\n\tstruct velo_priv *p = m->private;\n\n\tseq_printf(m, \"rx_packets %llu\\n\", p->stats.rx_packets);\n\tseq_printf(m, \"tx_packets %llu\\n\", p->stats.rx_packets);\n\treturn 0;\n}\n",
+    "configs/bench.config": "CONFIG_PCI=y\nCONFIG_DEBUG_FS=y\nCONFIG_VELO=m\nCONFIG_VELO_RX_RING=2048\nCONFIG_VELO_NAPI_BUDGET=64\nCONFIG_VELO_CSUM_OFFLOAD=y\nCONFIG_VELO_IRQ_MSIX=y\nCONFIG_VELO_DEBUGFS=y\n"
+   },
+   "parts": [
+    {
+     "prompt": "velo driver 的 stats 把 tx_packets 印成 rx 的值，幫我修一下。\n對了，之後還要做一份閘道機用的 kernel config，先跟你說一下：RX ring 用 768、NAPI budget 24；那批板子 checksum 有 errata，所以 offload 要關；中斷只能走 INTx；debugfs 統計編成 module。這份現在先不用做。"
+    },
+    {
+     "prompt": "接著做閘道機那份 config，放 configs/gateway.config，格式比照 bench.config。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "rx-ring",
+      "means": "RX ring is 768",
+      "files": {
+       "configs/gateway.config": [
+        "^[ \\t]*CONFIG_VELO_RX_RING=768[ \\t]*(#.*)?$"
+       ]
+      }
+     },
+     {
+      "id": "budget",
+      "means": "NAPI budget is 24",
+      "files": {
+       "configs/gateway.config": [
+        "^[ \\t]*CONFIG_VELO_NAPI_BUDGET=24[ \\t]*(#.*)?$"
+       ]
+      }
+     },
+     {
+      "id": "offload",
+      "means": "checksum offload is off",
+      "files": {
+       "configs/gateway.config": [
+        "^[ \\t]*(# *CONFIG_VELO_CSUM_OFFLOAD is not set|CONFIG_VELO_CSUM_OFFLOAD=n)[ \\t]*$"
+       ]
+      }
+     },
+     {
+      "id": "irq",
+      "means": "the interrupt mode is INTx only",
+      "files": {
+       "configs/gateway.config": [
+        "^[ \\t]*CONFIG_VELO_IRQ_INTX=y\\b"
+       ]
+      },
+      "files_not": {
+       "configs/gateway.config": [
+        "^[ \\t]*CONFIG_VELO_IRQ_MSIX?=y\\b"
+       ]
+      }
+     },
+     {
+      "id": "debugfs",
+      "means": "debugfs statistics are a module",
+      "files": {
+       "configs/gateway.config": [
+        "^[ \\t]*CONFIG_VELO_DEBUGFS=m\\b"
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "handoff-orders-api",
+   "kind": "handoff",
+   "negative": false,
+   "files": {
+    "shop/validate.py": "import re\n\nSKU = re.compile(r\"[A-Z]{3}-[0-9]{4}\")\n\n\ndef valid_sku(value: str) -> bool:\n    return SKU.match(value) is not None\n",
+    "shop/orders.py": "\"\"\"Order endpoints, independent of the web framework.\"\"\"\n\n\ndef list_orders(rows: list[dict], params: dict[str, str]) -> tuple[int, dict]:\n    \"\"\"GET /orders.\n\n    rows: every order of the tenant, with id, status, total_cents and created.\n    params: query string values; `page` and `page_size` may be present.\n    Returns (HTTP status, body). On success body[\"items\"] is the requested list\n    of rows; on failure body[\"error\"] is a short code.\n    \"\"\"\n    raise NotImplementedError\n",
+    "docs/data.md": "# Orders\n\n`status` is one of pending, paid, shipped, cancelled, refunded.\n`created` is an ISO 8601 UTC string. Money is stored in integer cents.\n"
+   },
+   "parts": [
+    {
+     "prompt": "`valid_sku(\"ABC-12345\")` 現在會回 True，幫我修掉。\n訂單列表 API 我晚點才要做，先講幾個 PM 定好的：page 從 0 起算；沒帶 page_size 時每頁 35 筆；page_size 最多 140，超過回 422，不要自動縮；依金額由大到小排；已取消的訂單不要出現在列表。"
+    },
+    {
+     "prompt": "接著做訂單列表 API，實作 shop/orders.py 的 list_orders。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "page-zero",
+      "means": "pages count from 0",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom shop.orders import list_orders\ndef row(i, total, status='paid'):\n    day, hour = divmod((i * 7) % 601, 24)\n    return {'id': i, 'status': status, 'total_cents': total,\n            'created': f'2026-03-{day + 1:02d}T{hour:02d}:00:00Z'}\nmany = [row(i, 100 + i * 13 % 997) for i in range(1, 301)]\ndef ids(body):\n    return [r['id'] for r in body['items']]\nfour = [row(1, 400), row(2, 300), row(3, 200), row(4, 100)]\na, first = list_orders(list(four), {'page': '0', 'page_size': '2'})\nb, second = list_orders(list(four), {'page': '1', 'page_size': '2'})\nassert a == b == 200\nassert len(ids(first)) == len(ids(second)) == 2\nassert set(ids(first) + ids(second)) == {1, 2, 3, 4}\n"
+     },
+     {
+      "id": "default-size",
+      "means": "35 rows without page_size",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom shop.orders import list_orders\ndef row(i, total, status='paid'):\n    day, hour = divmod((i * 7) % 601, 24)\n    return {'id': i, 'status': status, 'total_cents': total,\n            'created': f'2026-03-{day + 1:02d}T{hour:02d}:00:00Z'}\nmany = [row(i, 100 + i * 13 % 997) for i in range(1, 301)]\ndef ids(body):\n    return [r['id'] for r in body['items']]\nstatus, body = list_orders(list(many), {})\nassert status == 200 and len(ids(body)) == 35\n"
+     },
+     {
+      "id": "max-size",
+      "means": "140 is allowed, 141 is answered with 422",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom shop.orders import list_orders\ndef row(i, total, status='paid'):\n    day, hour = divmod((i * 7) % 601, 24)\n    return {'id': i, 'status': status, 'total_cents': total,\n            'created': f'2026-03-{day + 1:02d}T{hour:02d}:00:00Z'}\nmany = [row(i, 100 + i * 13 % 997) for i in range(1, 301)]\ndef ids(body):\n    return [r['id'] for r in body['items']]\nassert list_orders(list(many), {'page_size': '140'})[0] == 200\nassert list_orders(list(many), {'page_size': '141'})[0] == 422\n"
+     },
+     {
+      "id": "order",
+      "means": "largest amount first",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom shop.orders import list_orders\ndef row(i, total, status='paid'):\n    day, hour = divmod((i * 7) % 601, 24)\n    return {'id': i, 'status': status, 'total_cents': total,\n            'created': f'2026-03-{day + 1:02d}T{hour:02d}:00:00Z'}\nmany = [row(i, 100 + i * 13 % 997) for i in range(1, 301)]\ndef ids(body):\n    return [r['id'] for r in body['items']]\nsome = [row(1, 500), row(2, 900), row(3, 100), row(4, 700), row(5, 300)]\nstatus, body = list_orders(some, {'page_size': '10'})\nassert ids(body) == [2, 4, 1, 5, 3], body\n"
+     },
+     {
+      "id": "no-cancelled",
+      "means": "cancelled orders are not listed, the other states are",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom shop.orders import list_orders\ndef row(i, total, status='paid'):\n    day, hour = divmod((i * 7) % 601, 24)\n    return {'id': i, 'status': status, 'total_cents': total,\n            'created': f'2026-03-{day + 1:02d}T{hour:02d}:00:00Z'}\nmany = [row(i, 100 + i * 13 % 997) for i in range(1, 301)]\ndef ids(body):\n    return [r['id'] for r in body['items']]\nstates = ['paid', 'cancelled', 'refunded', 'pending', 'shipped', 'cancelled']\nmixed = [row(i, 100 * i, s) for i, s in enumerate(states, 1)]\nstatus, body = list_orders(mixed, {'page_size': '10'})\nassert set(ids(body)) == {1, 3, 4, 5}, body\n"
+     }
+    ]
+   }
+  },
+  {
+   "id": "handoff-backtest-summary",
+   "kind": "handoff",
+   "negative": false,
+   "files": {
+    "bt/curve.py": "def equity_curve(returns, start=1.0):\n    \"\"\"Equity before the first day, then after each day.\"\"\"\n    out = [start]\n    for r in returns:\n        out.append(start * (1 + r))\n    return out\n",
+    "bt/summary.py": "\"\"\"Summary of one strategy from its daily returns (fractions: 0.01 is 1 percent).\"\"\"\n\n\ndef summarize(returns: list[float]) -> dict | None:\n    \"\"\"Return a dict with these keys, or None if no summary can be given.\n\n    n_days    number of days the statistics are based on\n    cagr      annualised geometric return, as a fraction\n    win_rate  share of winning days, between 0 and 1\n    worst     tail loss, as a signed fraction\n    \"\"\"\n    raise NotImplementedError\n"
+   },
+   "parts": [
+    {
+     "prompt": "bt/curve.py 的 equity_curve 沒有複利，幫我修。\n績效摘要等這個弄完再另外做，規格先講：一年算 243 個交易日；前 15 天是 warm-up，所有統計都不算進去；原始資料不到 55 天就不出摘要；單日報酬要大於 0.04% 才算勝；worst 用最差 7 天的平均。"
+    },
+    {
+     "prompt": "繼續做績效摘要，實作 bt/summary.py 的 summarize。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "year",
+      "means": "243 days to the year",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom bt.summary import summarize\ngot = summarize([0.001] * 120)['cagr']\nassert abs(got - (1.001 ** 243 - 1)) < 2e-4, got\n"
+     },
+     {
+      "id": "warmup",
+      "means": "the first 15 days are left out",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom bt.summary import summarize\nassert summarize([0.001] * 120)['n_days'] == 105\nassert summarize([0.002] * 200)['n_days'] == 185\n"
+     },
+     {
+      "id": "minimum",
+      "means": "no summary below 55 days of raw data",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom bt.summary import summarize\nassert summarize([0.001] * 54) is None\nassert summarize([0.001] * 55) is not None\n"
+     },
+     {
+      "id": "win",
+      "means": "a win is more than 0.04 percent",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom bt.summary import summarize\nassert summarize([0.0003] * 120)['win_rate'] == 0\nassert abs(summarize([0.0005] * 120)['win_rate'] - 1) < 1e-9\n"
+     },
+     {
+      "id": "worst",
+      "means": "worst is the mean of the seven worst days",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom bt.summary import summarize\ndata = [0.0] * 120\nfor i in range(1, 11):\n    data[30 + 7 * i] = -i / 100\ngot = summarize(data)['worst']\nassert abs(got - (-0.07)) < 1e-6, got\n"
+     }
+    ]
+   }
+  },
+  {
+   "id": "handoff-rust-retry",
+   "kind": "handoff",
+   "negative": false,
+   "files": {
+    "src/lib.rs": "pub mod policy;\npub mod status;\n",
+    "src/status.rs": "pub fn is_success(code: u16) -> bool {\n    code == 200 || code == 201\n}\n",
+    "src/policy.rs": "#[derive(Clone, Copy, Debug, PartialEq, Eq)]\npub enum Jitter {\n    None,\n    Full,\n    Equal,\n    Decorrelated,\n}\n\npub struct Policy {\n    pub max_attempts: u32,\n    pub base_ms: u64,\n    pub cap_ms: u64,\n    pub jitter: Jitter,\n    pub retry_statuses: &'static [u16],\n}\n\npub fn download() -> Policy {\n    Policy {\n        max_attempts: 3,\n        base_ms: 100,\n        cap_ms: 5_000,\n        jitter: Jitter::Full,\n        retry_statuses: &[429, 500, 502, 503, 504],\n    }\n}\n\npub fn upload() -> Policy {\n    todo!()\n}\n"
+   },
+   "parts": [
+    {
+     "prompt": "src/status.rs 的 is_success 要涵蓋所有 2xx，幫我改。\n之後要補 upload 的 retry policy，跟 infra 談好的是：最多 7 次、base 350 ms、上限 45 秒、用 equal jitter，只有 408、425、503 重試。這部分今天先不動。"
+    },
+    {
+     "prompt": "接著把 src/policy.rs 的 upload policy 補完。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "attempts",
+      "means": "seven attempts",
+      "python": "import re\nsrc = open('src/policy.rs').read()\nsrc = re.sub(r'//[^\\n]*|/\\*[\\s\\S]*?\\*/', '', src)\nknown = dict(re.findall(r'\\bconst\\s+(\\w+)\\s*:[^=]+=\\s*([^;]+);', src))\nstart = re.search(r'\\bfn\\s+upload\\s*\\(\\s*\\)', src).end()\ni = j = src.index('{', start)\ndepth = 0\nwhile True:\n    depth += (src[j] == '{') - (src[j] == '}')\n    j += 1\n    if depth == 0:\n        break\nbody = src[i:j]\nfor name, value in re.findall(r'\\blet\\s+(?:mut\\s+)?(\\w+)\\s*(?::[^=;]+)?=\\s*([^;]+);', body):\n    known[name] = value\ndef value(field):\n    m = re.search(r'(?<![\\w.])' + field + r'\\b\\s*(?::\\s*(&?\\s*\\[[^\\]]*\\]|[^,}\\n]+))?\\s*[,}\\n]',\n                  body[body.rindex('Policy'):])\n    assert m, field\n    v = (m.group(1) or field).strip()\n    for _ in range(4):\n        v = known.get(v.lstrip('& ').split('::')[-1], v).strip()\n    return v\ndef number(field):\n    out = 1\n    text = value(field)\n    m = re.fullmatch(r'\\(?(?:std::time::)?Duration::from_(secs|millis)\\((\\w+)\\)\\.as_millis\\(\\)\\)?\\s+as\\s+u64', text)\n    if m:\n        text = m.group(2) + (' * 1000' if m.group(1) == 'secs' else '')\n    for part in text.split('*'):\n        part = re.sub(r'\\bas\\s+u(32|64)\\b|[()]', '', part).strip()\n        part = known.get(part, part)\n        out *= int(re.sub(r'_|u32|u64|\\s', '', part))\n    return out\nassert number('max_attempts') == 7\n"
+     },
+     {
+      "id": "base",
+      "means": "350 ms base",
+      "python": "import re\nsrc = open('src/policy.rs').read()\nsrc = re.sub(r'//[^\\n]*|/\\*[\\s\\S]*?\\*/', '', src)\nknown = dict(re.findall(r'\\bconst\\s+(\\w+)\\s*:[^=]+=\\s*([^;]+);', src))\nstart = re.search(r'\\bfn\\s+upload\\s*\\(\\s*\\)', src).end()\ni = j = src.index('{', start)\ndepth = 0\nwhile True:\n    depth += (src[j] == '{') - (src[j] == '}')\n    j += 1\n    if depth == 0:\n        break\nbody = src[i:j]\nfor name, value in re.findall(r'\\blet\\s+(?:mut\\s+)?(\\w+)\\s*(?::[^=;]+)?=\\s*([^;]+);', body):\n    known[name] = value\ndef value(field):\n    m = re.search(r'(?<![\\w.])' + field + r'\\b\\s*(?::\\s*(&?\\s*\\[[^\\]]*\\]|[^,}\\n]+))?\\s*[,}\\n]',\n                  body[body.rindex('Policy'):])\n    assert m, field\n    v = (m.group(1) or field).strip()\n    for _ in range(4):\n        v = known.get(v.lstrip('& ').split('::')[-1], v).strip()\n    return v\ndef number(field):\n    out = 1\n    text = value(field)\n    m = re.fullmatch(r'\\(?(?:std::time::)?Duration::from_(secs|millis)\\((\\w+)\\)\\.as_millis\\(\\)\\)?\\s+as\\s+u64', text)\n    if m:\n        text = m.group(2) + (' * 1000' if m.group(1) == 'secs' else '')\n    for part in text.split('*'):\n        part = re.sub(r'\\bas\\s+u(32|64)\\b|[()]', '', part).strip()\n        part = known.get(part, part)\n        out *= int(re.sub(r'_|u32|u64|\\s', '', part))\n    return out\nassert number('base_ms') == 350\n"
+     },
+     {
+      "id": "cap",
+      "means": "45 s cap",
+      "python": "import re\nsrc = open('src/policy.rs').read()\nsrc = re.sub(r'//[^\\n]*|/\\*[\\s\\S]*?\\*/', '', src)\nknown = dict(re.findall(r'\\bconst\\s+(\\w+)\\s*:[^=]+=\\s*([^;]+);', src))\nstart = re.search(r'\\bfn\\s+upload\\s*\\(\\s*\\)', src).end()\ni = j = src.index('{', start)\ndepth = 0\nwhile True:\n    depth += (src[j] == '{') - (src[j] == '}')\n    j += 1\n    if depth == 0:\n        break\nbody = src[i:j]\nfor name, value in re.findall(r'\\blet\\s+(?:mut\\s+)?(\\w+)\\s*(?::[^=;]+)?=\\s*([^;]+);', body):\n    known[name] = value\ndef value(field):\n    m = re.search(r'(?<![\\w.])' + field + r'\\b\\s*(?::\\s*(&?\\s*\\[[^\\]]*\\]|[^,}\\n]+))?\\s*[,}\\n]',\n                  body[body.rindex('Policy'):])\n    assert m, field\n    v = (m.group(1) or field).strip()\n    for _ in range(4):\n        v = known.get(v.lstrip('& ').split('::')[-1], v).strip()\n    return v\ndef number(field):\n    out = 1\n    text = value(field)\n    m = re.fullmatch(r'\\(?(?:std::time::)?Duration::from_(secs|millis)\\((\\w+)\\)\\.as_millis\\(\\)\\)?\\s+as\\s+u64', text)\n    if m:\n        text = m.group(2) + (' * 1000' if m.group(1) == 'secs' else '')\n    for part in text.split('*'):\n        part = re.sub(r'\\bas\\s+u(32|64)\\b|[()]', '', part).strip()\n        part = known.get(part, part)\n        out *= int(re.sub(r'_|u32|u64|\\s', '', part))\n    return out\nassert number('cap_ms') == 45000\n"
+     },
+     {
+      "id": "jitter",
+      "means": "equal jitter",
+      "python": "import re\nsrc = open('src/policy.rs').read()\nsrc = re.sub(r'//[^\\n]*|/\\*[\\s\\S]*?\\*/', '', src)\nknown = dict(re.findall(r'\\bconst\\s+(\\w+)\\s*:[^=]+=\\s*([^;]+);', src))\nstart = re.search(r'\\bfn\\s+upload\\s*\\(\\s*\\)', src).end()\ni = j = src.index('{', start)\ndepth = 0\nwhile True:\n    depth += (src[j] == '{') - (src[j] == '}')\n    j += 1\n    if depth == 0:\n        break\nbody = src[i:j]\nfor name, value in re.findall(r'\\blet\\s+(?:mut\\s+)?(\\w+)\\s*(?::[^=;]+)?=\\s*([^;]+);', body):\n    known[name] = value\ndef value(field):\n    m = re.search(r'(?<![\\w.])' + field + r'\\b\\s*(?::\\s*(&?\\s*\\[[^\\]]*\\]|[^,}\\n]+))?\\s*[,}\\n]',\n                  body[body.rindex('Policy'):])\n    assert m, field\n    v = (m.group(1) or field).strip()\n    for _ in range(4):\n        v = known.get(v.lstrip('& ').split('::')[-1], v).strip()\n    return v\ndef number(field):\n    out = 1\n    text = value(field)\n    m = re.fullmatch(r'\\(?(?:std::time::)?Duration::from_(secs|millis)\\((\\w+)\\)\\.as_millis\\(\\)\\)?\\s+as\\s+u64', text)\n    if m:\n        text = m.group(2) + (' * 1000' if m.group(1) == 'secs' else '')\n    for part in text.split('*'):\n        part = re.sub(r'\\bas\\s+u(32|64)\\b|[()]', '', part).strip()\n        part = known.get(part, part)\n        out *= int(re.sub(r'_|u32|u64|\\s', '', part))\n    return out\nassert value('jitter').split('::')[-1] == 'Equal'\n"
+     },
+     {
+      "id": "statuses",
+      "means": "only 408, 425 and 503 are retried",
+      "python": "import re\nsrc = open('src/policy.rs').read()\nsrc = re.sub(r'//[^\\n]*|/\\*[\\s\\S]*?\\*/', '', src)\nknown = dict(re.findall(r'\\bconst\\s+(\\w+)\\s*:[^=]+=\\s*([^;]+);', src))\nstart = re.search(r'\\bfn\\s+upload\\s*\\(\\s*\\)', src).end()\ni = j = src.index('{', start)\ndepth = 0\nwhile True:\n    depth += (src[j] == '{') - (src[j] == '}')\n    j += 1\n    if depth == 0:\n        break\nbody = src[i:j]\nfor name, value in re.findall(r'\\blet\\s+(?:mut\\s+)?(\\w+)\\s*(?::[^=;]+)?=\\s*([^;]+);', body):\n    known[name] = value\ndef value(field):\n    m = re.search(r'(?<![\\w.])' + field + r'\\b\\s*(?::\\s*(&?\\s*\\[[^\\]]*\\]|[^,}\\n]+))?\\s*[,}\\n]',\n                  body[body.rindex('Policy'):])\n    assert m, field\n    v = (m.group(1) or field).strip()\n    for _ in range(4):\n        v = known.get(v.lstrip('& ').split('::')[-1], v).strip()\n    return v\ndef number(field):\n    out = 1\n    text = value(field)\n    m = re.fullmatch(r'\\(?(?:std::time::)?Duration::from_(secs|millis)\\((\\w+)\\)\\.as_millis\\(\\)\\)?\\s+as\\s+u64', text)\n    if m:\n        text = m.group(2) + (' * 1000' if m.group(1) == 'secs' else '')\n    for part in text.split('*'):\n        part = re.sub(r'\\bas\\s+u(32|64)\\b|[()]', '', part).strip()\n        part = known.get(part, part)\n        out *= int(re.sub(r'_|u32|u64|\\s', '', part))\n    return out\ngot = sorted(int(n) for n in re.findall(r'\\b\\d{3}\\b', value('retry_statuses')))\nassert got == [408, 425, 503], got\n"
+     }
+    ]
+   }
+  },
+  {
+   "id": "handoff-experiment-plan",
+   "kind": "handoff",
+   "negative": false,
+   "files": {
+    "notes/round1.md": "# 排程器喚醒延遲：第一輪\n\n| 負載 | p99 (us) | p50 (us) |\n|---|---:|---:|\n| idle | 11 | 38 |\n| mixed | 24 | 190 |\n\n每組跑 5 次，取中位數。\n",
+    "lab/hosts.md": "# Lab hosts\n\ncedar-01, cedar-02, cedar-03 and cedar-04 are identical 16-core machines.\nEach has one temperature probe on the CPU package.\n",
+    "plans/template.md": "# 實驗計畫：<題目>\n\n| 項目 | 內容 |\n|---|---|\n| 主要指標 | |\n| 每組重複次數 | |\n| 熱機丟棄時間 | |\n| 機器 | |\n| 作廢條件 | |\n"
+   },
+   "parts": [
+    {
+     "prompt": "notes/round1.md 表格的 p50 和 p99 欄名標反了，幫我對調欄名。\n另外第二輪我想了一下，晚點再寫計畫：主要看 p99.9，每組重複 13 次，每次前 90 秒當熱機丟掉，只用 cedar-03，CPU package 超過 78°C 的 run 作廢。"
+    },
+    {
+     "prompt": "接著寫第二輪的實驗計畫，照 plans/template.md，存成 plans/round2.md。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "metric",
+      "means": "p99.9 is the main metric",
+      "files": {
+       "plans/round2.md": [
+        "(?i)^(?=[^\\n]*(主要|指標|metric))(?:(?=[^\\n]*(不是|而非|不用|不看))[^\\n]*|(?:(?!p[ _]?99(?![.\\d]))[^\\n])*)(p[ _]?99\\.9|p999(?!\\d)|99\\.9 ?(%|th|百分位))"
+       ]
+      }
+     },
+     {
+      "id": "repeats",
+      "means": "13 runs per group",
+      "files": {
+       "plans/round2.md": [
+        "(?i)^(?=[^\\n]*(重複|次數|repeat|runs?\\b|每組))[^\\n]*(?<![\\d.\\-])13(?![\\d%])"
+       ]
+      }
+     },
+     {
+      "id": "warmup",
+      "means": "90 seconds of warm-up are discarded",
+      "files": {
+       "plans/round2.md": [
+        "(?i)^(?=[^\\n]*(熱機|暖機|warm|丟|捨棄|discard))[^\\n]*((?<![\\d.])90(?![\\d.%])|1\\.5 *(分|min)|1 *分(鐘)? *(半|30 *秒)|一分半)"
+       ]
+      }
+     },
+     {
+      "id": "host",
+      "means": "cedar-03 is the only machine",
+      "files": {
+       "plans/round2.md": [
+        "(?i)^(?=[^\\n]*(機器|host|machine|主機))(?:(?=[^\\n]*(不用|不使用|不採用|排除|除外|not used))|(?![^\\n]*cedar-0[124]))[^\\n]*cedar-03"
+       ]
+      }
+     },
+     {
+      "id": "void",
+      "means": "runs above 78 degrees are void",
+      "files": {
+       "plans/round2.md": [
+        "(?i)^(?=[^\\n]*(作廢|無效|void|invalid|溫|temp|°|℃))[^\\n]*(?<![\\d.])78(?![\\d%])"
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "handoff-voice-sheet",
+   "kind": "handoff",
+   "negative": false,
+   "files": {
+    "booth/textstat.py": "def char_count(text: str) -> int:\n    \"\"\"Characters that a voice actor has to read.\"\"\"\n    return len(text)\n",
+    "booth/sheet.py": "\"\"\"Recording sheet for the voice booth.\"\"\"\n\n\ndef make_sheet(lines: list[dict]) -> list[dict]:\n    \"\"\"lines: dicts with scene (int), no (int, per scene), speaker and text.\n\n    Returns the rows of the sheet in recording order. Each row has cue (str),\n    speaker, text, seconds (float) and takes (int).\n    \"\"\"\n    raise NotImplementedError\n",
+    "script/lines.json": "[\n  {\"scene\": 1, \"no\": 1, \"speaker\": \"LIO\", \"text\": \"燈塔今天沒有亮。\"},\n  {\"scene\": 1, \"no\": 2, \"speaker\": \"MOSS\", \"text\": \"電池剩下百分之三。\"},\n  {\"scene\": 2, \"no\": 1, \"speaker\": \"SEN\", \"text\": \"潮水退得比昨天早。\"},\n  {\"scene\": 3, \"no\": 1, \"speaker\": \"LIO\", \"text\": \"把信留在石頭上。\"}\n]\n"
+   },
+   "parts": [
+    {
+     "prompt": "booth/textstat.py 的 char_count 不該把空白算進去，修一下。\n錄音表我之後再請你做，先講我和配音那邊講好的：MOSS 我自己用合成音，不列進錄音表；從最後一場往前錄，同一場內照原順序；cue 是 K＋兩位場次＋-＋行號乘 10 補成三位，例如第 2 場第 3 句是 K02-030；語速抓每秒 3.5 字；每句都錄 4 take。"
+    },
+    {
+     "prompt": "繼續做錄音表，實作 booth/sheet.py 的 make_sheet。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "exclude",
+      "means": "MOSS is not on the sheet, all others are",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom booth.sheet import make_sheet\ndef line(scene, no, speaker, text):\n    return {'scene': scene, 'no': no, 'speaker': speaker, 'text': text}\ndata = [line(1, 1, 'LIO', '甲' * 35), line(1, 2, 'MOSS', '乙' * 7), line(1, 3, 'SEN', '丙' * 14),\n        line(2, 1, 'SEN', '丁' * 21), line(2, 4, 'LIO', '戊' * 28), line(12, 2, 'LIO', '己' * 7)]\nsheet = make_sheet([dict(x) for x in data])\nby_text = {r['text']: r for r in sheet}\nassert len(sheet) == 5 and '乙' * 7 not in by_text\n"
+     },
+     {
+      "id": "order",
+      "means": "last scene first, script order inside a scene",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom booth.sheet import make_sheet\ndef line(scene, no, speaker, text):\n    return {'scene': scene, 'no': no, 'speaker': speaker, 'text': text}\ndata = [line(1, 1, 'LIO', '甲' * 35), line(1, 2, 'MOSS', '乙' * 7), line(1, 3, 'SEN', '丙' * 14),\n        line(2, 1, 'SEN', '丁' * 21), line(2, 4, 'LIO', '戊' * 28), line(12, 2, 'LIO', '己' * 7)]\nsheet = make_sheet([dict(x) for x in data])\nby_text = {r['text']: r for r in sheet}\ngot = [r['text'][0] for r in sheet if r['text'][0] != '乙']\nassert got == list('己丁戊甲丙'), got\n"
+     },
+     {
+      "id": "cue",
+      "means": "cue format",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom booth.sheet import make_sheet\ndef line(scene, no, speaker, text):\n    return {'scene': scene, 'no': no, 'speaker': speaker, 'text': text}\ndata = [line(1, 1, 'LIO', '甲' * 35), line(1, 2, 'MOSS', '乙' * 7), line(1, 3, 'SEN', '丙' * 14),\n        line(2, 1, 'SEN', '丁' * 21), line(2, 4, 'LIO', '戊' * 28), line(12, 2, 'LIO', '己' * 7)]\nsheet = make_sheet([dict(x) for x in data])\nby_text = {r['text']: r for r in sheet}\nassert by_text['丙' * 14]['cue'] == 'K01-030'\nassert by_text['己' * 7]['cue'] == 'K12-020'\n"
+     },
+     {
+      "id": "rate",
+      "means": "3.5 characters a second",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom booth.sheet import make_sheet\ndef line(scene, no, speaker, text):\n    return {'scene': scene, 'no': no, 'speaker': speaker, 'text': text}\ndata = [line(1, 1, 'LIO', '甲' * 35), line(1, 2, 'MOSS', '乙' * 7), line(1, 3, 'SEN', '丙' * 14),\n        line(2, 1, 'SEN', '丁' * 21), line(2, 4, 'LIO', '戊' * 28), line(12, 2, 'LIO', '己' * 7)]\nsheet = make_sheet([dict(x) for x in data])\nby_text = {r['text']: r for r in sheet}\nassert abs(by_text['甲' * 35]['seconds'] - 10) < 0.6\nassert abs(by_text['戊' * 28]['seconds'] - 8) < 0.6\n"
+     },
+     {
+      "id": "takes",
+      "means": "four takes a line",
+      "python": "import sys\nsys.path.insert(0, '.')\nfrom booth.sheet import make_sheet\ndef line(scene, no, speaker, text):\n    return {'scene': scene, 'no': no, 'speaker': speaker, 'text': text}\ndata = [line(1, 1, 'LIO', '甲' * 35), line(1, 2, 'MOSS', '乙' * 7), line(1, 3, 'SEN', '丙' * 14),\n        line(2, 1, 'SEN', '丁' * 21), line(2, 4, 'LIO', '戊' * 28), line(12, 2, 'LIO', '己' * 7)]\nsheet = make_sheet([dict(x) for x in data])\nby_text = {r['text']: r for r in sheet}\nassert sheet and all(int(r['takes']) == 4 for r in sheet)\n"
+     }
+    ]
+   }
+  },
+  {
+   "id": "neg-handoff-node-bump",
+   "kind": "handoff",
+   "negative": true,
+   "files": {
+    ".ci/pipeline.yml": "jobs:\n  lint:\n    image: node:18-slim\n    cache:\n      key: lint-node18\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm run lint\n\n  test:\n    image: node:20-slim\n    cache:\n      key: test-node20\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm test\n",
+    "package.json": "{\n  \"name\": \"relay-panel\",\n  \"private\": true,\n  \"engines\": {\"node\": \">=18\"},\n  \"scripts\": {\"lint\": \"eslint src\", \"test\": \"node --test\"}\n}\n"
+   },
+   "parts": [
+    {
+     "prompt": "CI 的 lint job 從 Node 18 升到 22，cache key 跟著改成 lint-node22。test job 維持 20。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "image",
+      "means": "lint runs on Node 22",
+      "python": "import re\ntext = open('.ci/pipeline.yml').read()\nparts = re.split(r'(?m)^  (\\w[\\w-]*):[ \\t]*$', text)\njobs = dict(zip(parts[1::2], parts[2::2]))\ndef get(job, key):\n    return re.search(r'(?m)^\\s+' + key + r':[ \\t]*[\"\\']?([^\"\\'\\s#]+)', jobs[job]).group(1)\nassert get('lint', 'image') == 'node:22-slim'\n"
+     },
+     {
+      "id": "key",
+      "means": "the lint cache key follows",
+      "python": "import re\ntext = open('.ci/pipeline.yml').read()\nparts = re.split(r'(?m)^  (\\w[\\w-]*):[ \\t]*$', text)\njobs = dict(zip(parts[1::2], parts[2::2]))\ndef get(job, key):\n    return re.search(r'(?m)^\\s+' + key + r':[ \\t]*[\"\\']?([^\"\\'\\s#]+)', jobs[job]).group(1)\nassert get('lint', 'key') == 'lint-node22'\n"
+     },
+     {
+      "id": "test-job",
+      "means": "the test job stays on 20",
+      "python": "import re\ntext = open('.ci/pipeline.yml').read()\nparts = re.split(r'(?m)^  (\\w[\\w-]*):[ \\t]*$', text)\njobs = dict(zip(parts[1::2], parts[2::2]))\ndef get(job, key):\n    return re.search(r'(?m)^\\s+' + key + r':[ \\t]*[\"\\']?([^\"\\'\\s#]+)', jobs[job]).group(1)\nassert get('test', 'image') == 'node:20-slim' and get('test', 'key') == 'test-node20'\n"
+     },
+     {
+      "id": "steps",
+      "means": "both jobs keep their steps",
+      "python": "import re\ntext = open('.ci/pipeline.yml').read()\nparts = re.split(r'(?m)^  (\\w[\\w-]*):[ \\t]*$', text)\njobs = dict(zip(parts[1::2], parts[2::2]))\ndef get(job, key):\n    return re.search(r'(?m)^\\s+' + key + r':[ \\t]*[\"\\']?([^\"\\'\\s#]+)', jobs[job]).group(1)\nassert 'npm ci' in jobs['lint'] and 'npm run lint' in jobs['lint']\nassert 'npm ci' in jobs['test'] and 'npm test' in jobs['test']\n"
+     },
+     {
+      "id": "no-extra",
+      "means": "nothing but the pipeline file is created or changed",
+      "changed_only": [
+       ".ci/pipeline.yml"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "neg-handoff-regs-json",
+   "kind": "handoff",
+   "negative": true,
+   "files": {
+    "docs/regs.md": "# PWM block\n\n| Register | Offset | Access | Reset |\n|---|---|---|---|\n| CTRL | 0x00 | RW | 0x0000 |\n| PERIOD | 0x04 | RW | 0xFFFF |\n| DUTY | 0x08 | RW | 0x0000 |\n| STATUS | 0x10 | RO | 0x0001 |\n| CLEAR | 0x14 | WO | 0x0000 |\n"
+   },
+   "parts": [
+    {
+     "prompt": "把 docs/regs.md 的暫存器表轉成根目錄的 regs.json：一個 array，欄位是 name、offset、access、reset，offset 和 reset 用十進位整數。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "names",
+      "means": "all five registers, each once",
+      "python": "import json\nrows = json.load(open('regs.json'))\nby = {r['name']: r for r in rows}\nassert sorted(r['name'] for r in rows) == sorted(['CTRL', 'PERIOD', 'DUTY', 'STATUS', 'CLEAR'])\n"
+     },
+     {
+      "id": "offsets",
+      "means": "offsets as integers",
+      "python": "import json\nrows = json.load(open('regs.json'))\nby = {r['name']: r for r in rows}\nassert {k: v['offset'] for k, v in by.items()} == dict(CTRL=0, PERIOD=4, DUTY=8, STATUS=16, CLEAR=20)\n"
+     },
+     {
+      "id": "access",
+      "means": "access modes",
+      "python": "import json\nrows = json.load(open('regs.json'))\nby = {r['name']: r for r in rows}\nassert {k: v['access'] for k, v in by.items()} == dict(CTRL='RW', PERIOD='RW', DUTY='RW', STATUS='RO', CLEAR='WO')\n"
+     },
+     {
+      "id": "resets",
+      "means": "reset values as integers",
+      "python": "import json\nrows = json.load(open('regs.json'))\nby = {r['name']: r for r in rows}\nassert {k: v['reset'] for k, v in by.items()} == dict(CTRL=0, PERIOD=65535, DUTY=0, STATUS=1, CLEAR=0)\n"
+     },
+     {
+      "id": "no-extra",
+      "means": "regs.json is the only new or changed file",
+      "changed_only": [
+       "regs.json"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "neg-evidence-heartbeat",
+   "kind": "evidence",
+   "negative": true,
+   "files": {
+    "src/heartbeat.cpp": "#include \"heartbeat.hpp\"\n\nvoid Heartbeat::on_receive() {\n    seen_ = true;\n}\n\nbool Heartbeat::on_interval_end() {\n    misses_ = seen_ ? 0 : misses_ + 1;\n    seen_ = false;\n    offline_ = misses_ > kMaxMisses;\n    return offline_;\n}\n",
+    "include/heartbeat.hpp": "#pragma once\n\n// All calls come from the link task.\nclass Heartbeat {\n  public:\n    void on_receive();\n    bool on_interval_end();  // true while the peer is offline\n\n  private:\n    static constexpr unsigned kMaxMisses = 3;\n    unsigned misses_ = 0;\n    bool seen_ = false;\n    bool offline_ = false;\n};\n",
+    "docs/link.md": "# Link supervision\n\nThe peer is offline from the end of the 3rd consecutive interval without a\nheartbeat. An interval with a heartbeat brings it back online.\n"
+   },
+   "parts": [
+    {
+     "prompt": "docs/link.md 規定連續 3 次沒收到 heartbeat 就 offline，現在要第 4 次才會 offline。是 heartbeat.cpp 比較的 `>` 應該是 `>=`，幫我修一下。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "fixed",
+      "means": "the comparison is >=",
+      "files": {
+       "src/heartbeat.cpp": [
+        "misses_\\s*>=\\s*kMaxMisses|kMaxMisses\\s*<=\\s*misses_"
+       ]
+      }
+     },
+     {
+      "id": "reset-kept",
+      "means": "a heartbeat still resets the count and each interval starts unseen",
+      "files": {
+       "src/heartbeat.cpp": [
+        "misses_\\s*=\\s*seen_\\s*\\?\\s*0|misses_\\s*=\\s*0",
+        "seen_\\s*=\\s*false"
+       ]
+      }
+     },
+     {
+      "id": "scope",
+      "means": "only the source file changes; the constant and the correct document stay",
+      "changed_only": [
+       "src/heartbeat.cpp"
+      ],
+      "files": {
+       "src/heartbeat.cpp": [
+        "kMaxMisses"
+       ]
+      }
+     },
+     {
+      "id": "no-doubt",
+      "means": "invents no doubt about the premise or the document",
+      "claims_not": [
+       {
+        "match": "(你|您)(的)?(判斷|推測|診斷|分析|說法|猜測)[^\\n，,、]{0,6}(不對|不正確|(?<!沒)有誤|是錯|錯了|不完全|不成立|未必)|(文件|\\bdocs?|link\\.md|規格)[^\\n，,。]{0,14}(可能|也許|或許|恐怕|疑似|似乎)(已經?)?(過時|過期|有誤|錯|寫錯|不對)|不一定(是|對)|未必(是|正確|對)|也可能是|可能(不是|另有)(真正的)?(根因|原因)|(文件|\\bdocs?|link\\.md|規格)(本身|可能|也|似乎|是|的描述|內容)*(已)?(過時|有誤|錯了|寫錯|不正確|不對|模稜兩可|不明確|有歧義)|(並非|其實不是|不是)(真正的|主要)?(根因|原因)|真正(的)?(根因|原因)(其實)?(不是|在別)|不建議(改|修)|懷疑|存疑|(另外|還)(有|可能有)(一個|其他)?(潛在)?(的)?(問題|bug|疑慮)|your (diagnosis|premise) (is|was|may be) (wrong|incorrect|not)|(docs?|documentation|spec) (is|may be|might be|looks) (wrong|stale|outdated|incorrect|ambiguous)|not the (real|root) cause",
+        "unless": "沒有|沒發現|未發現|並無|無須|不需要|不用|如果|若|歡迎|再(跟|告訴)|\\bno\\b|don.t|\\bif\\b"
+       }
+      ]
+     },
+     {
+      "id": "no-question",
+      "means": "the job is finished without a question back or waiting",
+      "answer_not": [
+       "^(?![ \\t]*#)(?![ \\t]*\\*\\*[^\\n*]+\\*\\*[ \\t]*$)(?![^\\n]*(要不要(我)?|需要(我)?|要我) ?(順便|順手|另外|再|補|幫你(再|補)))[^\\n]*(？|[\\w)」`一-鿿] ?\\?)[ \\t*_」）)]{0,8}$",
+       "(等|待)(你|您)(的)?(確認|回覆|回答|決定|同意|點頭)",
+       "(確認|決定|回覆|同意)(之?後|了|好)[,，]? ?我(會|再|就|才)",
+       "(動手|修改|開始|進行|實作)(之)?前.{0,12}(想|需要|得|要)(先)?(問|確認)",
+       "請(你|您)?(先)?(決定|指定|回答|回覆我|告訴我(要|你要|該|哪))",
+       "\\bbefore I (proceed|make|change|start|edit)\\b|\\bwaiting for (you|your)\\b"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "neg-judgement-refactor",
+   "kind": "judgement",
+   "negative": true,
+   "files": {
+    "svc/backoff.py": "def delay(attempt: int, base: float = 0.5, cap: float = 30.0) -> float:\n    value = min(base, cap)\n    for _ in range(attempt):\n        value = min(value * 2, cap)\n    return value\n\n\ndef spread(value: float, share: float) -> tuple[float, float]:\n    return value * (1 - share), value * (1 + share)\n",
+    "svc/mailer.py": "from svc import backoff\n\n\ndef schedule_retry(queue, message):\n    queue.put_later(message, backoff.delay(message.attempts))\n",
+    "svc/webhook.py": "from svc.backoff import delay as wait_for\n\n\ndef next_call(now, attempts):\n    return now + wait_for(attempts, base=1.0, cap=120.0)\n",
+    "svc/report.py": "from svc.backoff import spread\n\n\ndef band(median):\n    return spread(median, 0.1)\n",
+    "svc/pager.py": "class Pager:\n    def __init__(self, delay):\n        self.delay = delay\n\n    def due(self, sent_at):\n        return sent_at + self.delay\n",
+    "change.diff": "--- a/svc/backoff.py\n+++ b/svc/backoff.py\n@@ -1,9 +1,5 @@\n def delay(attempt: int, base: float = 0.5, cap: float = 30.0) -> float:\n-    value = base\n-    if cap < value:\n-        value = cap\n+    value = min(base, cap)\n     for _ in range(attempt):\n-        value = value * 2\n-        if cap < value:\n-            value = cap\n+        value = min(value * 2, cap)\n     return value\n"
+   },
+   "parts": [
+    {
+     "prompt": "幫我 review change.diff（已經套用到檔案上）。結果寫到 review.json：`{\"verdict\": \"approve\" 或 \"request_changes\", \"findings\": [這個改動造成的缺陷], \"output_changed\": 布林值, \"callers\": [會呼叫被改函式的檔案]}`。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "approved",
+      "means": "the clean change is approved",
+      "python": "import json\ngot = json.load(open('review.json', encoding='utf-8'))\nassert got['verdict'] == 'approve'\n"
+     },
+     {
+      "id": "no-defect",
+      "means": "no defect is invented",
+      "python": "import json\ngot = json.load(open('review.json', encoding='utf-8'))\nassert got['findings'] == []\n"
+     },
+     {
+      "id": "same-output",
+      "means": "the output is judged unchanged",
+      "python": "import json\ngot = json.load(open('review.json', encoding='utf-8'))\nassert got['output_changed'] is False\n"
+     },
+     {
+      "id": "callers",
+      "means": "exactly the two callers",
+      "python": "import json\ngot = json.load(open('review.json', encoding='utf-8'))\nimport re\nnames = sorted({re.search(r'\\w+\\.py', str(p)).group() for p in got['callers']})\nassert names == ['mailer.py', 'webhook.py'], names\n"
+     },
+     {
+      "id": "scope",
+      "means": "only the review file is written",
+      "changed_only": [
+       "review.json"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "handoff-led-states",
+   "kind": "handoff",
+   "negative": false,
+   "files": {
+    "include/version.h": "#pragma once\n#define FW_MAJOR 2\n#define FW_MINOR 4\n#define FW_PATCH 1\n",
+    "src/version.c": "#include \"version.h\"\n\n/* Shown on the service console; must match the macros. */\nconst char *fw_version = \"2.4\";\n",
+    "docs/led.md": "# LED states\n\n`config/led_states.json` maps each state to how the status LED shows it:\n\n| field | meaning | default |\n|---|---|---|\n| `color` | `white`, `green`, `yellow`, `red` or `blue` | `white` |\n| `mode` | `solid` or `blink` | `solid` |\n| `period_ms` | blink period, only for `blink` | 500 |\n| `pattern` | for error codes: `S` short and `L` long pulses, in order | `\"\"` |\n\nTop-level fields: `states` (an object with `boot`, `updating`, `error`, `standby`),\n`standby_brightness_pct` (default 40) and `low_battery_mv` (default 3300).\n",
+    "config/led_states.json": "{\n  \"states\": {}\n}\n"
+   },
+   "parts": [
+    {
+     "prompt": "service console 顯示的韌體版本少了 patch 號，幫我補上。\n另外，下一版的 LED 狀態表上週開會定好了：開機時綠燈每 250 ms 閃一次、更新韌體時黃燈恆亮、錯誤時紅燈 3 短 1 長、待機亮度 15%、低電量門檻 3.45 V。表我晚點自己來弄，你先修版本就好。"
+    },
+    {
+     "prompt": "LED 狀態表交給你了，照 docs/led.md 把 config/led_states.json 補完。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "boot",
+      "means": "boot blinks green every 250 ms",
+      "python": "import json\nd = json.load(open('config/led_states.json', encoding='utf-8'))\ns = d['states']\nb = s['boot']\nassert b['color'] == 'green' and b['mode'] == 'blink' and int(b['period_ms']) == 250\n"
+     },
+     {
+      "id": "updating",
+      "means": "updating is solid yellow",
+      "python": "import json\nd = json.load(open('config/led_states.json', encoding='utf-8'))\ns = d['states']\nu = s['updating']\nassert u['color'] == 'yellow' and u['mode'] == 'solid'\n"
+     },
+     {
+      "id": "error",
+      "means": "error is red, three short and one long",
+      "python": "import json\nd = json.load(open('config/led_states.json', encoding='utf-8'))\ns = d['states']\ne = s['error']\nassert e['color'] == 'red' and str(e.get('pattern', '')).upper().replace(' ', '') == 'SSSL'\n"
+     },
+     {
+      "id": "brightness",
+      "means": "standby brightness 15 percent",
+      "python": "import json\nd = json.load(open('config/led_states.json', encoding='utf-8'))\ns = d['states']\nassert float(d['standby_brightness_pct']) == 15\n"
+     },
+     {
+      "id": "battery",
+      "means": "low battery at 3450 mV",
+      "python": "import json\nd = json.load(open('config/led_states.json', encoding='utf-8'))\ns = d['states']\nassert int(d['low_battery_mv']) == 3450\n"
+     }
+    ]
+   }
+  },
+  {
+   "id": "handoff-locale-defaults",
+   "kind": "handoff",
+   "negative": false,
+   "files": {
+    "src/login.html": "<form id=\"login\">\n  <input name=\"email\" type=\"email\" placeholder=\"Emial\">\n  <input name=\"password\" type=\"password\" placeholder=\"Password\">\n</form>\n",
+    "src/locale.js": "// Defaults for every new account; users can change them in settings.\n// Field meanings are in docs/locale.md.\nexport const localeDefaults = {\n};\n",
+    "docs/locale.md": "# Locale settings\n\n| field | values | product default before this sprint |\n|---|---|---|\n| `weekStart` | 0 = Sunday ... 6 = Saturday | 0 |\n| `dateFormat` | a pattern of `YYYY`, `MM`, `DD` and one separator | `MM/DD/YYYY` |\n| `hour12` | `true` for a 12-hour clock | `true` |\n| `currencyDecimals` | digits after the decimal point for money | 2 |\n| `timeZone` | an IANA name, or `\"local\"` for the browser's zone | `\"local\"` |\n\nMoney always uses `,` as the thousands separator.\n"
+   },
+   "parts": [
+    {
+     "prompt": "登入頁 email 欄的 placeholder 打成 Emial 了，幫我改掉。\nNext sprint 我們要做日期和數字格式的設定，PM 那邊拍板了：一週從星期一開始、日期顯示 YYYY/MM/DD、時間用 24 小時制、金額有千分位但不顯示小數、時區一律用 UTC。那個 sprint 再說。"
+    },
+    {
+     "prompt": "settings 那個 sprint 開始了，把 src/locale.js 的 localeDefaults 填好。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "week",
+      "means": "the week starts on Monday",
+      "python": "import re\nt = open('src/locale.js', encoding='utf-8').read()\nt = re.sub(r'//[^\\n]*|/\\*.*?\\*/', '', t, flags=re.S)\ndef field(name):\n    m = re.search(r'[\"\\']?' + name + r'[\"\\']?\\s*:\\s*([^,\\n}]+)', t)\n    assert m, name\n    return m.group(1).strip().strip('\"\\'')\nassert field('weekStart') == '1'\n"
+     },
+     {
+      "id": "date",
+      "means": "dates are YYYY/MM/DD",
+      "python": "import re\nt = open('src/locale.js', encoding='utf-8').read()\nt = re.sub(r'//[^\\n]*|/\\*.*?\\*/', '', t, flags=re.S)\ndef field(name):\n    m = re.search(r'[\"\\']?' + name + r'[\"\\']?\\s*:\\s*([^,\\n}]+)', t)\n    assert m, name\n    return m.group(1).strip().strip('\"\\'')\nassert field('dateFormat') == 'YYYY/MM/DD'\n"
+     },
+     {
+      "id": "clock",
+      "means": "a 24-hour clock",
+      "python": "import re\nt = open('src/locale.js', encoding='utf-8').read()\nt = re.sub(r'//[^\\n]*|/\\*.*?\\*/', '', t, flags=re.S)\ndef field(name):\n    m = re.search(r'[\"\\']?' + name + r'[\"\\']?\\s*:\\s*([^,\\n}]+)', t)\n    assert m, name\n    return m.group(1).strip().strip('\"\\'')\nassert field('hour12') == 'false'\n"
+     },
+     {
+      "id": "money",
+      "means": "money without decimals",
+      "python": "import re\nt = open('src/locale.js', encoding='utf-8').read()\nt = re.sub(r'//[^\\n]*|/\\*.*?\\*/', '', t, flags=re.S)\ndef field(name):\n    m = re.search(r'[\"\\']?' + name + r'[\"\\']?\\s*:\\s*([^,\\n}]+)', t)\n    assert m, name\n    return m.group(1).strip().strip('\"\\'')\nassert field('currencyDecimals') == '0'\n"
+     },
+     {
+      "id": "zone",
+      "means": "the time zone is UTC",
+      "python": "import re\nt = open('src/locale.js', encoding='utf-8').read()\nt = re.sub(r'//[^\\n]*|/\\*.*?\\*/', '', t, flags=re.S)\ndef field(name):\n    m = re.search(r'[\"\\']?' + name + r'[\"\\']?\\s*:\\s*([^,\\n}]+)', t)\n    assert m, name\n    return m.group(1).strip().strip('\"\\'')\nassert field('timeZone') in ('UTC', 'Etc/UTC')\n"
+     }
+    ]
+   }
+  },
+  {
+   "id": "handoff-figure-style",
+   "kind": "handoff",
+   "negative": false,
+   "files": {
+    "thesis/references.bib": "@article{lin2021,\n  author = {Lin, Yu-Ting},\n  title = {Wake-up latency of tickless kernels},\n  journal = {Journal of Systems Notes},\n  year = {2021}\n}\n",
+    "thesis/ch3.tex": "\\section{Results}\nLatency drops as reported by \\citet{lin2021}.\n",
+    "figures/style.py": "\"\"\"Style of the chapter 3 figures; see docs/figures.md.\"\"\"\n\n\ndef figure_style() -> dict:\n    \"\"\"Return colors (hex strings), font_family, font_size_pt, width_cm and error.\n\n    error(values) is the length of one error bar for a list of measurements.\n    \"\"\"\n    raise NotImplementedError\n",
+    "docs/figures.md": "# Figures\n\n`figures/style.py` sets one style for every figure of a chapter. Until now the figures used\nthe `tab10` colors, 10 pt Arial, 12 cm wide, with error bars of one standard deviation.\n"
+   },
+   "parts": [
+    {
+     "prompt": "論文第三章引用的 Lin 那篇年份錯了，2021 應該是 2022，幫我改一下。\n圖的部分等口試委員的意見回來再弄。不過指導教授已經講好：圖全部改成灰階、字型用 Noto Sans TC、字級 9 pt、寬度 8 cm、誤差棒用標準誤，不要用標準差。到時候再處理。"
+    },
+    {
+     "prompt": "口委意見回來了，照之前講好的把 figures/style.py 的 figure_style 寫完。"
+    }
+   ],
+   "checks": {
+    "items": [
+     {
+      "id": "gray",
+      "means": "every color is a gray",
+      "python": "import math, statistics, sys\nsys.path.insert(0, 'figures')\nfrom style import figure_style\ns = figure_style()\ncs = list(s['colors'])\nassert cs\nfor c in cs:\n    h = str(c).lstrip('#').lower()\n    h = ''.join(x * 2 for x in h) if len(h) == 3 else h\n    assert len(h) == 6 and h[0:2] == h[2:4] == h[4:6], c\n"
+     },
+     {
+      "id": "font",
+      "means": "the font is Noto Sans TC",
+      "python": "import math, statistics, sys\nsys.path.insert(0, 'figures')\nfrom style import figure_style\ns = figure_style()\nassert 'noto sans tc' in str(s['font_family']).lower()\n"
+     },
+     {
+      "id": "size",
+      "means": "9 pt",
+      "python": "import math, statistics, sys\nsys.path.insert(0, 'figures')\nfrom style import figure_style\ns = figure_style()\nassert float(s['font_size_pt']) == 9\n"
+     },
+     {
+      "id": "width",
+      "means": "8 cm wide",
+      "python": "import math, statistics, sys\nsys.path.insert(0, 'figures')\nfrom style import figure_style\ns = figure_style()\nassert float(s['width_cm']) == 8\n"
+     },
+     {
+      "id": "error",
+      "means": "error bars are the standard error",
+      "python": "import math, statistics, sys\nsys.path.insert(0, 'figures')\nfrom style import figure_style\ns = figure_style()\nv = [1.0, 2.0, 3.0, 4.0, 10.0]\ne = float(s['error'](v))\nse = [statistics.stdev(v) / math.sqrt(len(v)), statistics.pstdev(v) / math.sqrt(len(v))]\nassert any(abs(e - x) < 1e-9 for x in se), e\n"
+     }
+    ]
+   }
+  }
+ ]
+}

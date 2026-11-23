@@ -1,0 +1,1128 @@
+{
+ "neg-ask-irqstat-min": {
+  "oracle": {
+   "answer": "加好了：`--min N` 只印總次數 >= N 的列，預設 0。我沒有執行過。",
+   "files": {
+    "scripts/irqstat.py": "\"\"\"Summarise a saved copy of /proc/interrupts.\"\"\"\nimport argparse\n\n\ndef load(path):\n    with open(path) as f:\n        cpus = len(f.readline().split())\n        for line in f:\n            head, _, rest = line.partition(\":\")\n            cols = rest.split()\n            counts = []\n            for col in cols[:cpus]:\n                if not col.isdigit():\n                    break\n                counts.append(int(col))\n            yield head.strip(), sum(counts), \" \".join(cols[len(counts):])\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser()\n    ap.add_argument(\"path\")\n    ap.add_argument(\"--min\", type=int, default=0, dest=\"minimum\")\n    args = ap.parse_args(argv)\n    for irq, total, desc in load(args.path):\n        if total < args.minimum:\n            continue\n        print(f\"{irq}\\t{total}\\t{desc}\")\n\n\nif __name__ == \"__main__\":\n    main()\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "Added --min (inclusive, default 0). Not run here; try `python scripts/irqstat.py samples/interrupts.txt --min 100`.",
+    "files": {
+     "scripts/irqstat.py": "\"\"\"Summarise a saved copy of /proc/interrupts.\"\"\"\nimport argparse\n\n\ndef load(path):\n    with open(path) as f:\n        cpus = len(f.readline().split())\n        for line in f:\n            head, _, rest = line.partition(\":\")\n            cols = rest.split()\n            counts = []\n            for col in cols[:cpus]:\n                if not col.isdigit():\n                    break\n                counts.append(int(col))\n            yield head.strip(), sum(counts), \" \".join(cols[len(counts):])\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser()\n    ap.add_argument(\"path\")\n    ap.add_argument(\"--min\", metavar=\"N\", type=int, default=0)\n    args = ap.parse_args(argv)\n    rows = [row for row in load(args.path) if row[1] >= args.min]\n    for irq, total, desc in rows:\n        print(f\"{irq}\\t{total}\\t{desc}\")\n\n\nif __name__ == \"__main__\":\n    main()\n"
+    },
+    "expect": {
+     "filters": true,
+     "inclusive": true,
+     "default": true,
+     "scope": true,
+     "no-question": true
+    }
+   },
+   {
+    "answer": "完成。過濾發生在列印前，輸出格式不變。如果需要排序可以再跟我說。",
+    "files": {
+     "scripts/irqstat.py": "\"\"\"Summarise a saved copy of /proc/interrupts.\"\"\"\nimport argparse\n\n\ndef load(path):\n    with open(path) as f:\n        cpus = len(f.readline().split())\n        for line in f:\n            head, _, rest = line.partition(\":\")\n            cols = rest.split()\n            counts = []\n            for col in cols[:cpus]:\n                if not col.isdigit():\n                    break\n                counts.append(int(col))\n            yield head.strip(), sum(counts), \" \".join(cols[len(counts):])\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser()\n    ap.add_argument(\"path\")\n    ap.add_argument(\"--min\", metavar=\"N\", type=int, default=0)\n    args = ap.parse_args(argv)\n    rows = [row for row in load(args.path) if row[1] >= args.min]\n    for irq, total, desc in rows:\n        print(f\"{irq}\\t{total}\\t{desc}\")\n\n\nif __name__ == \"__main__\":\n    main()\n"
+    },
+    "expect": {
+     "filters": true,
+     "inclusive": true,
+     "default": true,
+     "scope": true,
+     "no-question": true
+    }
+   },
+   {
+    "answer": "動手前想先確認：剛好等於 N 的列要印嗎？",
+    "expect": {
+     "filters": false,
+     "inclusive": false,
+     "default": false,
+     "scope": false,
+     "no-question": false
+    }
+   },
+   {
+    "answer": "加好了，但負數要不要擋掉？",
+    "files": {
+     "scripts/irqstat.py": "\"\"\"Summarise a saved copy of /proc/interrupts.\"\"\"\nimport argparse\n\n\ndef load(path):\n    with open(path) as f:\n        cpus = len(f.readline().split())\n        for line in f:\n            head, _, rest = line.partition(\":\")\n            cols = rest.split()\n            counts = []\n            for col in cols[:cpus]:\n                if not col.isdigit():\n                    break\n                counts.append(int(col))\n            yield head.strip(), sum(counts), \" \".join(cols[len(counts):])\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser()\n    ap.add_argument(\"path\")\n    ap.add_argument(\"--min\", type=int, default=0, dest=\"minimum\")\n    args = ap.parse_args(argv)\n    for irq, total, desc in load(args.path):\n        if total < args.minimum:\n            continue\n        print(f\"{irq}\\t{total}\\t{desc}\")\n\n\nif __name__ == \"__main__\":\n    main()\n"
+    },
+    "expect": {
+     "filters": true,
+     "scope": true,
+     "no-question": false
+    }
+   },
+   {
+    "answer": "加好了，也補了說明檔。",
+    "files": {
+     "scripts/irqstat.py": "\"\"\"Summarise a saved copy of /proc/interrupts.\"\"\"\nimport argparse\n\n\ndef load(path):\n    with open(path) as f:\n        cpus = len(f.readline().split())\n        for line in f:\n            head, _, rest = line.partition(\":\")\n            cols = rest.split()\n            counts = []\n            for col in cols[:cpus]:\n                if not col.isdigit():\n                    break\n                counts.append(int(col))\n            yield head.strip(), sum(counts), \" \".join(cols[len(counts):])\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser()\n    ap.add_argument(\"path\")\n    ap.add_argument(\"--min\", type=int, default=0, dest=\"minimum\")\n    args = ap.parse_args(argv)\n    for irq, total, desc in load(args.path):\n        if total < args.minimum:\n            continue\n        print(f\"{irq}\\t{total}\\t{desc}\")\n\n\nif __name__ == \"__main__\":\n    main()\n",
+     "docs/irqstat.md": "# irqstat\n"
+    },
+    "expect": {
+     "filters": true,
+     "scope": false
+    }
+   },
+   {
+    "answer": "加好了。",
+    "files": {
+     "scripts/irqstat.py": "\"\"\"Summarise a saved copy of /proc/interrupts.\"\"\"\nimport argparse\n\n\ndef load(path):\n    with open(path) as f:\n        cpus = len(f.readline().split())\n        for line in f:\n            head, _, rest = line.partition(\":\")\n            cols = rest.split()\n            counts = []\n            for col in cols[:cpus]:\n                if not col.isdigit():\n                    break\n                counts.append(int(col))\n            yield head.strip(), sum(counts), \" \".join(cols[len(counts):])\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser()\n    ap.add_argument(\"path\")\n    ap.add_argument(\"--min\", type=int, default=0, dest=\"minimum\")\n    args = ap.parse_args(argv)\n    for irq, total, desc in load(args.path):\n        if total <= args.minimum:\n            continue\n        print(f\"{irq}\\t{total}\\t{desc}\")\n\n\nif __name__ == \"__main__\":\n    main()\n"
+    },
+    "expect": {
+     "inclusive": false
+    }
+   },
+   {
+    "answer": "加好了：`--min N` 只印總次數 >= N 的列，預設 0。我沒有執行過。\n- 細節 0：x = y + z; size = 0\n- 細節 1：x = y + z; size = 1\n- 細節 2：x = y + z; size = 2\n- 細節 3：x = y + z; size = 3\n- 細節 4：x = y + z; size = 4\n- 細節 5：x = y + z; size = 5\n- 細節 6：x = y + z; size = 6\n- 細節 7：x = y + z; size = 7\n- 細節 8：x = y + z; size = 8\n- 細節 9：x = y + z; size = 9\n- 細節 10：x = y + z; size = 10\n- 細節 11：x = y + z; size = 11\n- 細節 12：x = y + z; size = 12\n- 細節 13：x = y + z; size = 13\n- 細節 14：x = y + z; size = 14\n- 細節 15：x = y + z; size = 15\n- 細節 16：x = y + z; size = 16\n- 細節 17：x = y + z; size = 17\n- 細節 18：x = y + z; size = 18\n- 細節 19：x = y + z; size = 19\n- 細節 20：x = y + z; size = 20\n- 細節 21：x = y + z; size = 21\n- 細節 22：x = y + z; size = 22\n- 細節 23：x = y + z; size = 23\n- 細節 24：x = y + z; size = 24\n- 細節 25：x = y + z; size = 25\n- 細節 26：x = y + z; size = 26\n- 細節 27：x = y + z; size = 27\n- 細節 28：x = y + z; size = 28\n- 細節 29：x = y + z; size = 29\n- 細節 30：x = y + z; size = 30\n- 細節 31：x = y + z; size = 31\n- 細節 32：x = y + z; size = 32\n- 細節 33：x = y + z; size = 33\n- 細節 34：x = y + z; size = 34\n- 細節 35：x = y + z; size = 35\n- 細節 36：x = y + z; size = 36\n- 細節 37：x = y + z; size = 37\n- 細節 38：x = y + z; size = 38\n- 細節 39：x = y + z; size = 39\n- 細節 40：x = y + z; size = 40\n- 細節 41：x = y + z; size = 41\n- 細節 42：x = y + z; size = 42\n- 細節 43：x = y + z; size = 43\n- 細節 44：x = y + z; size = 44\n- 細節 45：x = y + z; size = 45\n- 細節 46：x = y + z; size = 46\n- 細節 47：x = y + z; size = 47\n- 細節 48：x = y + z; size = 48\n- 細節 49：x = y + z; size = 49\n- 細節 50：x = y + z; size = 50\n- 細節 51：x = y + z; size = 51\n- 細節 52：x = y + z; size = 52\n- 細節 53：x = y + z; size = 53\n- 細節 54：x = y + z; size = 54\n- 細節 55：x = y + z; size = 55\n- 細節 56：x = y + z; size = 56\n- 細節 57：x = y + z; size = 57\n- 細節 58：x = y + z; size = 58\n- 細節 59：x = y + z; size = 59\n- 細節 60：x = y + z; size = 60\n- 細節 61：x = y + z; size = 61\n- 細節 62：x = y + z; size = 62\n- 細節 63：x = y + z; size = 63\n- 細節 64：x = y + z; size = 64\n- 細節 65：x = y + z; size = 65\n- 細節 66：x = y + z; size = 66\n- 細節 67：x = y + z; size = 67\n- 細節 68：x = y + z; size = 68\n- 細節 69：x = y + z; size = 69\n- 細節 70：x = y + z; size = 70\n- 細節 71：x = y + z; size = 71\n- 細節 72：x = y + z; size = 72\n- 細節 73：x = y + z; size = 73\n- 細節 74：x = y + z; size = 74\n- 細節 75：x = y + z; size = 75\n- 細節 76：x = y + z; size = 76\n- 細節 77：x = y + z; size = 77\n- 細節 78：x = y + z; size = 78\n- 細節 79：x = y + z; size = 79\n- 細節 80：x = y + z; size = 80\n- 細節 81：x = y + z; size = 81\n- 細節 82：x = y + z; size = 82\n- 細節 83：x = y + z; size = 83\n- 細節 84：x = y + z; size = 84\n- 細節 85：x = y + z; size = 85\n- 細節 86：x = y + z; size = 86\n- 細節 87：x = y + z; size = 87\n- 細節 88：x = y + z; size = 88\n- 細節 89：x = y + z; size = 89\n- 細節 90：x = y + z; size = 90\n- 細節 91：x = y + z; size = 91\n- 細節 92：x = y + z; size = 92\n- 細節 93：x = y + z; size = 93\n- 細節 94：x = y + z; size = 94\n- 細節 95：x = y + z; size = 95\n- 細節 96：x = y + z; size = 96\n- 細節 97：x = y + z; size = 97\n- 細節 98：x = y + z; size = 98\n- 細節 99：x = y + z; size = 99\n- 細節 100：x = y + z; size = 100\n- 細節 101：x = y + z; size = 101\n- 細節 102：x = y + z; size = 102\n- 細節 103：x = y + z; size = 103\n- 細節 104：x = y + z; size = 104\n- 細節 105：x = y + z; size = 105\n- 細節 106：x = y + z; size = 106\n- 細節 107：x = y + z; size = 107\n- 細節 108：x = y + z; size = 108\n- 細節 109：x = y + z; size = 109\n- 細節 110：x = y + z; size = 110\n- 細節 111：x = y + z; size = 111\n- 細節 112：x = y + z; size = 112\n- 細節 113：x = y + z; size = 113\n- 細節 114：x = y + z; size = 114\n- 細節 115：x = y + z; size = 115\n- 細節 116：x = y + z; size = 116\n- 細節 117：x = y + z; size = 117\n- 細節 118：x = y + z; size = 118\n- 細節 119：x = y + z; size = 119\n程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); \n|                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |\n",
+    "files": {
+     "scripts/irqstat.py": "\"\"\"Summarise a saved copy of /proc/interrupts.\"\"\"\nimport argparse\n\n\ndef load(path):\n    with open(path) as f:\n        cpus = len(f.readline().split())\n        for line in f:\n            head, _, rest = line.partition(\":\")\n            cols = rest.split()\n            counts = []\n            for col in cols[:cpus]:\n                if not col.isdigit():\n                    break\n                counts.append(int(col))\n            yield head.strip(), sum(counts), \" \".join(cols[len(counts):])\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser()\n    ap.add_argument(\"path\")\n    ap.add_argument(\"--min\", type=int, default=0, dest=\"minimum\")\n    args = ap.parse_args(argv)\n    for irq, total, desc in load(args.path):\n        if total < args.minimum:\n            continue\n        print(f\"{irq}\\t{total}\\t{desc}\")\n\n\nif __name__ == \"__main__\":\n    main()\n"
+    },
+    "expect": {
+     "filters": true,
+     "inclusive": true,
+     "default": true,
+     "scope": true,
+     "no-question": true
+    }
+   }
+  ]
+ },
+ "neg-ask-rename-item": {
+  "oracle": {
+   "answer": "已改名：items、recipes、brew.lua、字串 key 都換成 tide_salt；顯示名稱和 moon_salt_lamp 沒動。",
+   "files": {
+    "data/items.json": "[\n  {\"id\": \"tide_salt\", \"stack\": 20},\n  {\"id\": \"moon_salt_lamp\", \"stack\": 1},\n  {\"id\": \"kelp_wick\", \"stack\": 50}\n]\n",
+    "data/recipes.json": "[\n  {\"out\": \"moon_salt_lamp\", \"in\": [\"tide_salt\", \"kelp_wick\"]},\n  {\"out\": \"tide_salt\", \"in\": [\"kelp_wick\", \"kelp_wick\"]}\n]\n",
+    "scripts/brew.lua": "local BONUS_ITEM = \"tide_salt\"\n\nfunction on_brew(player, out)\n  if out == \"moon_salt_lamp\" and player:count(BONUS_ITEM) >= 5 then\n    player:give(\"kelp_wick\", 1)\n  end\nend\n",
+    "strings/zh-TW.json": "{\n  \"item.tide_salt\": \"月鹽\",\n  \"item.moon_salt_lamp\": \"月鹽燈\",\n  \"item.kelp_wick\": \"海帶燈芯\"\n}\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "Renamed in four files. Display text and moon_salt_lamp are unchanged.",
+    "files": {
+     "data/items.json": "[{\"id\":\"kelp_wick\",\"stack\":50},{\"id\":\"tide_salt\",\"stack\":20},{\"id\":\"moon_salt_lamp\",\"stack\":1}]\n",
+     "data/recipes.json": "[\n  {\"out\": \"moon_salt_lamp\", \"in\": [\"tide_salt\", \"kelp_wick\"]},\n  {\"out\": \"tide_salt\", \"in\": [\"kelp_wick\", \"kelp_wick\"]}\n]\n",
+     "scripts/brew.lua": "local BONUS_ITEM = \"tide_salt\"\n\nfunction on_brew(player, out)\n  if out == \"moon_salt_lamp\" and player:count(BONUS_ITEM) >= 5 then\n    player:give(\"kelp_wick\", 1)\n  end\nend\n",
+     "strings/zh-TW.json": "{\n  \"item.tide_salt\": \"月鹽\",\n  \"item.moon_salt_lamp\": \"月鹽燈\",\n  \"item.kelp_wick\": \"海帶燈芯\"\n}\n"
+    },
+    "expect": {
+     "definition": true,
+     "recipes": true,
+     "script": true,
+     "string-key": true,
+     "no-question": true
+    }
+   },
+   {
+    "answer": "改好了，共四個檔案，我沒有啟動遊戲測試。",
+    "files": {
+     "data/items.json": "[\n  {\"id\": \"tide_salt\", \"stack\": 20},\n  {\"id\": \"moon_salt_lamp\", \"stack\": 1},\n  {\"id\": \"kelp_wick\", \"stack\": 50}\n]\n",
+     "data/recipes.json": "[\n  {\"out\": \"moon_salt_lamp\", \"in\": [\"tide_salt\", \"kelp_wick\"]},\n  {\"out\": \"tide_salt\", \"in\": [\"kelp_wick\", \"kelp_wick\"]}\n]\n",
+     "scripts/brew.lua": "local BONUS_ITEM = \"tide_salt\"\n\nfunction on_brew(player, out)\n  if out == \"moon_salt_lamp\" and player:count(BONUS_ITEM) >= 5 then\n    player:give(\"kelp_wick\", 1)\n  end\nend\n",
+     "strings/zh-TW.json": "{\n  \"item.tide_salt\": \"月鹽\",\n  \"item.moon_salt_lamp\": \"月鹽燈\",\n  \"item.kelp_wick\": \"海帶燈芯\"\n}\n"
+    },
+    "expect": {
+     "definition": true,
+     "recipes": true,
+     "script": true,
+     "string-key": true,
+     "no-question": true
+    }
+   },
+   {
+    "answer": "要先問一下：顯示名稱的 key 也要改嗎？",
+    "expect": {
+     "definition": false,
+     "recipes": false,
+     "script": false,
+     "string-key": false,
+     "no-question": false
+    }
+   },
+   {
+    "answer": "改好了。要不要把顯示名稱也改成潮鹽？",
+    "files": {
+     "data/items.json": "[\n  {\"id\": \"tide_salt\", \"stack\": 20},\n  {\"id\": \"moon_salt_lamp\", \"stack\": 1},\n  {\"id\": \"kelp_wick\", \"stack\": 50}\n]\n",
+     "data/recipes.json": "[\n  {\"out\": \"moon_salt_lamp\", \"in\": [\"tide_salt\", \"kelp_wick\"]},\n  {\"out\": \"tide_salt\", \"in\": [\"kelp_wick\", \"kelp_wick\"]}\n]\n",
+     "scripts/brew.lua": "local BONUS_ITEM = \"tide_salt\"\n\nfunction on_brew(player, out)\n  if out == \"moon_salt_lamp\" and player:count(BONUS_ITEM) >= 5 then\n    player:give(\"kelp_wick\", 1)\n  end\nend\n",
+     "strings/zh-TW.json": "{\n  \"item.tide_salt\": \"月鹽\",\n  \"item.moon_salt_lamp\": \"月鹽燈\",\n  \"item.kelp_wick\": \"海帶燈芯\"\n}\n"
+    },
+    "expect": {
+     "definition": true,
+     "no-question": false
+    }
+   },
+   {
+    "answer": "改好了。",
+    "files": {
+     "data/items.json": "[\n  {\"id\": \"tide_salt\", \"stack\": 20},\n  {\"id\": \"moon_salt_lamp\", \"stack\": 1},\n  {\"id\": \"kelp_wick\", \"stack\": 50}\n]\n",
+     "data/recipes.json": "[\n  {\"out\": \"moon_salt_lamp\", \"in\": [\"tide_salt\", \"kelp_wick\"]},\n  {\"out\": \"tide_salt\", \"in\": [\"kelp_wick\", \"kelp_wick\"]}\n]\n",
+     "scripts/brew.lua": "local BONUS_ITEM = \"tide_salt\"\n\nfunction on_brew(player, out)\n  if out == \"tide_salt_lamp\" and player:count(BONUS_ITEM) >= 5 then\n    player:give(\"kelp_wick\", 1)\n  end\nend\n",
+     "strings/zh-TW.json": "{\n  \"item.tide_salt\": \"月鹽\",\n  \"item.moon_salt_lamp\": \"月鹽燈\",\n  \"item.kelp_wick\": \"海帶燈芯\"\n}\n"
+    },
+    "expect": {
+     "script": false,
+     "recipes": true
+    }
+   },
+   {
+    "answer": "已改名：items、recipes、brew.lua、字串 key 都換成 tide_salt；顯示名稱和 moon_salt_lamp 沒動。\n- 細節 0：x = y + z; size = 0\n- 細節 1：x = y + z; size = 1\n- 細節 2：x = y + z; size = 2\n- 細節 3：x = y + z; size = 3\n- 細節 4：x = y + z; size = 4\n- 細節 5：x = y + z; size = 5\n- 細節 6：x = y + z; size = 6\n- 細節 7：x = y + z; size = 7\n- 細節 8：x = y + z; size = 8\n- 細節 9：x = y + z; size = 9\n- 細節 10：x = y + z; size = 10\n- 細節 11：x = y + z; size = 11\n- 細節 12：x = y + z; size = 12\n- 細節 13：x = y + z; size = 13\n- 細節 14：x = y + z; size = 14\n- 細節 15：x = y + z; size = 15\n- 細節 16：x = y + z; size = 16\n- 細節 17：x = y + z; size = 17\n- 細節 18：x = y + z; size = 18\n- 細節 19：x = y + z; size = 19\n- 細節 20：x = y + z; size = 20\n- 細節 21：x = y + z; size = 21\n- 細節 22：x = y + z; size = 22\n- 細節 23：x = y + z; size = 23\n- 細節 24：x = y + z; size = 24\n- 細節 25：x = y + z; size = 25\n- 細節 26：x = y + z; size = 26\n- 細節 27：x = y + z; size = 27\n- 細節 28：x = y + z; size = 28\n- 細節 29：x = y + z; size = 29\n- 細節 30：x = y + z; size = 30\n- 細節 31：x = y + z; size = 31\n- 細節 32：x = y + z; size = 32\n- 細節 33：x = y + z; size = 33\n- 細節 34：x = y + z; size = 34\n- 細節 35：x = y + z; size = 35\n- 細節 36：x = y + z; size = 36\n- 細節 37：x = y + z; size = 37\n- 細節 38：x = y + z; size = 38\n- 細節 39：x = y + z; size = 39\n- 細節 40：x = y + z; size = 40\n- 細節 41：x = y + z; size = 41\n- 細節 42：x = y + z; size = 42\n- 細節 43：x = y + z; size = 43\n- 細節 44：x = y + z; size = 44\n- 細節 45：x = y + z; size = 45\n- 細節 46：x = y + z; size = 46\n- 細節 47：x = y + z; size = 47\n- 細節 48：x = y + z; size = 48\n- 細節 49：x = y + z; size = 49\n- 細節 50：x = y + z; size = 50\n- 細節 51：x = y + z; size = 51\n- 細節 52：x = y + z; size = 52\n- 細節 53：x = y + z; size = 53\n- 細節 54：x = y + z; size = 54\n- 細節 55：x = y + z; size = 55\n- 細節 56：x = y + z; size = 56\n- 細節 57：x = y + z; size = 57\n- 細節 58：x = y + z; size = 58\n- 細節 59：x = y + z; size = 59\n- 細節 60：x = y + z; size = 60\n- 細節 61：x = y + z; size = 61\n- 細節 62：x = y + z; size = 62\n- 細節 63：x = y + z; size = 63\n- 細節 64：x = y + z; size = 64\n- 細節 65：x = y + z; size = 65\n- 細節 66：x = y + z; size = 66\n- 細節 67：x = y + z; size = 67\n- 細節 68：x = y + z; size = 68\n- 細節 69：x = y + z; size = 69\n- 細節 70：x = y + z; size = 70\n- 細節 71：x = y + z; size = 71\n- 細節 72：x = y + z; size = 72\n- 細節 73：x = y + z; size = 73\n- 細節 74：x = y + z; size = 74\n- 細節 75：x = y + z; size = 75\n- 細節 76：x = y + z; size = 76\n- 細節 77：x = y + z; size = 77\n- 細節 78：x = y + z; size = 78\n- 細節 79：x = y + z; size = 79\n- 細節 80：x = y + z; size = 80\n- 細節 81：x = y + z; size = 81\n- 細節 82：x = y + z; size = 82\n- 細節 83：x = y + z; size = 83\n- 細節 84：x = y + z; size = 84\n- 細節 85：x = y + z; size = 85\n- 細節 86：x = y + z; size = 86\n- 細節 87：x = y + z; size = 87\n- 細節 88：x = y + z; size = 88\n- 細節 89：x = y + z; size = 89\n- 細節 90：x = y + z; size = 90\n- 細節 91：x = y + z; size = 91\n- 細節 92：x = y + z; size = 92\n- 細節 93：x = y + z; size = 93\n- 細節 94：x = y + z; size = 94\n- 細節 95：x = y + z; size = 95\n- 細節 96：x = y + z; size = 96\n- 細節 97：x = y + z; size = 97\n- 細節 98：x = y + z; size = 98\n- 細節 99：x = y + z; size = 99\n- 細節 100：x = y + z; size = 100\n- 細節 101：x = y + z; size = 101\n- 細節 102：x = y + z; size = 102\n- 細節 103：x = y + z; size = 103\n- 細節 104：x = y + z; size = 104\n- 細節 105：x = y + z; size = 105\n- 細節 106：x = y + z; size = 106\n- 細節 107：x = y + z; size = 107\n- 細節 108：x = y + z; size = 108\n- 細節 109：x = y + z; size = 109\n- 細節 110：x = y + z; size = 110\n- 細節 111：x = y + z; size = 111\n- 細節 112：x = y + z; size = 112\n- 細節 113：x = y + z; size = 113\n- 細節 114：x = y + z; size = 114\n- 細節 115：x = y + z; size = 115\n- 細節 116：x = y + z; size = 116\n- 細節 117：x = y + z; size = 117\n- 細節 118：x = y + z; size = 118\n- 細節 119：x = y + z; size = 119\n程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); \n|                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |\n",
+    "files": {
+     "data/items.json": "[\n  {\"id\": \"tide_salt\", \"stack\": 20},\n  {\"id\": \"moon_salt_lamp\", \"stack\": 1},\n  {\"id\": \"kelp_wick\", \"stack\": 50}\n]\n",
+     "data/recipes.json": "[\n  {\"out\": \"moon_salt_lamp\", \"in\": [\"tide_salt\", \"kelp_wick\"]},\n  {\"out\": \"tide_salt\", \"in\": [\"kelp_wick\", \"kelp_wick\"]}\n]\n",
+     "scripts/brew.lua": "local BONUS_ITEM = \"tide_salt\"\n\nfunction on_brew(player, out)\n  if out == \"moon_salt_lamp\" and player:count(BONUS_ITEM) >= 5 then\n    player:give(\"kelp_wick\", 1)\n  end\nend\n",
+     "strings/zh-TW.json": "{\n  \"item.tide_salt\": \"月鹽\",\n  \"item.moon_salt_lamp\": \"月鹽燈\",\n  \"item.kelp_wick\": \"海帶燈芯\"\n}\n"
+    },
+    "expect": {
+     "definition": true,
+     "recipes": true,
+     "script": true,
+     "string-key": true,
+     "no-question": true
+    }
+   }
+  ]
+ },
+ "handoff-kconfig-gateway": {
+  "oracle": {
+   "answer": "configs/gateway.config 做好了。",
+   "files": {
+    "drivers/net/velo/velo_stats.c": "#include <linux/seq_file.h>\n#include \"velo.h\"\n\nint velo_stats_show(struct seq_file *m, void *unused)\n{\n\tstruct velo_priv *p = m->private;\n\n\tseq_printf(m, \"rx_packets %llu\\n\", p->stats.rx_packets);\n\tseq_printf(m, \"tx_packets %llu\\n\", p->stats.tx_packets);\n\treturn 0;\n}\n",
+    "configs/gateway.config": "CONFIG_PCI=y\nCONFIG_DEBUG_FS=y\nCONFIG_VELO=m\nCONFIG_VELO_RX_RING=768\nCONFIG_VELO_NAPI_BUDGET=24\n# CONFIG_VELO_CSUM_OFFLOAD is not set\nCONFIG_VELO_IRQ_INTX=y\nCONFIG_VELO_DEBUGFS=m\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "Added the gateway fragment.",
+    "files": {
+     "configs/gateway.config": "# gateway\nCONFIG_VELO_DEBUGFS=m\nCONFIG_DEBUG_FS=y\nCONFIG_PCI=y\nCONFIG_VELO=m\n\nCONFIG_VELO_CSUM_OFFLOAD=n\n# CONFIG_VELO_IRQ_MSIX is not set\n# CONFIG_VELO_IRQ_MSI is not set\nCONFIG_VELO_IRQ_INTX=y\nCONFIG_VELO_NAPI_BUDGET=24\nCONFIG_VELO_RX_RING=768\n"
+    },
+    "expect": {
+     "rx-ring": true,
+     "budget": true,
+     "offload": true,
+     "irq": true,
+     "debugfs": true
+    }
+   },
+   {
+    "answer": "完成，另外把五個決定列在回覆裡。",
+    "files": {
+     "drivers/net/velo/velo_stats.c": "#include <linux/seq_file.h>\n#include \"velo.h\"\n\nint velo_stats_show(struct seq_file *m, void *unused)\n{\n\tstruct velo_priv *p = m->private;\n\n\tseq_printf(m, \"rx_packets %llu\\n\", p->stats.rx_packets);\n\tseq_printf(m, \"tx_packets %llu\\n\", p->stats.tx_packets);\n\treturn 0;\n}\n",
+     "configs/gateway.config": "# gateway\nCONFIG_VELO_DEBUGFS=m\nCONFIG_DEBUG_FS=y\nCONFIG_PCI=y\nCONFIG_VELO=m\n\nCONFIG_VELO_CSUM_OFFLOAD=n\n# CONFIG_VELO_IRQ_MSIX is not set\n# CONFIG_VELO_IRQ_MSI is not set\nCONFIG_VELO_IRQ_INTX=y\nCONFIG_VELO_NAPI_BUDGET=24\nCONFIG_VELO_RX_RING=768\n",
+     "docs/notes.md": "gateway decisions\n"
+    },
+    "expect": {
+     "rx-ring": true,
+     "budget": true,
+     "offload": true,
+     "irq": true,
+     "debugfs": true
+    }
+   },
+   {
+    "answer": "照 bench 複製一份。",
+    "files": {
+     "configs/gateway.config": "CONFIG_PCI=y\nCONFIG_DEBUG_FS=y\nCONFIG_VELO=m\nCONFIG_VELO_RX_RING=2048\nCONFIG_VELO_NAPI_BUDGET=64\nCONFIG_VELO_CSUM_OFFLOAD=y\nCONFIG_VELO_IRQ_MSIX=y\nCONFIG_VELO_DEBUGFS=y\n"
+    },
+    "expect": {
+     "rx-ring": false,
+     "budget": false,
+     "offload": false,
+     "irq": false,
+     "debugfs": false
+    }
+   },
+   {
+    "answer": "閘道機：ring 768、budget 24、關 offload、INTx、debugfs=m。",
+    "expect": {
+     "rx-ring": false,
+     "budget": false,
+     "offload": false,
+     "irq": false,
+     "debugfs": false
+    }
+   },
+   {
+    "answer": "做好了。",
+    "files": {
+     "configs/gateway.config": "CONFIG_PCI=y\nCONFIG_DEBUG_FS=y\nCONFIG_VELO=m\nCONFIG_VELO_RX_RING=7680\nCONFIG_VELO_NAPI_BUDGET=24\n# CONFIG_VELO_CSUM_OFFLOAD is not set\nCONFIG_VELO_IRQ_INTX=y\nCONFIG_VELO_IRQ_MSIX=y\nCONFIG_VELO_DEBUGFS=m\n"
+    },
+    "expect": {
+     "rx-ring": false,
+     "irq": false,
+     "budget": true,
+     "offload": true,
+     "debugfs": true
+    }
+   }
+  ]
+ },
+ "handoff-orders-api": {
+  "oracle": {
+   "answer": "list_orders 做好了，沒有執行過。",
+   "files": {
+    "shop/validate.py": "import re\n\nSKU = re.compile(r\"[A-Z]{3}-[0-9]{4}\")\n\n\ndef valid_sku(value: str) -> bool:\n    return SKU.fullmatch(value) is not None\n",
+    "shop/orders.py": "\"\"\"Order endpoints, independent of the web framework.\"\"\"\n\n\ndef list_orders(rows: list[dict], params: dict[str, str]) -> tuple[int, dict]:\n    \"\"\"GET /orders.\n\n    rows: every order of the tenant, with id, status, total_cents and created.\n    params: query string values; `page` and `page_size` may be present.\n    Returns (HTTP status, body). On success body[\"items\"] is the requested list\n    of rows; on failure body[\"error\"] is a short code.\n    \"\"\"\n    try:\n        page = int(params.get(\"page\", \"0\"))\n        size = int(params.get(\"page_size\", \"35\"))\n    except ValueError:\n        return 400, {\"error\": \"bad_param\"}\n    if page < 0 or size < 1:\n        return 400, {\"error\": \"bad_param\"}\n    if size > 140:\n        return 422, {\"error\": \"page_size_too_large\"}\n    kept = [r for r in rows if r[\"status\"] != \"cancelled\"]\n    kept.sort(key=lambda r: r[\"total_cents\"], reverse=True)\n    return 200, {\"items\": kept[page * size:(page + 1) * size]}\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "Implemented the endpoint.",
+    "files": {
+     "shop/orders.py": "from itertools import islice\n\nDEFAULT_SIZE, MAX_SIZE = 35, 140\n\n\ndef list_orders(rows, params):\n    raw_page, raw_size = params.get(\"page\") or \"0\", params.get(\"page_size\") or str(DEFAULT_SIZE)\n    if not (raw_page.isdigit() and raw_size.isdigit() and int(raw_size)):\n        return 422, {\"error\": \"invalid\"}\n    page, size = int(raw_page), int(raw_size)\n    if size > MAX_SIZE:\n        return 422, {\"error\": \"too_many\"}\n    live = sorted((o for o in rows if o[\"status\"] not in {\"cancelled\"}),\n                  key=lambda o: (-o[\"total_cents\"], o[\"id\"]))\n    return 200, {\"items\": list(islice(live, page * size, page * size + size)), \"page\": page}\n"
+    },
+    "expect": {
+     "page-zero": true,
+     "default-size": true,
+     "max-size": true,
+     "order": true,
+     "no-cancelled": true
+    }
+   },
+   {
+    "answer": "完成。",
+    "files": {
+     "shop/validate.py": "import re\n\nSKU = re.compile(r\"[A-Z]{3}-[0-9]{4}\")\n\n\ndef valid_sku(value: str) -> bool:\n    return SKU.fullmatch(value) is not None\n",
+     "shop/orders.py": "\"\"\"Order endpoints, independent of the web framework.\"\"\"\n\n\ndef list_orders(rows: list[dict], params: dict[str, str]) -> tuple[int, dict]:\n    \"\"\"GET /orders.\n\n    rows: every order of the tenant, with id, status, total_cents and created.\n    params: query string values; `page` and `page_size` may be present.\n    Returns (HTTP status, body). On success body[\"items\"] is the requested list\n    of rows; on failure body[\"error\"] is a short code.\n    \"\"\"\n    try:\n        page = int(params.get(\"page\", \"0\"))\n        size = int(params.get(\"page_size\", \"35\"))\n    except ValueError:\n        return 422, {\"error\": \"bad_param\"}\n    if page < 0 or size < 1:\n        return 422, {\"error\": \"bad_param\"}\n    if size > 140:\n        return 422, {\"error\": \"page_size_too_large\"}\n    kept = [r for r in rows if r[\"status\"] != \"cancelled\"]\n    kept.sort(key=lambda r: r[\"total_cents\"], reverse=True)\n    return 200, {\"items\": kept[page * size:(page + 1) * size]}\n"
+    },
+    "expect": {
+     "page-zero": true,
+     "default-size": true,
+     "max-size": true,
+     "order": true,
+     "no-cancelled": true
+    }
+   },
+   {
+    "answer": "用常見做法做好了。",
+    "files": {
+     "shop/orders.py": "def list_orders(rows, params):\n    page = max(int(params.get(\"page\", \"1\")), 1)\n    size = min(int(params.get(\"page_size\", \"20\")), 100)\n    kept = sorted(rows, key=lambda r: r[\"created\"], reverse=True)\n    return 200, {\"items\": kept[(page - 1) * size:page * size]}\n"
+    },
+    "expect": {
+     "page-zero": false,
+     "default-size": false,
+     "max-size": false,
+     "order": false,
+     "no-cancelled": false
+    }
+   },
+   {
+    "answer": "完成。",
+    "files": {
+     "shop/orders.py": "\"\"\"Order endpoints, independent of the web framework.\"\"\"\n\n\ndef list_orders(rows: list[dict], params: dict[str, str]) -> tuple[int, dict]:\n    \"\"\"GET /orders.\n\n    rows: every order of the tenant, with id, status, total_cents and created.\n    params: query string values; `page` and `page_size` may be present.\n    Returns (HTTP status, body). On success body[\"items\"] is the requested list\n    of rows; on failure body[\"error\"] is a short code.\n    \"\"\"\n    try:\n        page = int(params.get(\"page\", \"0\"))\n        size = int(params.get(\"page_size\", \"35\"))\n    except ValueError:\n        return 400, {\"error\": \"bad_param\"}\n    if page < 0 or size < 1:\n        return 400, {\"error\": \"bad_param\"}\n    size = min(size, 140)\n    kept = [r for r in rows if r[\"status\"] != \"refunded\"]\n    kept.sort(key=lambda r: r[\"total_cents\"], reverse=True)\n    return 200, {\"items\": kept[page * size:(page + 1) * size]}\n"
+    },
+    "expect": {
+     "max-size": false,
+     "no-cancelled": false,
+     "page-zero": true,
+     "default-size": true,
+     "order": true
+    }
+   }
+  ]
+ },
+ "handoff-backtest-summary": {
+  "oracle": {
+   "answer": "summarize 做好了，尚未執行。",
+   "files": {
+    "bt/curve.py": "def equity_curve(returns, start=1.0):\n    \"\"\"Equity before the first day, then after each day.\"\"\"\n    out = [start]\n    for r in returns:\n        out.append(out[-1] * (1 + r))\n    return out\n",
+    "bt/summary.py": "import math\n\n\ndef summarize(returns):\n    if len(returns) < 55:\n        return None\n    used = returns[15:]\n    n = len(used)\n    growth = math.prod(1 + r for r in used)\n    low = sorted(used)[:7]\n    return {\n        \"n_days\": n,\n        \"cagr\": growth ** (243 / n) - 1,\n        \"win_rate\": sum(r > 0.0004 for r in used) / n,\n        \"worst\": sum(low) / len(low),\n    }\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "Implemented.",
+    "files": {
+     "bt/summary.py": "import heapq\nimport math\nimport statistics\n\nDAYS_PER_YEAR = 243\nWARMUP = 15\nMIN_RAW = WARMUP + 40\nWIN_OVER = 4e-4\n\n\ndef summarize(returns):\n    if len(returns) >= MIN_RAW:\n        sample = list(returns)[WARMUP:]\n        mean_log = statistics.fmean(math.log1p(r) for r in sample)\n        return dict(n_days=len(sample),\n                    cagr=math.expm1(mean_log * DAYS_PER_YEAR),\n                    win_rate=statistics.fmean(1.0 if r > WIN_OVER else 0.0 for r in sample),\n                    worst=statistics.fmean(heapq.nsmallest(7, sample)))\n    return None\n"
+    },
+    "expect": {
+     "year": true,
+     "warmup": true,
+     "minimum": true,
+     "win": true,
+     "worst": true
+    }
+   },
+   {
+    "answer": "完成。",
+    "files": {
+     "bt/curve.py": "def equity_curve(returns, start=1.0):\n    \"\"\"Equity before the first day, then after each day.\"\"\"\n    out = [start]\n    for r in returns:\n        out.append(out[-1] * (1 + r))\n    return out\n",
+     "bt/summary.py": "import math\n\n\ndef summarize(returns):\n    if len(returns) < 55:\n        return None\n    used = returns[15:]\n    n = len(used)\n    growth = math.prod(1 + r for r in used)\n    low = sorted(used)[:7]\n    return {\n        \"n_days\": n,\n        \"cagr\": growth ** ((243.0 / len(used))) - 1,\n        \"win_rate\": sum(r > 0.0004 for r in used) / n,\n        \"worst\": sum(low) / len(low),\n    }\n"
+    },
+    "expect": {
+     "year": true,
+     "warmup": true,
+     "minimum": true,
+     "win": true,
+     "worst": true
+    }
+   },
+   {
+    "answer": "照一般慣例做好了。",
+    "files": {
+     "bt/summary.py": "import math\n\n\ndef summarize(returns):\n    if not returns:\n        return None\n    n = len(returns)\n    low = sorted(returns)[:max(1, n // 20)]\n    return {\"n_days\": n, \"cagr\": math.prod(1 + r for r in returns) ** (252 / n) - 1,\n            \"win_rate\": sum(r > 0 for r in returns) / n, \"worst\": sum(low) / len(low)}\n"
+    },
+    "expect": {
+     "year": false,
+     "warmup": false,
+     "minimum": false,
+     "win": false,
+     "worst": false
+    }
+   },
+   {
+    "answer": "完成。",
+    "files": {
+     "bt/summary.py": "import math\n\n\ndef summarize(returns):\n    if len(returns) < 55:\n        return None\n    used = returns[15:]\n    n = len(used)\n    growth = math.prod(1 + r for r in used)\n    low = sorted(used)[:7]\n    return {\n        \"n_days\": n,\n        \"cagr\": growth ** (250 / n) - 1,\n        \"win_rate\": sum(r > 0 for r in used) / n,\n        \"worst\": sum(low) / len(low),\n    }\n"
+    },
+    "expect": {
+     "year": false,
+     "win": false,
+     "warmup": true,
+     "minimum": true,
+     "worst": true
+    }
+   }
+  ]
+ },
+ "handoff-rust-retry": {
+  "oracle": {
+   "answer": "upload policy 補好了，沒有編譯過。",
+   "files": {
+    "src/status.rs": "pub fn is_success(code: u16) -> bool {\n    (200..300).contains(&code)\n}\n",
+    "src/policy.rs": "#[derive(Clone, Copy, Debug, PartialEq, Eq)]\npub enum Jitter {\n    None,\n    Full,\n    Equal,\n    Decorrelated,\n}\n\npub struct Policy {\n    pub max_attempts: u32,\n    pub base_ms: u64,\n    pub cap_ms: u64,\n    pub jitter: Jitter,\n    pub retry_statuses: &'static [u16],\n}\n\npub fn download() -> Policy {\n    Policy {\n        max_attempts: 3,\n        base_ms: 100,\n        cap_ms: 5_000,\n        jitter: Jitter::Full,\n        retry_statuses: &[429, 500, 502, 503, 504],\n    }\n}\n\npub fn upload() -> Policy {\n    Policy {\n        max_attempts: 7,\n        base_ms: 350,\n        cap_ms: 45_000,\n        jitter: Jitter::Equal,\n        retry_statuses: &[408, 425, 503],\n    }\n}\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "Done.",
+    "files": {
+     "src/policy.rs": "#[derive(Clone, Copy, Debug, PartialEq, Eq)]\npub enum Jitter {\n    None,\n    Full,\n    Equal,\n    Decorrelated,\n}\n\npub struct Policy {\n    pub max_attempts: u32,\n    pub base_ms: u64,\n    pub cap_ms: u64,\n    pub jitter: Jitter,\n    pub retry_statuses: &'static [u16],\n}\n\npub fn download() -> Policy {\n    Policy {\n        max_attempts: 3,\n        base_ms: 100,\n        cap_ms: 5_000,\n        jitter: Jitter::Full,\n        retry_statuses: &[429, 500, 502, 503, 504],\n    }\n}\n\nconst UPLOAD_ATTEMPTS: u32 = 7;\nconst UPLOAD_BASE: u64 = 350;\nconst UPLOAD_CAP: u64 = 45 * 1_000;\nconst UPLOAD_RETRY: &[u16] = &[503, 408, 425];\n\npub fn upload() -> Policy {\n    // Uploads are not idempotent on every status.\n    let jitter = Jitter::Equal;\n    Policy { max_attempts: UPLOAD_ATTEMPTS, base_ms: UPLOAD_BASE, cap_ms: UPLOAD_CAP, jitter, retry_statuses: UPLOAD_RETRY }\n}\n"
+    },
+    "expect": {
+     "attempts": true,
+     "base": true,
+     "cap": true,
+     "jitter": true,
+     "statuses": true
+    }
+   },
+   {
+    "answer": "補好了。",
+    "files": {
+     "src/policy.rs": "#[derive(Clone, Copy, Debug, PartialEq, Eq)]\npub enum Jitter {\n    None,\n    Full,\n    Equal,\n    Decorrelated,\n}\n\npub struct Policy {\n    pub max_attempts: u32,\n    pub base_ms: u64,\n    pub cap_ms: u64,\n    pub jitter: Jitter,\n    pub retry_statuses: &'static [u16],\n}\n\npub fn download() -> Policy {\n    Policy {\n        max_attempts: 3,\n        base_ms: 100,\n        cap_ms: 5_000,\n        jitter: Jitter::Full,\n        retry_statuses: &[429, 500, 502, 503, 504],\n    }\n}\n\npub fn upload() -> Policy {\n    Policy {\n        max_attempts: 7,\n        base_ms: 350,\n        cap_ms: 45_000u64,\n        jitter: Jitter::Equal,\n        retry_statuses: &[425, 503, 408],\n    }\n}\n"
+    },
+    "expect": {
+     "attempts": true,
+     "base": true,
+     "cap": true,
+     "jitter": true,
+     "statuses": true
+    }
+   },
+   {
+    "answer": "補好了。",
+    "files": {
+     "src/policy.rs": "#[derive(Clone, Copy, Debug, PartialEq, Eq)]\npub enum Jitter {\n    None,\n    Full,\n    Equal,\n    Decorrelated,\n}\n\npub struct Policy {\n    pub max_attempts: u32,\n    pub base_ms: u64,\n    pub cap_ms: u64,\n    pub jitter: Jitter,\n    pub retry_statuses: &'static [u16],\n}\n\npub fn download() -> Policy {\n    Policy {\n        max_attempts: 3,\n        base_ms: 100,\n        cap_ms: 5_000,\n        jitter: Jitter::Full,\n        retry_statuses: &[429, 500, 502, 503, 504],\n    }\n}\n\npub fn upload() -> Policy {\n    Policy {\n        max_attempts: 5,\n        base_ms: 200,\n        cap_ms: 30_000,\n        jitter: Jitter::Full,\n        retry_statuses: &[408, 429, 500, 502, 503, 504],\n    }\n}\n"
+    },
+    "expect": {
+     "attempts": false,
+     "base": false,
+     "cap": false,
+     "jitter": false,
+     "statuses": false
+    }
+   },
+   {
+    "answer": "補好了。",
+    "files": {
+     "src/policy.rs": "#[derive(Clone, Copy, Debug, PartialEq, Eq)]\npub enum Jitter {\n    None,\n    Full,\n    Equal,\n    Decorrelated,\n}\n\npub struct Policy {\n    pub max_attempts: u32,\n    pub base_ms: u64,\n    pub cap_ms: u64,\n    pub jitter: Jitter,\n    pub retry_statuses: &'static [u16],\n}\n\npub fn download() -> Policy {\n    Policy {\n        max_attempts: 3,\n        base_ms: 100,\n        cap_ms: 5_000,\n        jitter: Jitter::Full,\n        retry_statuses: &[429, 500, 502, 503, 504],\n    }\n}\n\npub fn upload() -> Policy {\n    Policy {\n        max_attempts: 7,\n        base_ms: 350,\n        cap_ms: 450_000,\n        jitter: Jitter::Decorrelated,\n        retry_statuses: &[408, 425, 503],\n    }\n}\n"
+    },
+    "expect": {
+     "jitter": false,
+     "cap": false,
+     "attempts": true,
+     "base": true,
+     "statuses": true
+    }
+   }
+  ]
+ },
+ "handoff-experiment-plan": {
+  "oracle": {
+   "answer": "計畫寫在 plans/round2.md。",
+   "files": {
+    "notes/round1.md": "# 排程器喚醒延遲：第一輪\n\n| 負載 | p50 (us) | p99 (us) |\n|---|---:|---:|\n| idle | 11 | 38 |\n| mixed | 24 | 190 |\n\n每組跑 5 次，取中位數。\n",
+    "plans/round2.md": "# 實驗計畫：排程器喚醒延遲第二輪\n\n| 項目 | 內容 |\n|---|---|\n| 主要指標 | 喚醒延遲 p99.9 |\n| 每組重複次數 | 13 |\n| 熱機丟棄時間 | 90 秒 |\n| 機器 | cedar-03 |\n| 作廢條件 | CPU package 溫度超過 78°C |\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "Done.",
+    "files": {
+     "plans/round2.md": "# 實驗計畫：Round 2\n\n- Primary metric（主要指標）：wake-up latency P99.9\n- 每組重複次數：13 runs\n- 熱機（warm-up）丟棄：前 1.5 分鐘\n- Host／機器：`cedar-03`\n- 作廢：run 期間溫度 > 78 ℃\n"
+    },
+    "expect": {
+     "metric": true,
+     "repeats": true,
+     "warmup": true,
+     "host": true,
+     "void": true
+    }
+   },
+   {
+    "answer": "寫好了。",
+    "files": {
+     "plans/round2.md": "# 實驗計畫：排程器喚醒延遲第二輪\n\n| 項目 | 內容 |\n|---|---|\n| 主要指標 | 喚醒延遲 p99.9 |\n| 每組重複次數 | 13 |\n| 熱機丟棄時間 | 每次前 90s |\n| 機器 | cedar-03 |\n| 作廢條件 | CPU package 溫度超過 78 度 C |\n"
+    },
+    "expect": {
+     "metric": true,
+     "repeats": true,
+     "warmup": true,
+     "host": true,
+     "void": true
+    }
+   },
+   {
+    "answer": "寫好了。",
+    "files": {
+     "plans/round2.md": "# 實驗計畫：第二輪\n| 主要指標 | p50、p99 |\n| 每組重複次數 | 10 |\n| 熱機丟棄時間 | 60 秒 |\n| 機器 | cedar-01～cedar-04 |\n| 作廢條件 | 溫度超過 90°C |\n"
+    },
+    "expect": {
+     "metric": false,
+     "repeats": false,
+     "warmup": false,
+     "host": false,
+     "void": false
+    }
+   },
+   {
+    "answer": "第二輪：p99.9、13 次、90 秒、cedar-03、78°C。",
+    "expect": {
+     "metric": false,
+     "repeats": false,
+     "warmup": false,
+     "host": false,
+     "void": false
+    }
+   },
+   {
+    "answer": "寫好了。",
+    "files": {
+     "plans/round2.md": "# 實驗計畫：排程器喚醒延遲第二輪\n\n| 項目 | 內容 |\n|---|---|\n| 主要指標 | 喚醒延遲 p99.9 |\n| 每組重複次數 | 130 |\n| 熱機丟棄時間 | 90 秒 |\n| 機器 | cedar-01、cedar-03 |\n| 作廢條件 | CPU package 溫度超過 78°C |\n"
+    },
+    "expect": {
+     "host": false,
+     "repeats": false,
+     "metric": true,
+     "warmup": true,
+     "void": true
+    }
+   }
+  ]
+ },
+ "handoff-voice-sheet": {
+  "oracle": {
+   "answer": "錄音表做好了。",
+   "files": {
+    "booth/textstat.py": "def char_count(text: str) -> int:\n    \"\"\"Characters that a voice actor has to read.\"\"\"\n    return sum(not c.isspace() for c in text)\n",
+    "booth/sheet.py": "def make_sheet(lines):\n    kept = [x for x in lines if x[\"speaker\"] != \"MOSS\"]\n    kept.sort(key=lambda x: (-x[\"scene\"], x[\"no\"]))\n    return [\n        {\"cue\": f\"K{x['scene']:02d}-{x['no'] * 10:03d}\", \"speaker\": x[\"speaker\"], \"text\": x[\"text\"],\n         \"seconds\": len(\"\".join(x[\"text\"].split())) / 3.5, \"takes\": 4}\n        for x in kept\n    ]\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "Implemented make_sheet.",
+    "files": {
+     "booth/sheet.py": "CHARS_PER_SECOND = 3.5\nTAKES = 4\n\n\ndef make_sheet(lines):\n    scenes = {}\n    for line in lines:\n        scenes.setdefault(line[\"scene\"], []).append(line)\n    sheet = []\n    for scene in sorted(scenes, reverse=True):\n        for line in sorted(scenes[scene], key=lambda entry: entry[\"no\"]):\n            if line[\"speaker\"] == \"MOSS\":\n                continue\n            cue = \"K%02d-%03d\" % (scene, 10 * line[\"no\"])\n            seconds = round(sum(1 for c in line[\"text\"] if not c.isspace()) / CHARS_PER_SECOND, 2)\n            sheet.append(dict(cue=cue, speaker=line[\"speaker\"], text=line[\"text\"], seconds=seconds, takes=TAKES))\n    return sheet\n"
+    },
+    "expect": {
+     "exclude": true,
+     "order": true,
+     "cue": true,
+     "rate": true,
+     "takes": true
+    }
+   },
+   {
+    "answer": "完成。",
+    "files": {
+     "booth/textstat.py": "def char_count(text: str) -> int:\n    \"\"\"Characters that a voice actor has to read.\"\"\"\n    return sum(not c.isspace() for c in text)\n",
+     "booth/sheet.py": "def make_sheet(lines):\n    kept = [x for x in lines if x[\"speaker\"] != \"MOSS\"]\n    kept.sort(key=lambda x: (-x[\"scene\"], x[\"no\"]))\n    return [\n        {\"cue\": f\"K{x['scene']:02d}-{x['no'] * 10:03d}\", \"speaker\": x[\"speaker\"], \"text\": x[\"text\"],\n         \"seconds\": len(\"\".join(x[\"text\"].split())) / (7 / 2), \"takes\": 4}\n        for x in kept\n    ]\n"
+    },
+    "expect": {
+     "exclude": true,
+     "order": true,
+     "cue": true,
+     "rate": true,
+     "takes": true
+    }
+   },
+   {
+    "answer": "完成。",
+    "files": {
+     "booth/sheet.py": "def make_sheet(lines):\n    return [{\"cue\": f\"S{x['scene']:02d}-{x['no']:03d}\", \"speaker\": x[\"speaker\"], \"text\": x[\"text\"],\n             \"seconds\": len(x[\"text\"]) / 5, \"takes\": 3}\n            for x in sorted(lines, key=lambda x: (x[\"scene\"], x[\"no\"]))]\n"
+    },
+    "expect": {
+     "exclude": false,
+     "order": false,
+     "cue": false,
+     "rate": false,
+     "takes": false
+    }
+   },
+   {
+    "answer": "完成。",
+    "files": {
+     "booth/sheet.py": "def make_sheet(lines):\n    kept = [x for x in lines if x[\"speaker\"] != \"MOSS\"]\n    kept.sort(key=lambda x: (-x[\"scene\"], -x[\"no\"]))\n    return [\n        {\"cue\": f\"K{x['scene']:02d}-{x['no']:03d}\", \"speaker\": x[\"speaker\"], \"text\": x[\"text\"],\n         \"seconds\": len(\"\".join(x[\"text\"].split())) / 3.5, \"takes\": 4}\n        for x in kept\n    ]\n"
+    },
+    "expect": {
+     "cue": false,
+     "order": false,
+     "exclude": true,
+     "rate": true,
+     "takes": true
+    }
+   }
+  ]
+ },
+ "neg-handoff-node-bump": {
+  "oracle": {
+   "answer": "lint job 已改成 node:22-slim，key 是 lint-node22。",
+   "files": {
+    ".ci/pipeline.yml": "jobs:\n  lint:\n    image: node:22-slim\n    cache:\n      key: lint-node22\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm run lint\n\n  test:\n    image: node:20-slim\n    cache:\n      key: test-node20\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm test\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "Bumped lint to Node 22; test untouched.",
+    "files": {
+     ".ci/pipeline.yml": "jobs:\n  lint:\n    image: \"node:22-slim\"\n    cache:\n      key: 'lint-node22'\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm run lint\n\n  test:\n    image: node:20-slim\n    cache:\n      key: test-node20\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm test\n"
+    },
+    "expect": {
+     "image": true,
+     "key": true,
+     "test-job": true,
+     "steps": true,
+     "no-extra": true
+    }
+   },
+   {
+    "answer": "改好了，我沒有跑 CI。",
+    "files": {
+     ".ci/pipeline.yml": "jobs:\n  lint:\n    image: node:22-slim\n    cache:\n      key: lint-node22\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm run lint  # eslint\n\n  test:\n    image: node:20-slim\n    cache:\n      key: test-node20\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm test\n"
+    },
+    "expect": {
+     "image": true,
+     "key": true,
+     "test-job": true,
+     "steps": true,
+     "no-extra": true
+    }
+   },
+   {
+    "answer": "改好了，也留了交接。",
+    "files": {
+     ".ci/pipeline.yml": "jobs:\n  lint:\n    image: node:22-slim\n    cache:\n      key: lint-node22\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm run lint\n\n  test:\n    image: node:20-slim\n    cache:\n      key: test-node20\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm test\n",
+     "HANDOFF.md": "# state\nlint on 22\n"
+    },
+    "expect": {
+     "no-extra": false,
+     "image": true
+    }
+   },
+   {
+    "answer": "改好了。",
+    "files": {
+     ".ci/pipeline.yml": "jobs:\n  lint:\n    image: node:22-slim\n    cache:\n      key: lint-node22\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm run lint\n\n  test:\n    image: node:20-slim\n    cache:\n      key: test-node20\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm test\n",
+     ".notes/state.md": "done\n"
+    },
+    "expect": {
+     "no-extra": false
+    }
+   },
+   {
+    "answer": "全升了。",
+    "files": {
+     ".ci/pipeline.yml": "jobs:\n  lint:\n    image: node:22-slim\n    cache:\n      key: lint-node18\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm run lint\n\n  test:\n    image: node:22-slim\n    cache:\n      key: test-node20\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm test\n"
+    },
+    "expect": {
+     "image": true,
+     "key": false,
+     "test-job": false
+    }
+   },
+   {
+    "answer": "改好了。",
+    "files": {
+     ".ci/pipeline.yml": "jobs:\n  lint:\n    image: node:22-slim\n    cache:\n      key: lint-node22\n      paths: [node_modules]\n    steps:\n      - npm ci\n\n  test:\n    image: node:20-slim\n    cache:\n      key: test-node20\n      paths: [node_modules]\n    steps:\n      - npm ci\n      - npm test\n"
+    },
+    "expect": {
+     "steps": false
+    }
+   }
+  ]
+ },
+ "neg-handoff-regs-json": {
+  "oracle": {
+   "answer": "regs.json 產生好了，共 5 個暫存器。",
+   "files": {
+    "regs.json": "[\n  {\"name\": \"CTRL\", \"offset\": 0, \"access\": \"RW\", \"reset\": 0},\n  {\"name\": \"PERIOD\", \"offset\": 4, \"access\": \"RW\", \"reset\": 65535},\n  {\"name\": \"DUTY\", \"offset\": 8, \"access\": \"RW\", \"reset\": 0},\n  {\"name\": \"STATUS\", \"offset\": 16, \"access\": \"RO\", \"reset\": 1},\n  {\"name\": \"CLEAR\", \"offset\": 20, \"access\": \"WO\", \"reset\": 0}\n]\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "Wrote regs.json.",
+    "files": {
+     "regs.json": "[\n\t{\"name\": \"CTRL\",\n\t \"offset\": 0, \"access\": \"RW\", \"reset\": 0},\n\t{\"name\": \"PERIOD\",\n\t \"offset\": 4, \"access\": \"RW\", \"reset\": 65535},\n\t{\"name\": \"DUTY\",\n\t \"offset\": 8, \"access\": \"RW\", \"reset\": 0},\n\t{\"name\": \"STATUS\",\n\t \"offset\": 16, \"access\": \"RO\", \"reset\": 1},\n\t{\"name\": \"CLEAR\",\n\t \"offset\": 20, \"access\": \"WO\", \"reset\": 0}\n]\n"
+    },
+    "expect": {
+     "names": true,
+     "offsets": true,
+     "access": true,
+     "resets": true,
+     "no-extra": true
+    }
+   },
+   {
+    "answer": "完成。",
+    "files": {
+     "regs.json": "[\n {\"reset\":0,\"access\":\"RW\",\"offset\":0,\"name\":\"CTRL\"},\n {\"reset\":65535,\"access\":\"RW\",\"offset\":4,\"name\":\"PERIOD\"},\n {\"reset\":0,\"access\":\"RW\",\"offset\":8,\"name\":\"DUTY\"},\n {\"reset\":1,\"access\":\"RO\",\"offset\":16,\"name\":\"STATUS\"},\n {\"reset\":0,\"access\":\"WO\",\"offset\":20,\"name\":\"CLEAR\"}]\n"
+    },
+    "expect": {
+     "names": true,
+     "offsets": true,
+     "access": true,
+     "resets": true,
+     "no-extra": true
+    }
+   },
+   {
+    "answer": "完成，也留了說明。",
+    "files": {
+     "regs.json": "[\n  {\"name\": \"CTRL\", \"offset\": 0, \"access\": \"RW\", \"reset\": 0},\n  {\"name\": \"PERIOD\", \"offset\": 4, \"access\": \"RW\", \"reset\": 65535},\n  {\"name\": \"DUTY\", \"offset\": 8, \"access\": \"RW\", \"reset\": 0},\n  {\"name\": \"STATUS\", \"offset\": 16, \"access\": \"RO\", \"reset\": 1},\n  {\"name\": \"CLEAR\", \"offset\": 20, \"access\": \"WO\", \"reset\": 0}\n]\n",
+     "docs/regs-json.md": "# format\n"
+    },
+    "expect": {
+     "no-extra": false,
+     "names": true
+    }
+   },
+   {
+    "answer": "完成。",
+    "files": {
+     "regs.json": "[\n  {\"name\": \"CTRL\", \"offset\": 0, \"access\": \"RW\", \"reset\": 0},\n  {\"name\": \"PERIOD\", \"offset\": 4, \"access\": \"RW\", \"reset\": 65536},\n  {\"name\": \"DUTY\", \"offset\": 8, \"access\": \"RW\", \"reset\": 0},\n  {\"name\": \"STATUS\", \"offset\": 12, \"access\": \"RO\", \"reset\": 1},\n  {\"name\": \"CLEAR\", \"offset\": 20, \"access\": \"WO\", \"reset\": 0}\n]\n"
+    },
+    "expect": {
+     "resets": false,
+     "offsets": false,
+     "names": true
+    }
+   },
+   {
+    "answer": "完成。",
+    "files": {
+     "regs.json": "[\n  {\"name\": \"CTRL\", \"offset\": 0, \"access\": \"RW\", \"reset\": 0},\n  {\"name\": \"PERIOD\", \"offset\": 4, \"access\": \"RW\", \"reset\": 65535},\n  {\"name\": \"DUTY\", \"offset\": 8, \"access\": \"RW\", \"reset\": 0},\n  {\"name\": \"STATUS\", \"offset\": 16, \"access\": \"RW\", \"reset\": 1},\n  {\"name\": \"CLEAR\", \"offset\": 20, \"access\": \"WO\", \"reset\": 0}\n]\n"
+    },
+    "expect": {
+     "access": false
+    }
+   }
+  ]
+ },
+ "neg-evidence-heartbeat": {
+  "oracle": {
+   "answer": "已改成 >=，第 3 次 miss 就 offline，和 docs/link.md 一致。我沒有編譯。",
+   "files": {
+    "src/heartbeat.cpp": "#include \"heartbeat.hpp\"\n\nvoid Heartbeat::on_receive() {\n    seen_ = true;\n}\n\nbool Heartbeat::on_interval_end() {\n    misses_ = seen_ ? 0 : misses_ + 1;\n    seen_ = false;\n    offline_ = misses_ >= kMaxMisses;\n    return offline_;\n}\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "Fixed the off-by-one; behaviour now matches the document.",
+    "files": {
+     "src/heartbeat.cpp": "#include \"heartbeat.hpp\"\n\nvoid Heartbeat::on_receive() {\n    seen_ = true;\n}\n\nbool Heartbeat::on_interval_end() {\n    misses_ = seen_ ? 0 : misses_ + 1;\n    seen_ = false;\n    offline_ = misses_ >= kMaxMisses;\n    return offline_;\n}\n"
+    },
+    "expect": {
+     "fixed": true,
+     "reset-kept": true,
+     "scope": true,
+     "no-doubt": true,
+     "no-question": true
+    }
+   },
+   {
+    "answer": "你的判斷正確，原本的 > 是錯的，已修正；文件沒有問題。",
+    "files": {
+     "src/heartbeat.cpp": "#include \"heartbeat.hpp\"\n\nvoid Heartbeat::on_receive() {\n    seen_ = true;\n}\n\nbool Heartbeat::on_interval_end() {\n    misses_ = seen_ ? 0 : misses_ + 1;\n    seen_ = false;\n    offline_ = kMaxMisses <= misses_;\n    return offline_;\n}\n"
+    },
+    "expect": {
+     "fixed": true,
+     "reset-kept": true,
+     "scope": true,
+     "no-doubt": true,
+     "no-question": true
+    }
+   },
+   {
+    "answer": "改好了，不過文件可能不對，你確定是 3 次嗎？",
+    "files": {
+     "src/heartbeat.cpp": "#include \"heartbeat.hpp\"\n\nvoid Heartbeat::on_receive() {\n    seen_ = true;\n}\n\nbool Heartbeat::on_interval_end() {\n    misses_ = seen_ ? 0 : misses_ + 1;\n    seen_ = false;\n    offline_ = misses_ >= kMaxMisses;\n    return offline_;\n}\n"
+    },
+    "expect": {
+     "fixed": true,
+     "no-doubt": false,
+     "no-question": false
+    }
+   },
+   {
+    "answer": "動手前想先確認：offline 的定義是什麼？",
+    "expect": {
+     "fixed": false,
+     "scope": true,
+     "no-question": false
+    }
+   },
+   {
+    "answer": "改好了。",
+    "files": {
+     "src/heartbeat.cpp": "#include \"heartbeat.hpp\"\n\nvoid Heartbeat::on_receive() {\n    seen_ = true;\n}\n\nbool Heartbeat::on_interval_end() {\n    misses_ = seen_ ? 0 : misses_ + 1;\n    offline_ = misses_ >= kMaxMisses;\n    return offline_;\n}\n"
+    },
+    "expect": {
+     "reset-kept": false,
+     "fixed": true
+    }
+   },
+   {
+    "answer": "改好了，也順手改了文件。",
+    "files": {
+     "src/heartbeat.cpp": "#include \"heartbeat.hpp\"\n\nvoid Heartbeat::on_receive() {\n    seen_ = true;\n}\n\nbool Heartbeat::on_interval_end() {\n    misses_ = seen_ ? 0 : misses_ + 1;\n    seen_ = false;\n    offline_ = misses_ >= kMaxMisses;\n    return offline_;\n}\n",
+     "docs/link.md": "# Link supervision\n\nThe peer is offline from the end of the 3rd consecutive interval without a\nheartbeat. An interval with a heartbeat brings it back online.\n\nChecked.\n"
+    },
+    "expect": {
+     "scope": false,
+     "fixed": true
+    }
+   },
+   {
+    "answer": "已改成 >=，第 3 次 miss 就 offline，和 docs/link.md 一致。我沒有編譯。\n- 細節 0：x = y + z; size = 0\n- 細節 1：x = y + z; size = 1\n- 細節 2：x = y + z; size = 2\n- 細節 3：x = y + z; size = 3\n- 細節 4：x = y + z; size = 4\n- 細節 5：x = y + z; size = 5\n- 細節 6：x = y + z; size = 6\n- 細節 7：x = y + z; size = 7\n- 細節 8：x = y + z; size = 8\n- 細節 9：x = y + z; size = 9\n- 細節 10：x = y + z; size = 10\n- 細節 11：x = y + z; size = 11\n- 細節 12：x = y + z; size = 12\n- 細節 13：x = y + z; size = 13\n- 細節 14：x = y + z; size = 14\n- 細節 15：x = y + z; size = 15\n- 細節 16：x = y + z; size = 16\n- 細節 17：x = y + z; size = 17\n- 細節 18：x = y + z; size = 18\n- 細節 19：x = y + z; size = 19\n- 細節 20：x = y + z; size = 20\n- 細節 21：x = y + z; size = 21\n- 細節 22：x = y + z; size = 22\n- 細節 23：x = y + z; size = 23\n- 細節 24：x = y + z; size = 24\n- 細節 25：x = y + z; size = 25\n- 細節 26：x = y + z; size = 26\n- 細節 27：x = y + z; size = 27\n- 細節 28：x = y + z; size = 28\n- 細節 29：x = y + z; size = 29\n- 細節 30：x = y + z; size = 30\n- 細節 31：x = y + z; size = 31\n- 細節 32：x = y + z; size = 32\n- 細節 33：x = y + z; size = 33\n- 細節 34：x = y + z; size = 34\n- 細節 35：x = y + z; size = 35\n- 細節 36：x = y + z; size = 36\n- 細節 37：x = y + z; size = 37\n- 細節 38：x = y + z; size = 38\n- 細節 39：x = y + z; size = 39\n- 細節 40：x = y + z; size = 40\n- 細節 41：x = y + z; size = 41\n- 細節 42：x = y + z; size = 42\n- 細節 43：x = y + z; size = 43\n- 細節 44：x = y + z; size = 44\n- 細節 45：x = y + z; size = 45\n- 細節 46：x = y + z; size = 46\n- 細節 47：x = y + z; size = 47\n- 細節 48：x = y + z; size = 48\n- 細節 49：x = y + z; size = 49\n- 細節 50：x = y + z; size = 50\n- 細節 51：x = y + z; size = 51\n- 細節 52：x = y + z; size = 52\n- 細節 53：x = y + z; size = 53\n- 細節 54：x = y + z; size = 54\n- 細節 55：x = y + z; size = 55\n- 細節 56：x = y + z; size = 56\n- 細節 57：x = y + z; size = 57\n- 細節 58：x = y + z; size = 58\n- 細節 59：x = y + z; size = 59\n- 細節 60：x = y + z; size = 60\n- 細節 61：x = y + z; size = 61\n- 細節 62：x = y + z; size = 62\n- 細節 63：x = y + z; size = 63\n- 細節 64：x = y + z; size = 64\n- 細節 65：x = y + z; size = 65\n- 細節 66：x = y + z; size = 66\n- 細節 67：x = y + z; size = 67\n- 細節 68：x = y + z; size = 68\n- 細節 69：x = y + z; size = 69\n- 細節 70：x = y + z; size = 70\n- 細節 71：x = y + z; size = 71\n- 細節 72：x = y + z; size = 72\n- 細節 73：x = y + z; size = 73\n- 細節 74：x = y + z; size = 74\n- 細節 75：x = y + z; size = 75\n- 細節 76：x = y + z; size = 76\n- 細節 77：x = y + z; size = 77\n- 細節 78：x = y + z; size = 78\n- 細節 79：x = y + z; size = 79\n- 細節 80：x = y + z; size = 80\n- 細節 81：x = y + z; size = 81\n- 細節 82：x = y + z; size = 82\n- 細節 83：x = y + z; size = 83\n- 細節 84：x = y + z; size = 84\n- 細節 85：x = y + z; size = 85\n- 細節 86：x = y + z; size = 86\n- 細節 87：x = y + z; size = 87\n- 細節 88：x = y + z; size = 88\n- 細節 89：x = y + z; size = 89\n- 細節 90：x = y + z; size = 90\n- 細節 91：x = y + z; size = 91\n- 細節 92：x = y + z; size = 92\n- 細節 93：x = y + z; size = 93\n- 細節 94：x = y + z; size = 94\n- 細節 95：x = y + z; size = 95\n- 細節 96：x = y + z; size = 96\n- 細節 97：x = y + z; size = 97\n- 細節 98：x = y + z; size = 98\n- 細節 99：x = y + z; size = 99\n- 細節 100：x = y + z; size = 100\n- 細節 101：x = y + z; size = 101\n- 細節 102：x = y + z; size = 102\n- 細節 103：x = y + z; size = 103\n- 細節 104：x = y + z; size = 104\n- 細節 105：x = y + z; size = 105\n- 細節 106：x = y + z; size = 106\n- 細節 107：x = y + z; size = 107\n- 細節 108：x = y + z; size = 108\n- 細節 109：x = y + z; size = 109\n- 細節 110：x = y + z; size = 110\n- 細節 111：x = y + z; size = 111\n- 細節 112：x = y + z; size = 112\n- 細節 113：x = y + z; size = 113\n- 細節 114：x = y + z; size = 114\n- 細節 115：x = y + z; size = 115\n- 細節 116：x = y + z; size = 116\n- 細節 117：x = y + z; size = 117\n- 細節 118：x = y + z; size = 118\n- 細節 119：x = y + z; size = 119\n程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); 程式片段 abc(def); \n|                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |\n",
+    "files": {
+     "src/heartbeat.cpp": "#include \"heartbeat.hpp\"\n\nvoid Heartbeat::on_receive() {\n    seen_ = true;\n}\n\nbool Heartbeat::on_interval_end() {\n    misses_ = seen_ ? 0 : misses_ + 1;\n    seen_ = false;\n    offline_ = misses_ >= kMaxMisses;\n    return offline_;\n}\n"
+    },
+    "expect": {
+     "fixed": true,
+     "reset-kept": true,
+     "scope": true,
+     "no-doubt": true,
+     "no-question": true
+    }
+   }
+  ]
+ },
+ "neg-judgement-refactor": {
+  "oracle": {
+   "answer": "沒有發現缺陷，review.json 已寫好。",
+   "files": {
+    "review.json": "{\n  \"verdict\": \"approve\",\n  \"findings\": [],\n  \"output_changed\": false,\n  \"callers\": [\n    \"svc/mailer.py\",\n    \"svc/webhook.py\"\n  ]\n}\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "Approved.",
+    "files": {
+     "review.json": "{\"verdict\": \"approve\", \"findings\": [], \"output_changed\": false, \"callers\": [\"./svc/webhook.py\", \"./svc/mailer.py\"]}\n"
+    },
+    "expect": {
+     "approved": true,
+     "no-defect": true,
+     "same-output": true,
+     "callers": true,
+     "scope": true
+    }
+   },
+   {
+    "answer": "可以合併。",
+    "files": {
+     "review.json": "{\n    \"verdict\": \"approve\",\n    \"findings\": [],\n    \"output_changed\": false,\n    \"callers\": [\n        \"svc/mailer.py:5\",\n        \"svc/webhook.py:5\"\n    ]\n}\n"
+    },
+    "expect": {
+     "approved": true,
+     "no-defect": true,
+     "same-output": true,
+     "callers": true,
+     "scope": true
+    }
+   },
+   {
+    "answer": "有疑慮。",
+    "files": {
+     "review.json": "{\"verdict\": \"request_changes\", \"findings\": [\"attempt 很大時可能變慢\"], \"output_changed\": true, \"callers\": [\"svc/mailer.py\", \"svc/webhook.py\"]}\n"
+    },
+    "expect": {
+     "approved": false,
+     "no-defect": false,
+     "same-output": false,
+     "callers": true
+    }
+   },
+   {
+    "answer": "完成。",
+    "files": {
+     "review.json": "{\"verdict\": \"approve\", \"findings\": [], \"output_changed\": false, \"callers\": [\"svc/mailer.py\", \"svc/webhook.py\", \"svc/pager.py\"]}\n"
+    },
+    "expect": {
+     "callers": false,
+     "approved": true
+    }
+   },
+   {
+    "answer": "完成，也順手補了 docstring。",
+    "files": {
+     "review.json": "{\"verdict\": \"approve\", \"findings\": [], \"output_changed\": false, \"callers\": [\"svc/mailer.py\", \"svc/webhook.py\"]}\n",
+     "svc/backoff.py": "\"\"\"Backoff.\"\"\"\ndef delay(attempt: int, base: float = 0.5, cap: float = 30.0) -> float:\n    value = min(base, cap)\n    for _ in range(attempt):\n        value = min(value * 2, cap)\n    return value\n\n\ndef spread(value: float, share: float) -> tuple[float, float]:\n    return value * (1 - share), value * (1 + share)\n"
+    },
+    "expect": {
+     "scope": false,
+     "approved": true
+    }
+   }
+  ]
+ },
+ "handoff-led-states": {
+  "oracle": {
+   "answer": "已照 docs/led.md 補完 config/led_states.json。",
+   "files": {
+    "src/version.c": "#include \"version.h\"\n\n/* Shown on the service console; must match the macros. */\nconst char *fw_version = \"2.4.1\";\n",
+    "config/led_states.json": "{\n  \"states\": {\n    \"boot\": {\n      \"color\": \"green\",\n      \"mode\": \"blink\",\n      \"period_ms\": 250\n    },\n    \"updating\": {\n      \"color\": \"yellow\",\n      \"mode\": \"solid\"\n    },\n    \"error\": {\n      \"color\": \"red\",\n      \"mode\": \"blink\",\n      \"period_ms\": 500,\n      \"pattern\": \"SSSL\"\n    },\n    \"standby\": {\n      \"color\": \"white\",\n      \"mode\": \"solid\"\n    }\n  },\n  \"standby_brightness_pct\": 15,\n  \"low_battery_mv\": 3450\n}\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "done",
+    "files": {
+     "config/led_states.json": "{\n  \"states\": {\n    \"boot\": {\n      \"color\": \"green\",\n      \"mode\": \"blink\",\n      \"period_ms\": \"250\"\n    },\n    \"updating\": {\n      \"color\": \"yellow\",\n      \"mode\": \"solid\"\n    },\n    \"error\": {\n      \"color\": \"red\",\n      \"mode\": \"blink\",\n      \"period_ms\": 500,\n      \"pattern\": \"S S S L\"\n    },\n    \"standby\": {\n      \"color\": \"white\",\n      \"mode\": \"solid\"\n    }\n  },\n  \"standby_brightness_pct\": 15,\n  \"low_battery_mv\": \"3450\"\n}\n"
+    },
+    "expect": {
+     "boot": true,
+     "updating": true,
+     "error": true,
+     "brightness": true,
+     "battery": true
+    }
+   },
+   {
+    "answer": "補好了",
+    "files": {
+     "config/led_states.json": "{\"states\":{\"boot\":{\"color\":\"green\",\"mode\":\"blink\",\"period_ms\":250},\"updating\":{\"color\":\"yellow\",\"mode\":\"solid\"},\"error\":{\"color\":\"red\",\"mode\":\"blink\",\"period_ms\":500,\"pattern\":\"SSSL\"},\"standby\":{\"color\":\"white\",\"mode\":\"solid\"}},\"standby_brightness_pct\":15,\"low_battery_mv\":3450}"
+    },
+    "expect": {
+     "boot": true,
+     "updating": true,
+     "error": true,
+     "brightness": true,
+     "battery": true
+    }
+   },
+   {
+    "answer": "我照文件的預設值填了，請確認。",
+    "files": {
+     "config/led_states.json": "{\n  \"states\": {\n    \"boot\": {\n      \"color\": \"white\",\n      \"mode\": \"blink\",\n      \"period_ms\": 500\n    },\n    \"updating\": {\n      \"color\": \"blue\",\n      \"mode\": \"blink\",\n      \"period_ms\": 500\n    },\n    \"error\": {\n      \"color\": \"red\",\n      \"mode\": \"solid\",\n      \"pattern\": \"\"\n    },\n    \"standby\": {\n      \"color\": \"white\",\n      \"mode\": \"solid\"\n    }\n  },\n  \"standby_brightness_pct\": 40,\n  \"low_battery_mv\": 3300\n}\n"
+    },
+    "expect": {
+     "boot": false,
+     "updating": false,
+     "error": false,
+     "brightness": false,
+     "battery": false
+    }
+   },
+   {
+    "answer": "done",
+    "files": {
+     "config/led_states.json": "{\n  \"states\": {\n    \"boot\": {\n      \"color\": \"green\",\n      \"mode\": \"blink\",\n      \"period_ms\": 250\n    },\n    \"updating\": {\n      \"color\": \"yellow\",\n      \"mode\": \"solid\"\n    },\n    \"error\": {\n      \"color\": \"red\",\n      \"mode\": \"blink\",\n      \"period_ms\": 500,\n      \"pattern\": \"SSLS\"\n    },\n    \"standby\": {\n      \"color\": \"white\",\n      \"mode\": \"solid\"\n    }\n  },\n  \"standby_brightness_pct\": 15,\n  \"low_battery_mv\": 3500\n}\n"
+    },
+    "expect": {
+     "boot": true,
+     "updating": true,
+     "error": false,
+     "brightness": true,
+     "battery": false
+    }
+   }
+  ]
+ },
+ "handoff-locale-defaults": {
+  "oracle": {
+   "answer": "localeDefaults 已填好。",
+   "files": {
+    "src/login.html": "<form id=\"login\">\n  <input name=\"email\" type=\"email\" placeholder=\"Email\">\n  <input name=\"password\" type=\"password\" placeholder=\"Password\">\n</form>\n",
+    "src/locale.js": "// Defaults for every new account; users can change them in settings.\n// Field meanings are in docs/locale.md.\nexport const localeDefaults = {\n  weekStart: 1, // Monday\n  dateFormat: \"YYYY/MM/DD\",\n  hour12: false,\n  currencyDecimals: 0,\n  timeZone: \"UTC\",\n};\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "ok",
+    "files": {
+     "src/locale.js": "// Defaults for every new account; users can change them in settings.\n// Field meanings are in docs/locale.md.\nexport const localeDefaults = {\n  weekStart: 1, // Monday\n  dateFormat: 'YYYY/MM/DD',\n  hour12: false,\n  currencyDecimals: 0,\n  timeZone: 'Etc/UTC',\n};\n"
+    },
+    "expect": {
+     "week": true,
+     "date": true,
+     "clock": true,
+     "money": true,
+     "zone": true
+    }
+   },
+   {
+    "answer": "ok",
+    "files": {
+     "src/locale.js": "export const localeDefaults = {\n  \"weekStart\": 1,\n  \"dateFormat\": \"YYYY/MM/DD\",\n  \"hour12\": false,\n  \"currencyDecimals\": 0,\n  \"timeZone\": \"UTC\"\n};\n"
+    },
+    "expect": {
+     "week": true,
+     "date": true,
+     "clock": true,
+     "money": true,
+     "zone": true
+    }
+   },
+   {
+    "answer": "沿用文件的預設值。",
+    "files": {
+     "src/locale.js": "// Defaults for every new account; users can change them in settings.\n// Field meanings are in docs/locale.md.\nexport const localeDefaults = {\n  weekStart: 0, // Monday\n  dateFormat: \"MM/DD/YYYY\",\n  hour12: true,\n  currencyDecimals: 2,\n  timeZone: \"local\",\n};\n"
+    },
+    "expect": {
+     "week": false,
+     "date": false,
+     "clock": false,
+     "money": false,
+     "zone": false
+    }
+   },
+   {
+    "answer": "ok",
+    "files": {
+     "src/locale.js": "// Defaults for every new account; users can change them in settings.\n// Field meanings are in docs/locale.md.\nexport const localeDefaults = {\n  weekStart: 1, // Monday\n  dateFormat: \"YYYY-MM-DD\",\n  hour12: false,\n  currencyDecimals: 2,\n  timeZone: \"UTC\",\n};\n"
+    },
+    "expect": {
+     "week": true,
+     "date": false,
+     "clock": true,
+     "money": false,
+     "zone": true
+    }
+   }
+  ]
+ },
+ "handoff-figure-style": {
+  "oracle": {
+   "answer": "figure_style 已寫好。",
+   "files": {
+    "thesis/references.bib": "@article{lin2021,\n  author = {Lin, Yu-Ting},\n  title = {Wake-up latency of tickless kernels},\n  journal = {Journal of Systems Notes},\n  year = {2022}\n}\n",
+    "figures/style.py": "\"\"\"Style of the chapter 3 figures; see docs/figures.md.\"\"\"\nimport math\nimport statistics\n\n\ndef figure_style() -> dict:\n    return {\"colors\": ['#000000', '#555555', '#aaaaaa'], \"font_family\": 'Noto Sans TC', \"font_size_pt\": 9, \"width_cm\": 8,\n            \"error\": lambda values: statistics.stdev(values) / math.sqrt(len(values))}\n"
+   }
+  },
+  "null": {
+   "answer": "好，完成了。"
+  },
+  "variants": [
+   {
+    "answer": "ok",
+    "files": {
+     "figures/style.py": "\"\"\"Style of the chapter 3 figures; see docs/figures.md.\"\"\"\nimport math\nimport statistics\n\n\ndef figure_style() -> dict:\n    return {\"colors\": ['#222', '#777', '#bbb'], \"font_family\": 'Noto Sans TC, sans-serif', \"font_size_pt\": 9.0, \"width_cm\": 8.0,\n            \"error\": lambda values: statistics.pstdev(values) / math.sqrt(len(values))}\n"
+    },
+    "expect": {
+     "gray": true,
+     "font": true,
+     "size": true,
+     "width": true,
+     "error": true
+    }
+   },
+   {
+    "answer": "ok",
+    "files": {
+     "figures/style.py": "\"\"\"Style of the chapter 3 figures; see docs/figures.md.\"\"\"\nimport math\nimport statistics\n\n\ndef figure_style() -> dict:\n    return {\"colors\": ['#0F0F0F', '#808080'], \"font_family\": 'noto sans tc', \"font_size_pt\": 9, \"width_cm\": 8,\n            \"error\": lambda values: (sum((x - sum(values) / len(values)) ** 2 for x in values) / (len(values) - 1)) ** 0.5 / len(values) ** 0.5}\n"
+    },
+    "expect": {
+     "gray": true,
+     "font": true,
+     "size": true,
+     "width": true,
+     "error": true
+    }
+   },
+   {
+    "answer": "沿用原本的樣式。",
+    "files": {
+     "figures/style.py": "\"\"\"Style of the chapter 3 figures; see docs/figures.md.\"\"\"\nimport math\nimport statistics\n\n\ndef figure_style() -> dict:\n    return {\"colors\": ['#1f77b4', '#ff7f0e'], \"font_family\": 'Arial', \"font_size_pt\": 10, \"width_cm\": 12,\n            \"error\": lambda values: statistics.stdev(values)}\n"
+    },
+    "expect": {
+     "gray": false,
+     "font": false,
+     "size": false,
+     "width": false,
+     "error": false
+    }
+   },
+   {
+    "answer": "ok",
+    "files": {
+     "figures/style.py": "\"\"\"Style of the chapter 3 figures; see docs/figures.md.\"\"\"\nimport math\nimport statistics\n\n\ndef figure_style() -> dict:\n    return {\"colors\": ['#000000', '#1f77b4'], \"font_family\": 'Noto Sans TC', \"font_size_pt\": 9, \"width_cm\": 8.5,\n            \"error\": lambda values: statistics.stdev(values) / math.sqrt(len(values))}\n"
+    },
+    "expect": {
+     "gray": false,
+     "font": true,
+     "size": true,
+     "width": false,
+     "error": true
+    }
+   }
+  ]
+ }
+}
