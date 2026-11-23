@@ -1,0 +1,52 @@
+{
+ "framework": "5977872",
+ "cli_version": "2.1.325",
+ "seed": 20261127,
+ "jobs": 3,
+ "timeout": 900,
+ "overshoot": 0.25,
+ "image": "sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b",
+ "stages": {
+  "r1": [
+   "claude-opus-5-5",
+   0.8,
+   5.0,
+   1,
+   [
+    "ask-prune-artifacts",
+    "ask-backtest-costs",
+    "ask-firmware-failsafe",
+    "ask-account-delete",
+    "ask-rust-sync",
+    "ask-render-jobs",
+    "evidence-uart-ring",
+    "evidence-ci-false-green",
+    "evidence-session-expiry",
+    "evidence-rust-panic",
+    "evidence-backtest-lookahead",
+    "evidence-probe-defer",
+    "judgement-tapbuf-review",
+    "judgement-frame-spec",
+    "judgement-config-trace",
+    "judgement-api-review",
+    "judgement-rust-semver",
+    "judgement-notes-claims"
+   ],
+   [
+    "framework"
+   ]
+  ]
+ },
+ "sha256": {
+  "studies/research-2026-11/bench-s22/tasks.json": "1e1edcb0906935931339c4b0c422a2a12ba90c113d668a0338020bcb61dcb7b8",
+  "studies/research-2026-11/bench-s22/cases.json": "7600ec01f27c9654bf692685d7dced79031d5037185b2fb3b50cc1c1058f5a53",
+  "studies/research-2026-11/bench-s22-handoff/stage3.py": "01a5fca353f52605de02451d9f017d90a2bce3f793a758089644d3b88ad6cd28",
+  "evals/host/impact.py": "2cdb76051bc19f602ebeee8554e232bebee2f9d3afaf0efa2078a27ff23cf104",
+  "evals/host/grading.py": "df29edf4111896ee78f411039b90d16371b13301ee0628ec1dac912060bbb231",
+  "evals/host/judge.py": "5577d7a85755c7429a3363f2f6de3ab10e22ab249aa63d19d6a68ceeea7258e1",
+  "evals/host/sandbox.py": "7a9cd3772de263a6e3f84f301e5e8de8c2216616324892117ed61f6b8f253bdf",
+  "evals/host/run_claude.py": "deb003a63b42597b94da55e31cdfbecee713718c8753cf2b5a71e72a5313aabd",
+  "evals/host/preflight.py": "92505085b4b51d5f47ba935f7bddc3cbef6bd669b2fae20096024ddea1d60454",
+  "evals/host/trigger.py": "9d9680bd044ae29adf9f3605cefbc7ce7e0c44c3f9a1e80b81814cfacb7a7a8c"
+ }
+}
