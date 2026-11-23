@@ -784,6 +784,16 @@ class ProjectTests(unittest.TestCase):
         for name in ("docs/practices.md", "docs/workflow.md"):
             self.assertIn("之後才要做的決定", read(name), name)
 
+    def test_ordinary_work_does_not_send_every_session_to_practices(self):
+        # S22: "改程式、用工具" sent 62 of 66 sessions there; their gist is in the rules instead.
+        rules = (manage.SOURCE / "templates/project-rules.md").read_text(encoding="utf-8")
+        trigger = next(line for line in rules.splitlines() if "先讀 `.agf/managed/guides/practices.md`" in line)
+        self.assertNotIn("改程式", trigger)
+        self.assertNotIn("用工具", trigger)
+        self.assertEqual(sum(line.startswith("- **改程式與證據。**") for line in rules.splitlines()), 1)
+        for kept in ("以執行結果與目前的原始碼為準", "先用已有的工具"):
+            self.assertIn(kept, rules)
+
     def test_both_writing_guides_state_the_rewriting_rule_in_the_same_words(self):
         # A rule buried mid-paragraph scored lower on fidelity (S19, S21): it stands alone in both guides.
         lines = {name: [line.removeprefix("- ") for line in (manage.SOURCE / name).read_text(encoding="utf-8").splitlines()
