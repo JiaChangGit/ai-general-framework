@@ -771,6 +771,16 @@ class ProjectTests(unittest.TestCase):
         for kept in ("agf profile show", "以執行結果與目前的原始碼為準"):
             self.assertIn(kept, read("docs/practices.md"))
 
+    def test_decisions_for_later_work_are_written_down_where_the_next_session_looks(self):
+        # S22: told in chat and answered with "noted", they were gone in 9 of 12 new sessions.
+        read = lambda name: (manage.SOURCE / name).read_text(encoding="utf-8")
+        rules = read("templates/project-rules.md")
+        self.assertEqual(sum(line.startswith("- **之後才做的決定。**") for line in rules.splitlines()), 1)
+        self.assertIn("`.ai/HANDOFF.md`", rules)
+        self.assertIn(".ai/HANDOFF.md", read("templates/claude-continuity-hook.py"), "the hook looks where the rule writes")
+        for name in ("docs/practices.md", "docs/workflow.md"):
+            self.assertIn("之後才要做的決定", read(name), name)
+
     def test_both_writing_guides_state_the_rewriting_rule_in_the_same_words(self):
         # A rule buried mid-paragraph scored lower on fidelity (S19, S21): it stands alone in both guides.
         lines = {name: [line.removeprefix("- ") for line in (manage.SOURCE / name).read_text(encoding="utf-8").splitlines()
