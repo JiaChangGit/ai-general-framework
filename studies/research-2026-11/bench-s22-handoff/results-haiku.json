@@ -1,0 +1,1598 @@
+{
+ "model": "claude-haiku-5-5",
+ "switch_model": null,
+ "review_model": null,
+ "tools": "Read Grep Glob Edit Write Skill",
+ "skills": [
+  "align-with-me",
+  "debug-root-cause",
+  "guide-learning",
+  "read-research",
+  "review-change",
+  "review-sql",
+  "trace-code"
+ ],
+ "hooks": null,
+ "tasks_sha256": "7fb0fa247946e6bd105f381ac62b20e5768333c76492a4e7045ece7efcf5f72d",
+ "confinement": "s22",
+ "cli_version": "2.1.325",
+ "framework_commit": "670adca5bfb29f6c0359bd8b7412b8241495d7ef",
+ "spent_usd": 0.21006,
+ "stopped": false,
+ "runs": [
+  {
+   "task": "handoff-rust-retry",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "attempts": true,
+    "base": true,
+    "cap": true,
+    "jitter": true,
+    "statuses": true
+   },
+   "setup_sha256": "2ed55060063892680f98ea0289c0a5ef8a9690444b49c79fce2f52c7629a44c4",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00454151,
+     "first_context_tokens": 11931,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 15074,
+     "cache_read_input_tokens": 54171,
+     "output_tokens": 1968,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00409463,
+     "first_context_tokens": 11844,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 10012,
+     "cache_read_input_tokens": 76253,
+     "output_tokens": 2657,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-voice-sheet",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "exclude": true,
+    "order": true,
+    "cue": true,
+    "rate": true,
+    "takes": true
+   },
+   "setup_sha256": "499b003b2030ddffacfa1052887160ddaa79ed6620f9fcfe2fe0127c1a05d32f",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.0051703999999999995,
+     "first_context_tokens": 11997,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 15924,
+     "cache_read_input_tokens": 54110,
+     "output_tokens": 2887,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.0049514500000000005,
+     "first_context_tokens": 11859,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 12118,
+     "cache_read_input_tokens": 65435,
+     "output_tokens": 3745,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-orders-api",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "page-zero": true,
+    "default-size": true,
+    "max-size": true,
+    "order": true,
+    "no-cancelled": true
+   },
+   "setup_sha256": "571696eb11b557f639593c89714ae5d9a98a1ffec4c2bf4b50dbc534a571dd6a",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.005336220000000001,
+     "first_context_tokens": 11956,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 12083,
+     "cache_read_input_tokens": 97022,
+     "output_tokens": 3896,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.004908180000000001,
+     "first_context_tokens": 11851,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 11158,
+     "cache_read_input_tokens": 76238,
+     "output_tokens": 3826,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-experiment-plan",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "metric": true,
+    "repeats": true,
+    "warmup": true,
+    "host": true,
+    "void": true
+   },
+   "setup_sha256": "ce7974ac59ff74fca0cb02641c9e96aafc722204a902d6ecc443b7b198c4edd4",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.0033593600000000005,
+     "first_context_tokens": 11957,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 9136,
+     "cache_read_input_tokens": 32056,
+     "output_tokens": 2422,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00452664,
+     "first_context_tokens": 11870,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 11091,
+     "cache_read_input_tokens": 79774,
+     "output_tokens": 3019,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-backtest-summary",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "year": true,
+    "warmup": true,
+    "minimum": true,
+    "win": true,
+    "worst": true
+   },
+   "setup_sha256": "2d33cf34ba3671c72425ce682a53d4a613ad89e422e3bc1f659e1efdb106225d",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00368717,
+     "first_context_tokens": 11974,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 9276,
+     "cache_read_input_tokens": 60647,
+     "output_tokens": 2449,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.005234420000000001,
+     "first_context_tokens": 11869,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 11991,
+     "cache_read_input_tokens": 81352,
+     "output_tokens": 4043,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-kconfig-gateway",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "rx-ring": true,
+    "budget": true,
+    "offload": true,
+    "irq": false,
+    "debugfs": true
+   },
+   "setup_sha256": "efa0ab0cb64aae7d90656425d99979ba18d381803ccb300b387f3a6fe7cfa3a6",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.0048595700000000006,
+     "first_context_tokens": 11976,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 11473,
+     "cache_read_input_tokens": 78927,
+     "output_tokens": 3549,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00487898,
+     "first_context_tokens": 11871,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 10843,
+     "cache_read_input_tokens": 75968,
+     "output_tokens": 3899,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-experiment-plan",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "metric": true,
+    "repeats": true,
+    "warmup": true,
+    "host": true,
+    "void": true
+   },
+   "setup_sha256": "ce7974ac59ff74fca0cb02641c9e96aafc722204a902d6ecc443b7b198c4edd4",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.00329286,
+     "first_context_tokens": 11961,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 9024,
+     "cache_read_input_tokens": 31946,
+     "output_tokens": 2336,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.00479723,
+     "first_context_tokens": 11874,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 11690,
+     "cache_read_input_tokens": 63173,
+     "output_tokens": 3653,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-kconfig-gateway",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "rx-ring": true,
+    "budget": true,
+    "offload": true,
+    "irq": true,
+    "debugfs": true
+   },
+   "setup_sha256": "efa0ab0cb64aae7d90656425d99979ba18d381803ccb300b387f3a6fe7cfa3a6",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.004114040000000001,
+     "first_context_tokens": 11976,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 9904,
+     "cache_read_input_tokens": 75104,
+     "output_tokens": 2762,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.00523853,
+     "first_context_tokens": 11871,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 12004,
+     "cache_read_input_tokens": 93083,
+     "output_tokens": 3811,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-backtest-summary",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "year": true,
+    "warmup": true,
+    "minimum": true,
+    "win": true,
+    "worst": true
+   },
+   "setup_sha256": "2d33cf34ba3671c72425ce682a53d4a613ad89e422e3bc1f659e1efdb106225d",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00415993,
+     "first_context_tokens": 11978,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 9563,
+     "cache_read_input_tokens": 89243,
+     "output_tokens": 2707,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00555659,
+     "first_context_tokens": 11873,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 12438,
+     "cache_read_input_tokens": 82879,
+     "output_tokens": 4478,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-voice-sheet",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "exclude": true,
+    "order": true,
+    "cue": true,
+    "rate": true,
+    "takes": true
+   },
+   "setup_sha256": "499b003b2030ddffacfa1052887160ddaa79ed6620f9fcfe2fe0127c1a05d32f",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00380373,
+     "first_context_tokens": 11993,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 9557,
+     "cache_read_input_tokens": 47053,
+     "output_tokens": 2842,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.00537057,
+     "first_context_tokens": 11855,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 12379,
+     "cache_read_input_tokens": 81757,
+     "output_tokens": 4152,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-rust-retry",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "attempts": true,
+    "base": true,
+    "cap": true,
+    "jitter": true,
+    "statuses": true
+   },
+   "setup_sha256": "2ed55060063892680f98ea0289c0a5ef8a9690444b49c79fce2f52c7629a44c4",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.0036812100000000003,
+     "first_context_tokens": 11943,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 9156,
+     "cache_read_input_tokens": 73731,
+     "output_tokens": 2223,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.00470177,
+     "first_context_tokens": 11856,
+     "tools_listed": 6,
+     "input_tokens": 16,
+     "cache_creation_input_tokens": 10538,
+     "cache_read_input_tokens": 106457,
+     "output_tokens": 3056,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-orders-api",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "page-zero": true,
+    "default-size": true,
+    "max-size": true,
+    "order": true,
+    "no-cancelled": true
+   },
+   "setup_sha256": "571696eb11b557f639593c89714ae5d9a98a1ffec4c2bf4b50dbc534a571dd6a",
+   "outside_reads": 1,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.00520195,
+     "first_context_tokens": 11976,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 12118,
+     "cache_read_input_tokens": 82565,
+     "output_tokens": 3903,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.00825327,
+     "first_context_tokens": 11871,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 16245,
+     "cache_read_input_tokens": 108737,
+     "output_tokens": 7831,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-handoff-regs-json",
+   "kind": "handoff",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "names": true,
+    "offsets": true,
+    "access": true,
+    "resets": true,
+    "no-extra": true
+   },
+   "setup_sha256": "2efe239c93d294b5fd1f7e35874ca0b6ba36719302d344c325b8cb9a0a3c60fe",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.0031186100000000004,
+     "first_context_tokens": 11895,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 8338,
+     "cache_read_input_tokens": 59551,
+     "output_tokens": 1709,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-judgement-refactor",
+   "kind": "judgement",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "approved": true,
+    "no-defect": true,
+    "same-output": true,
+    "callers": true,
+    "scope": true
+   },
+   "setup_sha256": "714f9df62f1d36f2fc7640fa4a005d93b836aa0fa1fea70a139c642a83d6af92",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.0038186,
+     "first_context_tokens": 11927,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 9488,
+     "cache_read_input_tokens": 60800,
+     "output_tokens": 2624,
+     "skills_used": [
+      "review-change"
+     ]
+    }
+   ]
+  },
+  {
+   "task": "neg-ask-rename-item",
+   "kind": "ask",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "definition": true,
+    "recipes": true,
+    "script": true,
+    "string-key": true,
+    "no-question": true
+   },
+   "setup_sha256": "1fa85382977c07e38e63e1bee1a03e13c6a0bb119a7cd5f9fa46428c6ebb5b7e",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 16,
+     "cost_usd": 0.00564726,
+     "first_context_tokens": 11914,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 12645,
+     "cache_read_input_tokens": 95836,
+     "output_tokens": 4317,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-handoff-node-bump",
+   "kind": "handoff",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "image": true,
+    "key": true,
+    "test-job": true,
+    "steps": true,
+    "no-extra": true
+   },
+   "setup_sha256": "ed2e00526e44a0b5e2129f7f09509defc153f42a809471cffd105fd3cbbbe3c7",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00291497,
+     "first_context_tokens": 11863,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 8070,
+     "cache_read_input_tokens": 71527,
+     "output_tokens": 1169,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-evidence-heartbeat",
+   "kind": "evidence",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "fixed": true,
+    "reset-kept": true,
+    "scope": true,
+    "no-doubt": true,
+    "no-question": true
+   },
+   "setup_sha256": "17c8be0eda84e9a3382e1d46a11f3548e98f5bc32a4df7c53feb55d4165cb30a",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.0035883300000000003,
+     "first_context_tokens": 11911,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 9618,
+     "cache_read_input_tokens": 61523,
+     "output_tokens": 2097,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-ask-irqstat-min",
+   "kind": "ask",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "filters": true,
+    "inclusive": true,
+    "default": true,
+    "scope": true,
+    "no-question": true
+   },
+   "setup_sha256": "1564b07b7a1dfb6af6c78ddb09fca085d34526c2fdee46d3eae42b45a7831393",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.00302379,
+     "first_context_tokens": 11869,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 8447,
+     "cache_read_input_tokens": 45609,
+     "output_tokens": 1755,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-led-states",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "boot": false,
+    "updating": false,
+    "error": false,
+    "brightness": false,
+    "battery": false
+   },
+   "setup_sha256": "6fcca73b8bc1437a8920e83f50a7068eb25980053ba530d507542e87beceea79",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.0018526800000000002,
+     "first_context_tokens": 9516,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 4605,
+     "cache_read_input_tokens": 35988,
+     "output_tokens": 1142,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.00199931,
+     "first_context_tokens": 9407,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 4757,
+     "cache_read_input_tokens": 25831,
+     "output_tokens": 1578,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-locale-defaults",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "week": false,
+    "date": false,
+    "clock": false,
+    "money": false,
+    "zone": false
+   },
+   "setup_sha256": "395906faab5b2e40674925968e509f27253f3f624a2fb443b914cfdb32093ef6",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.00294068,
+     "first_context_tokens": 11977,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 8352,
+     "cache_read_input_tokens": 45998,
+     "output_tokens": 1619,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00341107,
+     "first_context_tokens": 11877,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 8967,
+     "cache_read_input_tokens": 60267,
+     "output_tokens": 2028,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-figure-style",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "gray": false,
+    "font": false,
+    "size": false,
+    "width": false,
+    "error": false
+   },
+   "setup_sha256": "4b166050c594ac767686c40dccd26a2317498dc4fc043418dcb96cfc25010ad9",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00239206,
+     "first_context_tokens": 9509,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 5261,
+     "cache_read_input_tokens": 47286,
+     "output_tokens": 1732,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00312343,
+     "first_context_tokens": 9408,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 6139,
+     "cache_read_input_tokens": 48363,
+     "output_tokens": 2822,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-locale-defaults",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 0,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "week": false,
+    "date": false,
+    "clock": false,
+    "money": false,
+    "zone": false
+   },
+   "setup_sha256": "859e55682ecf9ba28b909fb76ae6a2162f5e079e18d830f512ae88c2a4f43a1a",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 3,
+     "cost_usd": 0.00135849,
+     "first_context_tokens": 9507,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 3972,
+     "cache_read_input_tokens": 25649,
+     "output_tokens": 614,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.00175932,
+     "first_context_tokens": 9407,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 4450,
+     "cache_read_input_tokens": 35602,
+     "output_tokens": 1025,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-led-states",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "boot": true,
+    "updating": true,
+    "error": true,
+    "brightness": true,
+    "battery": true
+   },
+   "setup_sha256": "af6a9e50063e1463a567fc75019c5b096a297cd6aeb757f30b1f416144769971",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.004826110000000001,
+     "first_context_tokens": 11981,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 11893,
+     "cache_read_input_tokens": 84031,
+     "output_tokens": 3212,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00409952,
+     "first_context_tokens": 11872,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 9996,
+     "cache_read_input_tokens": 61082,
+     "output_tokens": 2977,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-figure-style",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "gray": true,
+    "font": true,
+    "size": true,
+    "width": true,
+    "error": true
+   },
+   "setup_sha256": "fd44d956c3b728797312caf013a99d7c15a69af42997bfcc6b3ce0cce6b6f099",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.00477578,
+     "first_context_tokens": 11973,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 12047,
+     "cache_read_input_tokens": 66088,
+     "output_tokens": 3409,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00426276,
+     "first_context_tokens": 11872,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10271,
+     "cache_read_input_tokens": 59256,
+     "output_tokens": 3230,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-led-states",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "boot": false,
+    "updating": false,
+    "error": false,
+    "brightness": false,
+    "battery": false
+   },
+   "setup_sha256": "af6a9e50063e1463a567fc75019c5b096a297cd6aeb757f30b1f416144769971",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.00288098,
+     "first_context_tokens": 11993,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 8361,
+     "cache_read_input_tokens": 46098,
+     "output_tokens": 1494,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.0042090800000000005,
+     "first_context_tokens": 11884,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 9928,
+     "cache_read_input_tokens": 61898,
+     "output_tokens": 3207,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-figure-style",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "gray": false,
+    "font": false,
+    "size": false,
+    "width": false,
+    "error": false
+   },
+   "setup_sha256": "4b166050c594ac767686c40dccd26a2317498dc4fc043418dcb96cfc25010ad9",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.0022252599999999997,
+     "first_context_tokens": 9509,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 4778,
+     "cache_read_input_tokens": 47566,
+     "output_tokens": 1586,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.00294112,
+     "first_context_tokens": 9408,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 5790,
+     "cache_read_input_tokens": 47712,
+     "output_tokens": 2610,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-led-states",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "boot": false,
+    "updating": false,
+    "error": false,
+    "brightness": false,
+    "battery": false
+   },
+   "setup_sha256": "6fcca73b8bc1437a8920e83f50a7068eb25980053ba530d507542e87beceea79",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.00209622,
+     "first_context_tokens": 9518,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 4570,
+     "cache_read_input_tokens": 47372,
+     "output_tokens": 1415,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.00198484,
+     "first_context_tokens": 9409,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 4526,
+     "cache_read_input_tokens": 26104,
+     "output_tokens": 1636,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-locale-defaults",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "week": true,
+    "date": true,
+    "clock": true,
+    "money": true,
+    "zone": true
+   },
+   "setup_sha256": "395906faab5b2e40674925968e509f27253f3f624a2fb443b914cfdb32093ef6",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.0031851600000000002,
+     "first_context_tokens": 11973,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 8602,
+     "cache_read_input_tokens": 60076,
+     "output_tokens": 1726,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.00466788,
+     "first_context_tokens": 11873,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 10545,
+     "cache_read_input_tokens": 92698,
+     "output_tokens": 3261,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-locale-defaults",
+   "kind": "handoff",
+   "negative": false,
+   "group": "control",
+   "repeat": 1,
+   "position": 1,
+   "passed": false,
+   "items": {
+    "week": false,
+    "date": false,
+    "clock": false,
+    "money": false,
+    "zone": false
+   },
+   "setup_sha256": "859e55682ecf9ba28b909fb76ae6a2162f5e079e18d830f512ae88c2a4f43a1a",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 3,
+     "cost_usd": 0.0013027100000000001,
+     "first_context_tokens": 9509,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 3589,
+     "cache_read_input_tokens": 26031,
+     "output_tokens": 648,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.0018879,
+     "first_context_tokens": 9409,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 4508,
+     "cache_read_input_tokens": 36550,
+     "output_tokens": 1240,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-figure-style",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 1,
+   "passed": true,
+   "items": {
+    "gray": true,
+    "font": true,
+    "size": true,
+    "width": true,
+    "error": true
+   },
+   "setup_sha256": "fd44d956c3b728797312caf013a99d7c15a69af42997bfcc6b3ce0cce6b6f099",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.005128929999999999,
+     "first_context_tokens": 11977,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 12408,
+     "cache_read_input_tokens": 84463,
+     "output_tokens": 3603,
+     "skills_used": []
+    },
+    {
+     "model": "claude-haiku-5-5",
+     "served": [
+      "claude-haiku-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.00491604,
+     "first_context_tokens": 11876,
+     "tools_listed": 6,
+     "input_tokens": 14,
+     "cache_creation_input_tokens": 10517,
+     "cache_read_input_tokens": 90224,
+     "output_tokens": 3818,
+     "skills_used": []
+    }
+   ]
+  }
+ ]
+}
