@@ -777,6 +777,9 @@ class ProjectTests(unittest.TestCase):
         rules = read("templates/project-rules.md")
         self.assertEqual(sum(line.startswith("- **之後才做的決定。**") for line in rules.splitlines()), 1)
         self.assertIn("`.ai/HANDOFF.md`", rules)
+        # Second change: open questions written down for later made the next session stop (7 of 18).
+        self.assertIn("當下就問", rules)
+        self.assertIn("照已定的做", rules)
         self.assertIn(".ai/HANDOFF.md", read("templates/claude-continuity-hook.py"), "the hook looks where the rule writes")
         for name in ("docs/practices.md", "docs/workflow.md"):
             self.assertIn("之後才要做的決定", read(name), name)
