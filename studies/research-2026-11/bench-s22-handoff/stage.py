@@ -31,9 +31,10 @@ NEGATIVE = ["neg-ask-irqstat-min", "neg-ask-rename-item", "neg-handoff-node-bump
             "neg-evidence-heartbeat", "neg-judgement-refactor"]
 NEW = ["handoff-led-states", "handoff-locale-defaults", "handoff-figure-style"]
 C, BOTH = ["framework"], ["framework", "control"]
-# model, budget of one session, cap, repeats, tasks, groups
-STAGES = {"h1": (HAIKU, 0.1, 0.12, 2, OLD, C), "h2": (HAIKU, 0.1, 0.05, 1, NEGATIVE, C), "h3": (HAIKU, 0.1, 0.13, 2, NEW, BOTH),
-          "o1": (OPUS, 0.8, 5.5, 2, OLD, C), "o2": (OPUS, 0.8, 1.2, 1, NEGATIVE, C), "o3": (OPUS, 0.8, 4.3, 2, NEW, BOTH)}
+# model, budget of one session, cap shared by the stages of that model, repeats, tasks, groups.
+# Each stage counts what the earlier stages of its model spent (or set aside, if killed).
+STAGES = {"h1": (HAIKU, 0.03, 0.3, 2, OLD, C), "h2": (HAIKU, 0.03, 0.3, 1, NEGATIVE, C), "h3": (HAIKU, 0.03, 0.3, 2, NEW, BOTH),
+          "o1": (OPUS, 0.8, 11.0, 2, OLD, C), "o2": (OPUS, 0.8, 11.0, 1, NEGATIVE, C), "o3": (OPUS, 0.8, 11.0, 2, NEW, BOTH)}
 SEED, JOBS, TIMEOUT, OVERSHOOT = 20261125, 3, 900, 0.25
 
 
@@ -77,12 +78,21 @@ def run(args: argparse.Namespace) -> int:
     except BlockingIOError:
         raise SystemExit("a stage is running")
     resume = [folder for folder in sorted(data.glob(f"stage-{args.stage}-*")) if (folder / "results.json").is_file()]
+    spent_before = 0.0
+    for other in STAGES:
+        if other != args.stage and other[0] == args.stage[0]:
+            for folder in data.glob(f"stage-{other}-*"):
+                if (folder / "results.json").is_file():
+                    earlier = json.loads((folder / "results.json").read_text(encoding="utf-8"))
+                    spent_before += earlier["spent_usd"] + earlier.get("reserved_usd", 0)
+                elif folder.is_dir() and any(folder.iterdir()):
+                    raise SystemExit(f"{folder.name} has no results: what it spent is unknown")
     number = 1
     while (out := data / f"stage-{args.stage}-{number:02d}").exists():
         number += 1
     command = [sys.executable, "-B", str(HOST / "impact.py"), "run", "--framework", str(framework), "--base", str(args.base.resolve()),
                "--out", str(out), "--tasks", str(TASKS), "--ids", ",".join(ids), "--model", model, "--budget", str(budget),
-               "--overshoot", str(round(OVERSHOOT * budget, 6)), "--total-budget", str(cap), "--runs", str(runs),
+               "--overshoot", str(round(OVERSHOOT * budget, 6)), "--total-budget", str(cap), "--spent-before", str(round(spent_before, 6)), "--runs", str(runs),
                "--seed", str(SEED), "--jobs", str(JOBS), "--timeout", str(TIMEOUT), *(part for group in groups for part in ("--group", group)),
                "--cli", str(cli), "--cli-version", VERSION, "--env", "DISABLE_AUTOUPDATER=1", "--forbid", str(ROOT),
                *(part for folder in resume for part in ("--resume", str(folder)))]

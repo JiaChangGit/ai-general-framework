@@ -9,8 +9,8 @@
  "stages": {
   "h1": [
    "claude-haiku-5-5",
-   0.1,
-   0.12,
+   0.03,
+   0.3,
    2,
    [
     "handoff-kconfig-gateway",
@@ -26,8 +26,8 @@
   ],
   "h2": [
    "claude-haiku-5-5",
-   0.1,
-   0.05,
+   0.03,
+   0.3,
    1,
    [
     "neg-ask-irqstat-min",
@@ -43,8 +43,8 @@
   ],
   "h3": [
    "claude-haiku-5-5",
-   0.1,
-   0.13,
+   0.03,
+   0.3,
    2,
    [
     "handoff-led-states",
@@ -59,7 +59,7 @@
   "o1": [
    "claude-opus-5-5",
    0.8,
-   5.5,
+   11.0,
    2,
    [
     "handoff-kconfig-gateway",
@@ -76,7 +76,7 @@
   "o2": [
    "claude-opus-5-5",
    0.8,
-   1.2,
+   11.0,
    1,
    [
     "neg-ask-irqstat-min",
@@ -93,7 +93,7 @@
   "o3": [
    "claude-opus-5-5",
    0.8,
-   4.3,
+   11.0,
    2,
    [
     "handoff-led-states",
@@ -109,7 +109,7 @@
  "sha256": {
   "studies/research-2026-11/bench-s22-handoff/tasks.json": "7fb0fa247946e6bd105f381ac62b20e5768333c76492a4e7045ece7efcf5f72d",
   "studies/research-2026-11/bench-s22-handoff/cases.json": "33abf5969ac5370c907e874d792f8e38cd56b77f8638b72303b1e4acf627f2a5",
-  "studies/research-2026-11/bench-s22-handoff/stage.py": "72c74e46ba3824786977a264a02688e4f2e20c66a29b4ac0289961a5b6f035a1",
+  "studies/research-2026-11/bench-s22-handoff/stage.py": "4cf3a4d9babba82b801db9d896b36c79a4b49fa8070ab66b6b1180737d072c7a",
   "evals/host/impact.py": "2cdb76051bc19f602ebeee8554e232bebee2f9d3afaf0efa2078a27ff23cf104",
   "evals/host/grading.py": "df29edf4111896ee78f411039b90d16371b13301ee0628ec1dac912060bbb231",
   "evals/host/judge.py": "5577d7a85755c7429a3363f2f6de3ab10e22ab249aa63d19d6a68ceeea7258e1",
