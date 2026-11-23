@@ -1,0 +1,121 @@
+{
+ "framework": "670adca",
+ "cli_version": "2.1.325",
+ "seed": 20261125,
+ "jobs": 3,
+ "timeout": 900,
+ "overshoot": 0.25,
+ "image": "sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b",
+ "stages": {
+  "h1": [
+   "claude-haiku-5-5",
+   0.1,
+   0.12,
+   2,
+   [
+    "handoff-kconfig-gateway",
+    "handoff-orders-api",
+    "handoff-backtest-summary",
+    "handoff-rust-retry",
+    "handoff-experiment-plan",
+    "handoff-voice-sheet"
+   ],
+   [
+    "framework"
+   ]
+  ],
+  "h2": [
+   "claude-haiku-5-5",
+   0.1,
+   0.05,
+   1,
+   [
+    "neg-ask-irqstat-min",
+    "neg-ask-rename-item",
+    "neg-handoff-node-bump",
+    "neg-handoff-regs-json",
+    "neg-evidence-heartbeat",
+    "neg-judgement-refactor"
+   ],
+   [
+    "framework"
+   ]
+  ],
+  "h3": [
+   "claude-haiku-5-5",
+   0.1,
+   0.13,
+   2,
+   [
+    "handoff-led-states",
+    "handoff-locale-defaults",
+    "handoff-figure-style"
+   ],
+   [
+    "framework",
+    "control"
+   ]
+  ],
+  "o1": [
+   "claude-opus-5-5",
+   0.8,
+   5.5,
+   2,
+   [
+    "handoff-kconfig-gateway",
+    "handoff-orders-api",
+    "handoff-backtest-summary",
+    "handoff-rust-retry",
+    "handoff-experiment-plan",
+    "handoff-voice-sheet"
+   ],
+   [
+    "framework"
+   ]
+  ],
+  "o2": [
+   "claude-opus-5-5",
+   0.8,
+   1.2,
+   1,
+   [
+    "neg-ask-irqstat-min",
+    "neg-ask-rename-item",
+    "neg-handoff-node-bump",
+    "neg-handoff-regs-json",
+    "neg-evidence-heartbeat",
+    "neg-judgement-refactor"
+   ],
+   [
+    "framework"
+   ]
+  ],
+  "o3": [
+   "claude-opus-5-5",
+   0.8,
+   4.3,
+   2,
+   [
+    "handoff-led-states",
+    "handoff-locale-defaults",
+    "handoff-figure-style"
+   ],
+   [
+    "framework",
+    "control"
+   ]
+  ]
+ },
+ "sha256": {
+  "studies/research-2026-11/bench-s22-handoff/tasks.json": "7fb0fa247946e6bd105f381ac62b20e5768333c76492a4e7045ece7efcf5f72d",
+  "studies/research-2026-11/bench-s22-handoff/cases.json": "33abf5969ac5370c907e874d792f8e38cd56b77f8638b72303b1e4acf627f2a5",
+  "studies/research-2026-11/bench-s22-handoff/stage.py": "72c74e46ba3824786977a264a02688e4f2e20c66a29b4ac0289961a5b6f035a1",
+  "evals/host/impact.py": "2cdb76051bc19f602ebeee8554e232bebee2f9d3afaf0efa2078a27ff23cf104",
+  "evals/host/grading.py": "df29edf4111896ee78f411039b90d16371b13301ee0628ec1dac912060bbb231",
+  "evals/host/judge.py": "5577d7a85755c7429a3363f2f6de3ab10e22ab249aa63d19d6a68ceeea7258e1",
+  "evals/host/sandbox.py": "7a9cd3772de263a6e3f84f301e5e8de8c2216616324892117ed61f6b8f253bdf",
+  "evals/host/run_claude.py": "deb003a63b42597b94da55e31cdfbecee713718c8753cf2b5a71e72a5313aabd",
+  "evals/host/preflight.py": "92505085b4b51d5f47ba935f7bddc3cbef6bd669b2fae20096024ddea1d60454",
+  "evals/host/trigger.py": "9d9680bd044ae29adf9f3605cefbc7ce7e0c44c3f9a1e80b81814cfacb7a7a8c"
+ }
+}
