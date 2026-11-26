@@ -1,0 +1,77 @@
+{
+ "framework": "a4d082c",
+ "cli_version": "2.1.325",
+ "seed": 20261130,
+ "jobs": 3,
+ "timeout": 900,
+ "overshoot": 0.25,
+ "image": "sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b",
+ "stages": {
+  "q1": [
+   "claude-opus-5-5",
+   0.8,
+   10.0,
+   2,
+   [
+    "handoff-kconfig-gateway",
+    "handoff-orders-api",
+    "handoff-backtest-summary",
+    "handoff-rust-retry",
+    "handoff-experiment-plan",
+    "handoff-voice-sheet",
+    "handoff-led-states",
+    "handoff-locale-defaults",
+    "handoff-figure-style"
+   ],
+   [
+    "framework"
+   ]
+  ],
+  "q2": [
+   "claude-opus-5-5",
+   0.8,
+   10.0,
+   1,
+   [
+    "neg-ask-irqstat-min",
+    "neg-ask-rename-item",
+    "neg-handoff-node-bump",
+    "neg-handoff-regs-json",
+    "neg-evidence-heartbeat",
+    "neg-judgement-refactor"
+   ],
+   [
+    "framework"
+   ]
+  ],
+  "q3": [
+   "claude-opus-5-5",
+   0.8,
+   10.0,
+   1,
+   [
+    "ask-prune-artifacts",
+    "ask-backtest-costs",
+    "ask-firmware-failsafe",
+    "ask-account-delete",
+    "ask-rust-sync",
+    "ask-render-jobs"
+   ],
+   [
+    "framework"
+   ]
+  ]
+ },
+ "sha256": {
+  "studies/research-2026-11/bench-s22-handoff/tasks-handoff3.json": "8b5dbfeff7f9503b87fc31b4d99b5ffd561c03ad5394efaac725d4308c6221e7",
+  "studies/research-2026-11/bench-s22-handoff/cases-handoff3.json": "c22bd2e321c5363c937d4645272ebc272ef804555349d76886afa8966337888a",
+  "studies/research-2026-11/bench-s22-handoff/stage4.py": "4a07e43cd4ded0e4e373745cb4b2c4cc9c789840e9f06b79f318d05585bdd5ee",
+  "evals/host/impact.py": "2cdb76051bc19f602ebeee8554e232bebee2f9d3afaf0efa2078a27ff23cf104",
+  "evals/host/grading.py": "df29edf4111896ee78f411039b90d16371b13301ee0628ec1dac912060bbb231",
+  "evals/host/judge.py": "5577d7a85755c7429a3363f2f6de3ab10e22ab249aa63d19d6a68ceeea7258e1",
+  "evals/host/sandbox.py": "7a9cd3772de263a6e3f84f301e5e8de8c2216616324892117ed61f6b8f253bdf",
+  "evals/host/run_claude.py": "deb003a63b42597b94da55e31cdfbecee713718c8753cf2b5a71e72a5313aabd",
+  "evals/host/preflight.py": "92505085b4b51d5f47ba935f7bddc3cbef6bd669b2fae20096024ddea1d60454",
+  "evals/host/trigger.py": "9d9680bd044ae29adf9f3605cefbc7ce7e0c44c3f9a1e80b81814cfacb7a7a8c"
+ }
+}
