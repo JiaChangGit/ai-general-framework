@@ -780,6 +780,9 @@ class ProjectTests(unittest.TestCase):
         # Second change: open questions written down for later made the next session stop (7 of 18).
         self.assertIn("當下就問", rules)
         self.assertIn("照已定的做", rules)
+        # Third change: details left open were asked again at the start of the next session (T report).
+        self.assertIn("附上建議做法", rules)
+        self.assertIn("不算開始時要問的事", rules)
         self.assertIn(".ai/HANDOFF.md", read("templates/claude-continuity-hook.py"), "the hook looks where the rule writes")
         for name in ("docs/practices.md", "docs/workflow.md"):
             self.assertIn("之後才要做的決定", read(name), name)
