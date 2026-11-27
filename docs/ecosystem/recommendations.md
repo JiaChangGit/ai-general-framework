@@ -26,7 +26,7 @@
 | 值得借鑑的 skill | pstack 的 correct、why、arena；Trail of Bits second-opinion；Cloudflare security-audit-skill（多階段稽核、發現要再驗證）；mattpocock 的 grill-me 與 claude-handoff；embedded-review（韌體 code review 的 P0～P3 分級） |
 | 值得研究但不建議安裝 | claude-mem（寫入時把工具輸出送模型、telemetry 預設開）、Memory OS（ClaudioDrews）、Firecrawl（本機失敗時改走雲端、AGPL）、LiteLLM（常駐 gateway，2026 年兩次被植入後門）、Graphify（skill 會自動安裝套件）、Fastctx 1.0（關掉 agent 內建 shell、改由 MCP 工具 `run` 執行命令，guard hook 因此看不到；Workbench 以 bypassPermissions 啟動背景 Claude Code） |
 | 暫不建議 | davila7 的 clean-code skill（要求執行其他 skill 目錄的腳本，skill 目錄網站仍給滿分）；mhattingpete 的 git-pushing（寬鬆自動觸發，`git add .` 之後 push）；memory-os（bmaltais，沒有授權、宣傳與實作不符） |
-| 需要人工確認 | 授權標成「需人工確認」的 34 筆，例如 Zotero（GitHub 偵測不到授權）、mem-agent 的模型權重、ACE-Step 的權重；Remotion 本機渲染會不會送出使用登記 |
+| 需要人工確認 | 2026-11-27 核對了標成「需人工確認」的 38 筆（原本寫 34 筆，算少了）。依據是各 repo 公開的 LICENSE、根目錄檔名與 README 的授權段落；另一家的模型（gpt-6-luna）獨立分類，兩邊不同時取比較保守的標記。結果是可使用 10、有條件 20、仍需人工確認 8。剩下的 8 筆：openai/skills（要逐一看各 skill）、Skills Directory 網站、兩個 MCP repo（授權過渡期）、dejavu（repo 已不在）、mem-agent 與 memory-os（找不到授權）、GitLab CI（服務條款沒讀）。另外 Remotion 本機渲染會不會送出使用登記，仍待確認 |
 
 ## 待確認的名稱
 

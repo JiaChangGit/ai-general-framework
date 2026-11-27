@@ -269,9 +269,9 @@
       "resources": "references 很大，按需讀取；description 很長（列了大量觸發情境），會佔 skill 清單的預算。",
       "license": {
         "spdx": null,
-        "basis": "repo 沒有 LICENSE 檔，GitHub 判為 null；README 說 HIG 文字版權屬 Apple Inc.，本專案與 Apple 無關",
-        "label": "needs-review",
-        "notes": "沒有授權等於不能合法再散布或改作；大量轉載 Apple 文字另有著作權風險。只適合本機閱讀。"
+        "basis": "README（2026-11-27）：沒有 LICENSE；指引文字屬 Apple",
+        "label": "conditional",
+        "notes": "沒有授權：只在本機閱讀，不轉載、不改作；指引文字的著作權屬 Apple。"
       },
       "weaknesses": "description 過長且很「pushy」，容易在一般前端任務誤觸發。HIG 內容會過期，要靠手動重抓。",
       "alternatives": [],
@@ -300,7 +300,7 @@
           "note": "A 100/100，Pro 才看逐行發現"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "dickwu/apple-design-skill",
@@ -668,9 +668,9 @@
       "resources": null,
       "license": {
         "spdx": null,
-        "basis": "README：授權在每個 skill 目錄的 LICENSE.txt；根目錄無 LICENSE（GitHub 顯示 null）",
+        "basis": "README（2026-11-27）：每個 skill 目錄各有 LICENSE.txt",
         "label": "needs-review",
-        "notes": "需逐一看 skill 的授權檔，這次沒有逐一核對。"
+        "notes": "要逐一看各 skill 的 LICENSE.txt，這次沒有逐一核對。"
       },
       "weaknesses": "已棄用，後續更新在 openai/plugins（2026-11-18 push、根目錄無授權資訊）。",
       "alternatives": [
@@ -877,9 +877,9 @@
       "resources": null,
       "license": {
         "spdx": null,
-        "basis": "網站服務",
+        "basis": "網站，沒有找到使用條款",
         "label": "needs-review",
-        "notes": null
+        "notes": "目錄網站；只讀可以，要引用或擷取內容前先找它的使用條款。"
       },
       "weaknesses": "首頁說 10 類威脅，methodology 頁只列 8 類；120 個樣式在 methodology 頁沒有出現。分數不涵蓋腳本、hooks、.mcp.json，也不追蹤被引用的外部路徑。",
       "alternatives": [
@@ -1076,7 +1076,7 @@
       "license": {
         "spdx": null,
         "basis": "部落格文章，未見授權",
-        "label": "needs-review",
+        "label": "usable",
         "notes": "只引用數據與結論，不轉載。"
       },
       "weaknesses": "單一框架、作者自報、未公開跨模型細節；作者是 Vercel（也經營 skills.sh）。",
@@ -1096,7 +1096,7 @@
           "note": "全文摘要與數據表"
         }
       ],
-      "checked": "2026-11-21"
+      "checked": "2026-11-27"
     },
     {
       "id": "ace-agentic-context-engineering",
@@ -1230,7 +1230,7 @@
         "official": "https://code.claude.com/docs/en/best-practices",
         "docs": "https://claude.com/blog/building-verification-loops-in-claude-code-with-skills"
       },
-      "checked": "2026-11-22",
+      "checked": "2026-11-27",
       "summary": "官方的使用建議：給 Claude 一個會回報通過或失敗的檢查，讓它自己跑、讀結果、迭代；要求附證據，「All tests pass」本身說明不了什麼；CLAUDE.md 保持短，只放從程式碼看不出來的事與「已經糾正過兩次的事」；一句規則一再加強語氣還是被忽略，就改成 hook；同一個問題糾正兩次失敗，就 /clear 寫更好的指示重來；審查用新的、唯讀的子代理，並要求依規格審、跳過風格。",
       "architecture": null,
       "integration": [],
@@ -1245,7 +1245,7 @@
       "license": {
         "spdx": null,
         "basis": "官方文件",
-        "label": "needs-review",
+        "label": "usable",
         "notes": "只引用觀點，不複製文字。"
       },
       "weaknesses": "頁面沒有日期；讀網頁工具只逐字取得前 4 萬字，後段是摘要。",
@@ -1278,7 +1278,7 @@
         "official": "https://www.inside.com.tw/article/42920-lauren-tan-spacexsi-trust-pyramid-ai-engineer-code-2026",
         "docs": "https://sozai.app/transcript/spacex-ai-engineer-lauren-tan-part-1/"
       },
-      "checked": "2026-11-22",
+      "checked": "2026-11-27",
       "summary": "pstack 的作者在 SpaceX AI（Grok Bot）講 AI 讓 PR 數量暴增時怎麼守住品質：驗證是最重要的能力（讓 AI 能自己跑程式、像使用者一樣操作、看 trace 與截圖）；每次糾正都先想能不能變成確定性檢查（例如在產品程式碼裡禁用 React 的 useEffect）；壞寫法會被下一個 AI 照抄；註解容易過時、又讓 AI 替繞路找理由，所以禁掉大部分註解，改用錯誤訊息清楚的 lint。",
       "architecture": null,
       "integration": [],
@@ -1293,7 +1293,7 @@
       "license": {
         "spdx": null,
         "basis": "演講與新聞報導",
-        "label": "needs-review",
+        "label": "usable",
         "notes": "只引用觀點，不複製文字。"
       },
       "weaknesses": "數字是講者自述，各轉述也不一致（個人每月 2,500～4,000 個 PR、團隊 11,000 個、退回率約 0.5%）。她自己說：很難用程式驗證的領域，走不到這一步。主 session 只讀到轉述與逐字稿網站，沒看原始影片。",
@@ -1337,7 +1337,7 @@
         "official": "https://ai.engineer/talks/software-fundamentals-for-ai-coding",
         "docs": null
       },
-      "checked": "2026-11-22",
+      "checked": "2026-11-27",
       "summary": "AI 協助開發仍靠軟體基本功：共同的設計概念、精確的領域用語、快速的回饋迴圈、可測試的架構，以及人對系統設計的持續擁有權。",
       "architecture": null,
       "integration": [],
@@ -1352,7 +1352,7 @@
       "license": {
         "spdx": null,
         "basis": "演講",
-        "label": "needs-review",
+        "label": "usable",
         "notes": null
       },
       "weaknesses": "只看到搜尋摘要，沒讀演講內容；使用者提到的 Lauren Tan 與 Matt Pocock 長訪談沒有找到。",
@@ -1385,7 +1385,7 @@
         "official": "https://openai.com/index/harness-engineering/",
         "docs": null
       },
-      "checked": "2026-11-22",
+      "checked": "2026-11-27",
       "summary": "Codex 團隊用 agent 寫完一個內部產品（作者自述約一百萬行、五個月、約 1,500 個 PR）。重點：AGENTS.md 只當目錄（約 100 行），知識放在結構化的 docs/ 裡漸進揭露；架構分層用自訂 lint 與結構測試強制，lint 的錯誤訊息寫成給 agent 的修正指示；review 意見與使用者回報的 bug 直接寫進工具；定期的 doc-gardening agent 掃出和程式行為不符的文件並開修正 PR；agent 透過 Chrome DevTools、截圖與每個 worktree 自己的 log、metrics、trace 驗證成果。",
       "architecture": null,
       "integration": [],
@@ -1400,7 +1400,7 @@
       "license": {
         "spdx": null,
         "basis": "OpenAI 部落格文章",
-        "label": "needs-review",
+        "label": "usable",
         "notes": "只引用觀點，不複製文字。"
       },
       "weaknesses": "數字都是作者自述；作者明說這套自動化很依賴那個 repo 的結構與工具，不一定能套用。",
@@ -2263,9 +2263,9 @@
       "security": null,
       "resources": null,
       "license": {
-        "spdx": "MIT（abcjs；GitHub 回報 NOASSERTION，需核對）",
-        "basis": "未讀 LICENSE",
-        "label": "needs-review",
+        "spdx": "MIT",
+        "basis": "LICENSE.md 是 MIT 全文（2026-11-27），GitHub 偵測不到",
+        "label": "usable",
         "notes": null
       },
       "weaknesses": "本輪只查維護狀態；適合民謠與簡單單聲部，複雜多聲部表達力有限。",
@@ -2288,7 +2288,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "paulrosen/abcjs",
@@ -2325,10 +2325,10 @@
       "security": null,
       "resources": "README VRAM 對照表：≤6 GB 可跑 2B turbo（INT8＋完整 CPU offload，不啟用 LM）；XL（4B）至少 12 GB（含 offload 與量化）；也支援 CPU，但本機沒有 GPU，8 GB WSL 只能走 CPU 極慢，實用性低。模型自 Hugging Face 下載。",
       "license": {
-        "spdx": "MIT（專案程式碼）；舊版 ACE-Step 1.0 倉庫為 Apache-2.0",
-        "basis": "gh api 授權欄位與 README 授權段（2026-11-21）",
-        "label": "needs-review",
-        "notes": "README 只寫專案 MIT 並提醒生成音樂可能與既有作品風格近似而有侵權風險；模型權重授權與訓練資料條款請在 Hugging Face 模型卡確認，本輪未讀；生成結果的使用限制另計。"
+        "spdx": "MIT",
+        "basis": "LICENSE（2026-11-27）：程式 MIT",
+        "label": "conditional",
+        "notes": "程式 MIT；模型權重授權要看 Hugging Face 模型卡，這次沒有讀；生成的音樂可能和既有作品近似。"
       },
       "weaknesses": "需 GPU 才實用；README 警告有假網域冒充官方；品質比較為作者自報；訓練資料來源與授權本輪未查。",
       "alternatives": [
@@ -2351,7 +2351,7 @@
           "note": "README（VRAM 表、授權段）；維護 gh api（1.5 倉庫 2026-11-08）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "ace-step/ACE-Step-1.5",
@@ -2570,10 +2570,10 @@
       "security": null,
       "resources": "本機未裝；需 apt 安裝，記憶體適中。",
       "license": {
-        "spdx": "GPL-3.0",
-        "basis": "GitHub 回報 NOASSERTION（授權為 GPL 系列，需核對）",
-        "label": "needs-review",
-        "notes": "GPL；只當外部命令呼叫；譜面輸出的著作權屬作曲者。"
+        "spdx": "GPL-3.0-or-later",
+        "basis": "LICENSE（2026-11-27）",
+        "label": "conditional",
+        "notes": "GPL：當外部命令呼叫可以，不複製進框架；譜面輸出的著作權屬作曲者。"
       },
       "weaknesses": "維護（gh api，2026-11-21）：最後 push 2026-11-21，archived=false，stars 709（不代表品質），GitHub 偵測授權 NOASSERTION。 語法專有；AI 容易寫出編譯不過的 .ly，需 lilypond 回報錯誤迭代。",
       "alternatives": [
@@ -2595,7 +2595,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "lilypond/lilypond",
@@ -2696,10 +2696,10 @@
       "security": null,
       "resources": "本機未裝；Qt 應用，WSL 無顯示時需 offscreen 設定；體積大。",
       "license": {
-        "spdx": "GPL-3.0（通識；GitHub 回報 NOASSERTION）",
-        "basis": "未讀 LICENSE",
-        "label": "needs-review",
-        "notes": null
+        "spdx": "GPL-3.0-only",
+        "basis": "LICENSE.txt 與 README badge（2026-11-27）",
+        "label": "conditional",
+        "notes": "GPL：當外部命令呼叫可以，不複製進框架。"
       },
       "weaknesses": "維護（gh api，2026-11-21）：最後 push 2026-11-20，archived=false，stars 15462（不代表品質），GitHub 偵測授權 NOASSERTION。 WSL 無 GUI 常需 QT_QPA_PLATFORM=offscreen；CLI 選項因版本而異。",
       "alternatives": [
@@ -2721,7 +2721,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "musescore/MuseScore",
@@ -3005,9 +3005,9 @@
       "resources": "本機未裝（which sox 查無）。",
       "license": {
         "spdx": "GPL-2.0-or-later／LGPL-2.1（依元件）",
-        "basis": "官方專案頁（通識）；未讀 LICENSE",
-        "label": "needs-review",
-        "notes": null
+        "basis": "通識（SourceForge 專案頁沒有再讀）",
+        "label": "conditional",
+        "notes": "SoX 主程式 GPL、libsox 為 LGPL：當外部命令呼叫可以，不複製進框架。"
       },
       "weaknesses": "上游基本停滯（GitHub 鏡像 chirlu/sox 最後 push 2023-11-24，官方發行版 14.4.2 為 2015）；Debian／Ubuntu 套件有自行維護；ffmpeg 能涵蓋大部分功能。",
       "alternatives": [
@@ -3028,7 +3028,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21"
+      "checked": "2026-11-27"
     },
     {
       "id": "tinymusic-agent-skills",
@@ -4074,10 +4074,10 @@
       "security": null,
       "resources": null,
       "license": {
-        "spdx": "AGPL-3.0（通識；GitHub 回報 NOASSERTION）",
-        "basis": "GitHub 偵測 NOASSERTION；未讀 LICENSE",
-        "label": "needs-review",
-        "notes": "桌面程式授權與你文獻庫內 PDF 的著作權無關；插件各自授權。"
+        "spdx": "AGPL-3.0-or-later",
+        "basis": "COPYING（2026-11-27），GitHub 偵測不到",
+        "label": "conditional",
+        "notes": "AGPL：當桌面程式用可以；桌面程式授權與文獻庫內 PDF 的著作權無關；插件各自授權。"
       },
       "weaknesses": "維護（gh api，2026-11-21）：最後 push 2026-11-21，archived=false，stars 16004（不代表品質），GitHub 偵測授權 NOASSERTION。 自動化依賴本機 API 或 Web API；本輪只查維護狀態。",
       "alternatives": [
@@ -4098,7 +4098,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "zotero/zotero",
@@ -4710,10 +4710,10 @@
       "security": null,
       "resources": null,
       "license": {
-        "spdx": null,
-        "basis": "GitHub 顯示 NOASSERTION，README 幾乎是空的",
-        "label": "needs-review",
-        "notes": null
+        "spdx": "CC-BY-NC-4.0",
+        "basis": "LICENSE.txt 是 CC BY-NC 4.0 全文（2026-11-27）",
+        "label": "conditional",
+        "notes": "非商業、要標示出處。"
       },
       "weaknesses": "Penfield Labs 稽核（自身也做記憶產品）：1,540 題中 99 題答案錯（6.4%），judge 會接受最多 63% 故意答錯的回答；第 5 類缺標準答案，Mem0 與 Zep 都排除。Mem0 與 Zep 互指對方實作錯誤、分數差異大。",
       "alternatives": [
@@ -4744,7 +4744,7 @@
           "note": "Zep 對 Mem0 分數的質疑"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "snap-research/locomo",
@@ -6492,10 +6492,10 @@
       "security": null,
       "resources": "需要 sqlite3、Perl；跨函式資料庫建置耗時。",
       "license": {
-        "spdx": null,
-        "basis": "GitHub 顯示 NOASSERTION，未讀授權檔",
-        "label": "needs-review",
-        "notes": null
+        "spdx": "GPL-2.0-or-later",
+        "basis": "LICENSE（2026-11-27）：Smatch GPLv2+，內含 MIT 的 Sparse",
+        "label": "conditional",
+        "notes": "GPL：當外部命令呼叫可以，不複製進框架。"
       },
       "weaknesses": "GitHub 鏡像最後 commit 2026-05-05；警告數量多，需要人工判讀。",
       "alternatives": [
@@ -6519,7 +6519,7 @@
           "note": "建置、cross function DB、kchecker"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "error27/smatch",
@@ -7374,10 +7374,10 @@
       "security": null,
       "resources": "PyTorch 模型，CPU 可跑但很慢（README 提供 --full-precision），GPU 建議；本機無 GPU。",
       "license": {
-        "spdx": "MIT（程式碼）；模型權重 CC-BY-NC 4.0（通識，需核對模型卡）",
-        "basis": "GitHub API 授權欄位；權重授權未讀",
-        "label": "needs-review",
-        "notes": "程式碼 MIT；已知預訓練權重為非商業授權，需到模型卡確認。"
+        "spdx": "MIT",
+        "basis": "LICENSE 與 LICENSE-MODEL.md（2026-11-27）",
+        "label": "conditional",
+        "notes": "程式 MIT；模型權重 CC BY-NC 4.0（非商業）。"
       },
       "weaknesses": "維護（gh api，2026-11-21）：最後 push 2025-02-21，archived=false，stars 10099（不代表品質），GitHub 偵測授權 MIT。 最後 push 2025-02-21，實質停止維護；對非論文與非英文表現差；重複生成與幻覺；被 Marker、Docling 等取代。",
       "alternatives": [
@@ -7400,7 +7400,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "facebookresearch/nougat",
@@ -7752,10 +7752,10 @@
       "security": null,
       "resources": "輕量。",
       "license": {
-        "spdx": "Apache-2.0／BSD-3-Clause（通識，需核對）",
-        "basis": "未讀 LICENSE",
-        "label": "needs-review",
-        "notes": null
+        "spdx": "Apache-2.0 OR BSD-3-Clause",
+        "basis": "REUSE.toml 與 LICENSES/（2026-11-27），GitHub 偵測不到",
+        "label": "conditional",
+        "notes": "程式碼為 Apache-2.0 或 BSD-3-Clause 擇一；建置包內附的 PDFium 與相依套件各有授權，散布時要附上。"
       },
       "weaknesses": "本輪沒查 gh 狀態與授權細節（MinerU 致謝清單與 Docling backend 檔名 managed_pdfium_backend.py 可見其被採用）。",
       "alternatives": [
@@ -7777,7 +7777,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "pypdfium2-team/pypdfium2",
@@ -8831,9 +8831,9 @@
       "resources": null,
       "license": {
         "spdx": "Apache-2.0",
-        "basis": "README badge；GitHub 顯示 NOASSERTION",
+        "basis": "LICENSE（2026-11-27）：正從 MIT 改成 Apache-2.0",
         "label": "needs-review",
-        "notes": null
+        "notes": "兩種都是寬鬆授權，但過渡期間各檔適用哪一種，這次沒有逐檔確認。"
       },
       "weaknesses": "CLI 型宿主（Claude Code 終端）的支援情況這次沒查到。",
       "alternatives": [],
@@ -8889,9 +8889,9 @@
       "resources": null,
       "license": {
         "spdx": null,
-        "basis": "GitHub 顯示 NOASSERTION，未讀授權檔",
+        "basis": "LICENSE（2026-11-27）：正從 MIT 改成 Apache-2.0",
         "label": "needs-review",
-        "notes": null
+        "notes": "兩種都是寬鬆授權，但過渡期間各檔適用哪一種，這次沒有逐檔確認。"
       },
       "weaknesses": "README 的狀態描述停在 2025 年，與 2026 年的現況可能不同。",
       "alternatives": [],
@@ -9332,9 +9332,9 @@
       "resources": null,
       "license": {
         "spdx": "Apache-2.0",
-        "basis": "只有 vocus 文章說 Apache-2.0；repo 已 404，無法核對",
+        "basis": "GitHub repo 2026-11-27 回 404",
         "label": "needs-review",
-        "notes": null
+        "notes": "原始 repo 已經不在，授權無法核對。"
       },
       "weaknesses": "2026-11-21 時 GitHub repo 與 PyPI JSON API 都回 404，可能已刪除或改名；文章 6 月時約 32 星且下降中。",
       "alternatives": [
@@ -9531,9 +9531,9 @@
       "resources": "4B 模型；vocus 文章引官方說 4-bit 約需 2 GB 顯存。WSL 沒 GPU 時要用 CPU 推論，速度沒查。",
       "license": {
         "spdx": null,
-        "basis": "mem-agent repo 沒有 license（gh api none）；mem-agent-mcp 為 Apache-2.0；HF 模型卡 API 的 license 欄為空，vocus 文章說 HF 標 MIT",
+        "basis": "repo 根目錄沒有 LICENSE；Hugging Face 模型卡沒有 license 欄位（2026-11-27）",
         "label": "needs-review",
-        "notes": "模型權重授權要回模型卡核對。"
+        "notes": "程式與權重都找不到授權：只讀設計可以，其他用途要等作者補授權。"
       },
       "weaknesses": "研究 repo，2025-10 之後沒更新；md-memory-bench 是作者自己的 benchmark，以 o3 當 judge；搜尋摘要顯示總分 0.75，對 qwen3-235b 的 0.7857，Clarification 項只有 0.36。",
       "alternatives": [
@@ -9682,9 +9682,9 @@
       "resources": "Node 22＋（node:sqlite 實驗功能）；很輕。",
       "license": {
         "spdx": null,
-        "basis": "clone 下的根目錄沒有 LICENSE 檔，GitHub 顯示 none（0b4e819）",
+        "basis": "repo 根目錄沒有 LICENSE（2026-11-27）",
         "label": "needs-review",
-        "notes": "沒有授權等於預設保留所有權利。"
+        "notes": "沒有授權等於預設保留所有權利：只讀設計可以；另見建議清單的「暫不建議」。"
       },
       "weaknesses": "0 顆星，6 月後沒有更新。README 說用不同說法提問也能找到答案，但 hash embedding 只比對字詞，換說法就找不到。repo 內 commit 的 .pi/memory/logs/2026-06-28.md 是同一句使用者訊息被重複記錄十多次、助手回覆是空的，顯示擷取有重複與漏抓問題。",
       "alternatives": [
@@ -10285,9 +10285,9 @@
       "resources": null,
       "license": {
         "spdx": null,
-        "basis": "服務條款／社群版為 MIT（通識，未核對）",
+        "basis": "服務文件",
         "label": "needs-review",
-        "notes": null
+        "notes": "用的是 GitLab 的服務，適用服務條款；這次沒有讀條款。"
       },
       "weaknesses": "本輪只確認其存在，框架根目錄已有 .gitlab-ci.yml（45 B）。",
       "alternatives": [
@@ -10809,10 +10809,10 @@
       "security": null,
       "resources": "Python 套件，輕量。",
       "license": {
-        "spdx": "GPL-3.0／Apache-2.0／CC-BY-SA／CC0 混合（REUSE 專案自身採多授權；GitHub 回報 none）",
-        "basis": "GitHub 無單一授權；未讀 LICENSES 目錄",
-        "label": "needs-review",
-        "notes": null
+        "spdx": "GPL-3.0-or-later",
+        "basis": "README 與 LICENSES/（2026-11-27），GitHub 偵測不到",
+        "label": "conditional",
+        "notes": "GPL：當外部命令呼叫可以，不複製進框架；文件為 CC BY-SA 4.0。"
       },
       "weaknesses": "維護（gh api，2026-11-21）：最後 push 2026-11-01，archived=false，stars 596（不代表品質），GitHub 偵測授權 none。 只檢查標示是否齊全，不判斷授權是否相容或標示是否正確。",
       "alternatives": [
@@ -10834,7 +10834,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "fsfe/reuse-tool",
@@ -10872,10 +10872,10 @@
       "security": null,
       "resources": "Python 專案，需下載 release 或 pip；掃描大型 repo 耗 CPU 與時間，記憶體視檔案數而定。",
       "license": {
-        "spdx": "Apache-2.0（程式碼）；授權規則資料庫另有條款（需核對）",
-        "basis": "GitHub 回報 NOASSERTION；未讀 LICENSE／NOTICE",
-        "label": "needs-review",
-        "notes": null
+        "spdx": "Apache-2.0",
+        "basis": "apache-2.0.LICENSE 與 README（2026-11-27）",
+        "label": "usable",
+        "notes": "授權規則資料是 CC BY 4.0，複製資料時要標示出處。"
       },
       "weaknesses": "維護（gh api，2026-11-21）：最後 push 2026-11-20，archived=false，stars 2678（不代表品質），GitHub 偵測授權 NOASSERTION。 輸出龐大，需用 --json-pp 與 jq 篩選；偵測是機率式，仍需人工複核；README 提到的 nexB/scancode-toolkit 已搬到 aboutcode-org。",
       "alternatives": [
@@ -10899,7 +10899,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "aboutcode-org/scancode-toolkit",
@@ -11523,9 +11523,9 @@
       "security": null,
       "resources": "本機未裝；需要 kernel 支援 BPF 與 root，WSL2 預設 kernel 不一定開啟。",
       "license": {
-        "spdx": "Apache-2.0（通識，專案頁）",
-        "basis": "專案頁；未讀 LICENSE",
-        "label": "needs-review",
+        "spdx": "Apache-2.0",
+        "basis": "LICENSE（2026-11-27）",
+        "label": "usable",
         "notes": null
       },
       "weaknesses": "需要 root 與 BPF；在 WSL2 與 Docker 內常受限；腳本在 kernel 層執行，屬高權限操作；本輪沒實測也沒查最後更新時間。",
@@ -11548,7 +11548,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "bpftrace/bpftrace",
@@ -12479,9 +12479,9 @@
       "resources": "本機已裝：/usr/bin/hexdump、xxd、od。",
       "license": {
         "spdx": "BSD／Vim／GPL（各套件不同）",
-        "basis": "作業系統套件；未逐一讀授權",
-        "label": "needs-review",
-        "notes": null
+        "basis": "通識：各套件不同",
+        "label": "conditional",
+        "notes": "hexdump 屬 util-linux、od 屬 coreutils（GPL），xxd 隨 Vim 散布：當外部命令呼叫可以，不複製進框架。"
       },
       "weaknesses": "hexdump 預設以 16 位元為單位且受端序影響（不加 -C 時順序會顛倒）；xxd 與 hexdump 輸出格式不同，腳本要固定一個。",
       "alternatives": [
@@ -12503,7 +12503,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21"
+      "checked": "2026-11-27"
     },
     {
       "id": "hexyl",
@@ -12592,10 +12592,10 @@
       "security": "歷史上多次 delegate 與格式解析漏洞（如 ImageTragick，2016）；處理不可信圖檔建議保留預設 policy.xml 並限制 coder。",
       "resources": "本機未裝；大圖可能吃光記憶體，需 -limit memory 與 policy.xml。",
       "license": {
-        "spdx": "ImageMagick License（Apache 2.0 風格；GitHub 回報 NOASSERTION）",
-        "basis": "GitHub 偵測 NOASSERTION；LICENSE 為自有條款，未逐行讀",
-        "label": "needs-review",
-        "notes": null
+        "spdx": "ImageMagick",
+        "basis": "LICENSE（2026-11-27），GitHub 偵測不到",
+        "label": "conditional",
+        "notes": "ImageMagick License（近似 Apache-2.0）：散布時保留授權與 NOTICE。"
       },
       "weaknesses": "維護（gh api，2026-11-21）：最後 push 2026-11-21，archived=false，stars 17904（不代表品質），GitHub 偵測授權 NOASSERTION。 預設 policy.xml 常禁止 PDF／SVG 讀寫；記憶體與暫存碟用量高；語法在 6 與 7 版（convert／magick）間不同。",
       "alternatives": [
@@ -12617,7 +12617,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "ImageMagick/ImageMagick",
@@ -12890,9 +12890,9 @@
       "resources": "本機未裝（which ltrace 查無）。",
       "license": {
         "spdx": "GPL-2.0-or-later",
-        "basis": "專案頁（通識）；未讀 LICENSE",
-        "label": "needs-review",
-        "notes": null
+        "basis": "GitLab 專案授權欄位（2026-11-27）",
+        "label": "conditional",
+        "notes": "GPL：當外部命令呼叫可以，不複製進框架。"
       },
       "weaknesses": "維護停滯、對靜態連結或新版 glibc／PIE 的支援差；本輪未查最後更新時間。",
       "alternatives": [
@@ -12914,7 +12914,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21"
+      "checked": "2026-11-27"
     },
     {
       "id": "miller",
@@ -12941,9 +12941,9 @@
       "security": null,
       "resources": "本機未裝；Go 單一執行檔，串流處理，記憶體小。",
       "license": {
-        "spdx": "BSD-2-Clause（GitHub 回報 NOASSERTION，需核對）",
-        "basis": "GitHub 偵測 NOASSERTION；未讀 LICENSE",
-        "label": "needs-review",
+        "spdx": "BSD-2-Clause",
+        "basis": "LICENSE.txt（2026-11-27），GitHub 偵測不到",
+        "label": "usable",
         "notes": null
       },
       "weaknesses": "維護（gh api，2026-11-21）：最後 push 2026-11-20，archived=false，stars 10069（不代表品質），GitHub 偵測授權 NOASSERTION。 DSL 需要學；型別推斷預設會把 0xff、1e3 等當數字，要用 -S／-A 控制。",
@@ -12967,7 +12967,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "johnkerl/miller",
@@ -13054,9 +13054,9 @@
       "security": "describegpt 等 AI 命令會呼叫外部 LLM API，使用前確認資料是否外送。",
       "resources": "本機未裝；Rust 單一執行檔，有 luau、python 等可選功能編譯版。",
       "license": {
-        "spdx": "MIT／Unlicense 雙授權（GitHub 回報 NOASSERTION，需核對 LICENSE）",
-        "basis": "GitHub 偵測 NOASSERTION；README 未重讀授權段",
-        "label": "needs-review",
+        "spdx": "MIT",
+        "basis": "COPYING 與 LICENSE-MIT（2026-11-27）：以前是 Unlicense／MIT 雙授權，現在只有 MIT",
+        "label": "usable",
         "notes": null
       },
       "weaknesses": "維護（gh api，2026-11-21）：最後 push 2026-11-21，archived=false，stars 3836（不代表品質），GitHub 偵測授權 NOASSERTION。 功能很多、預設二進位有多種變體（qsv／qsvlite／qsvdp）；含 AI 命令，隱私邊界需自己管。",
@@ -13081,7 +13081,7 @@
           "note": "README 命令表；維護 gh api"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "dathere/qsv",
@@ -14262,10 +14262,10 @@
       "security": null,
       "resources": "輕量；上萬節點時排版慢。",
       "license": {
-        "spdx": null,
-        "basis": "這次未讀授權頁（官網 footer 只有 © The Graphviz Authors）",
-        "label": "needs-review",
-        "notes": null
+        "spdx": "EPL-2.0",
+        "basis": "GitLab 專案授權欄位（2026-11-27）",
+        "label": "conditional",
+        "notes": "EPL：當外部命令呼叫可以，修改後散布要公開修改。"
       },
       "weaknesses": "大圖幾乎無法閱讀；互動需另外處理。",
       "alternatives": [
@@ -14288,7 +14288,7 @@
           "note": "URL 屬性適用格式與元素"
         }
       ],
-      "checked": "2026-11-21"
+      "checked": "2026-11-27"
     },
     {
       "id": "kroki",
@@ -14944,7 +14944,7 @@
       "license": {
         "spdx": null,
         "basis": "GitHub 條款（通識）；每個 repo 以其 LICENSE 為準",
-        "label": "needs-review",
+        "label": "conditional",
         "notes": "沒有 LICENSE 的公開 repo 預設保留所有權利（不是公共領域）；repo 授權、相依套件授權、README 中素材與資料、issue 內容各自分開；GitHub API 偵測欄位可能是 NOASSERTION。"
       },
       "weaknesses": "stars 不是品質證明；API 有限速；repo 授權偵測結果不可當法律結論。",
@@ -14967,7 +14967,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21"
+      "checked": "2026-11-27"
     },
     {
       "id": "huggingface-datasets",
@@ -14997,7 +14997,7 @@
       "license": {
         "spdx": "Apache-2.0（datasets 函式庫程式碼）",
         "basis": "GitHub API 授權欄位（僅函式庫）",
-        "label": "needs-review",
+        "label": "conditional",
         "notes": "函式庫 Apache-2.0；每個資料集的授權由卡片的 license 欄位自行宣告（搜尋結果顯示該欄位是作者宣告的 metadata，未見 Hub 驗證其正確性），部分為 other 或空白，且資料集授權不等於其中個別素材的著作權。"
       },
       "weaknesses": "許多資料集授權欄位缺漏、錯誤或混合；gated dataset 需同意條款；爬取型資料集常含著作權內容。",
@@ -15021,7 +15021,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "huggingface/datasets",
@@ -15059,7 +15059,7 @@
       "license": {
         "spdx": "Apache-2.0（CLI 程式碼）",
         "basis": "GitHub API 授權欄位（僅 CLI）",
-        "label": "needs-review",
+        "label": "conditional",
         "notes": "每個資料集有各自授權（CC 系列、ODbL、Other 等）；競賽資料常限制為參賽用途；與 CLI 授權無關。"
       },
       "weaknesses": "授權欄位常為 Unknown 或 Other；競賽資料限制重新散布。",
@@ -15082,7 +15082,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "Kaggle/kaggle-cli",
@@ -15120,7 +15120,7 @@
       "license": {
         "spdx": "BSD-3-Clause（通識；GitHub 回報 NOASSERTION）",
         "basis": "未讀 LICENSE",
-        "label": "needs-review",
+        "label": "conditional",
         "notes": "每個資料集上傳時填 licence 欄位，由上傳者宣告；未驗證。"
       },
       "weaknesses": "資料集授權欄位品質不一；本輪未讀官方文件。",
@@ -15143,7 +15143,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "openml/openml-python",
@@ -15475,7 +15475,7 @@
       "license": {
         "spdx": "GPL-2.0（平台程式碼）",
         "basis": "GitHub API 授權欄位（平台程式碼，與紀錄內容無關）",
-        "label": "needs-review",
+        "label": "conditional",
         "notes": "平台程式碼授權與每筆紀錄的內容授權無關；紀錄授權由上傳者選擇，部分為 restricted／closed。"
       },
       "weaknesses": "授權欄位仍是上傳者自述；版本與 DOI 要記錄（concept DOI 與 version DOI 不同）。",
@@ -15497,7 +15497,7 @@
           "note": "README／官方頁與 gh api 維護狀態（2026-11-21）"
         }
       ],
-      "checked": "2026-11-21",
+      "checked": "2026-11-27",
       "github": {
         "archived": false,
         "full_name": "zenodo/zenodo",

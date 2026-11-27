@@ -22,5 +22,5 @@
 | [SWE-bench 系列](https://github.com/SWE-bench/SWE-bench) | 評測 | 3 | 可使用（MIT） | 2026-09-18 | 讀文件 | 用真實 GitHub issue 與 PR 測 coding agent 能否修好問題的 benchmark：full、Lite（300）、Verified（500，人工確認）、Multimodal（v2 有 480 題可本機跑）、Multilingual；v5 CLI 有 eval、report、infer。 |
 | [Terminal-Bench（與 Harbor）](https://github.com/harbor-framework/terminal-bench-1) | 評測 | 3 | 可使用（Apache-2.0） | 2026-07-11 | 讀文件 | 在真實終端沙箱裡測 agent 能否完成編譯、訓練模型、架服務等端到端工作。原 repo 改名 terminal-bench-1（約 100 題 beta），2.0 版改用 Harbor 框架執行。 |
 | [〈AI 成本優化：壓縮、路由、替換，Factory Router 帶來的不只是省錢〉](https://vocus.cc/article/6a2f761ffd89780001b51c13) | 文章 | 3 | 可使用 | — | 讀文件 | 把降低 AI 成本分成壓縮（headroom）、路由（OpenSquilla 規則式、Factory Router 依難度）、替換（deepclaude 換後端、ds4 本機 DeepSeek）三層，主張先診斷瓶頸再選策略。 |
-| [LoCoMo](https://github.com/snap-research/locomo) | 評測 | 4 | 需人工確認 | 2024-08-13 | 只有搜尋摘要 | Snap Research 的超長多 session 對話記憶 benchmark，是 Mem0、Zep 等記憶產品最常引用的分數來源。 |
+| [LoCoMo](https://github.com/snap-research/locomo) | 評測 | 4 | 有條件（CC-BY-NC-4.0） | 2024-08-13 | 只有搜尋摘要 | Snap Research 的超長多 session 對話記憶 benchmark，是 Mem0、Zep 等記憶產品最常引用的分數來源。 |
 <!-- /ecosystem -->

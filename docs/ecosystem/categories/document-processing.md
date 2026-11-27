@@ -25,8 +25,8 @@
 | [olmOCR（Allen AI）](https://github.com/allenai/olmocr) | 函式庫 | 3 | 可使用（Apache-2.0） | 2026-03-25 | 讀文件 | 以 7B 視覺語言模型逐頁把 PDF 轉成乾淨文字，處理公式、表格、手寫與老舊掃描；附 olmOCR-bench 評測與 Docker。 |
 | [pdf-inspector（Firecrawl）](https://github.com/firecrawl/pdf-inspector) | 函式庫 | 3 | 可使用（MIT） | 2026-11-21 | 只有搜尋摘要 | Rust 函式庫：偵測 PDF 是文字型還是掃描型並抽取文字，供路由決策。 |
 | [PyMuPDF（fitz）](https://github.com/pymupdf/PyMuPDF) | 函式庫 | 3 | 有條件（AGPL-3.0） | 2026-11-21 | 只有搜尋摘要 | MuPDF 的 Python 綁定：快速抽文字、座標、圖片、繪圖物件，編輯與標註 PDF，渲染頁面。 |
-| [pypdfium2（PDFium 的 Python 綁定）](https://github.com/pypdfium2-team/pypdfium2) | 函式庫 | 3 | 需人工確認（Apache-2.0／BSD-3-Clause（通識，需核對）） | 2026-11-14 | 只有搜尋摘要 | Google PDFium 的 Python 綁定：渲染頁面成影像、抽文字與座標。MinerU、Docling 都用它或 PDFium 系列做底層。 |
+| [pypdfium2（PDFium 的 Python 綁定）](https://github.com/pypdfium2-team/pypdfium2) | 函式庫 | 3 | 有條件（Apache-2.0 OR BSD-3-Clause） | 2026-11-14 | 只有搜尋摘要 | Google PDFium 的 Python 綁定：渲染頁面成影像、抽文字與座標。MinerU、Docling 都用它或 PDFium 系列做底層。 |
 | [qpdf](https://github.com/qpdf/qpdf) | CLI | 3 | 可使用（Apache-2.0） | 2026-09-26 | 只有搜尋摘要 | PDF 結構轉換與修復：解密、線性化、合併拆分頁面、檢查結構、輸出 JSON。 |
 | [unstructured](https://github.com/Unstructured-IO/unstructured) | 函式庫 | 3 | 可使用（Apache-2.0） | 2026-11-19 | 讀文件 | 把 PDF、HTML、Word、圖片等切成帶類型標記的元素（Title、NarrativeText、Table…）供 RAG 前處理；另有付費 Transform API。 |
-| [Nougat（Meta）](https://github.com/facebookresearch/nougat) | 函式庫 | 4 | 需人工確認（MIT（程式碼）；模型權重 CC-BY-NC 4.0（通識，需核對模型卡）） | 2025-02-21 | 讀文件 | 針對學術 PDF 的視覺 Transformer，直接輸出含 LaTeX 公式與表格的 Mathpix Markdown（.mmd）。 |
+| [Nougat（Meta）](https://github.com/facebookresearch/nougat) | 函式庫 | 4 | 有條件（MIT） | 2025-02-21 | 讀文件 | 針對學術 PDF 的視覺 Transformer，直接輸出含 LaTeX 公式與表格的 Mathpix Markdown（.mmd）。 |
 <!-- /ecosystem -->

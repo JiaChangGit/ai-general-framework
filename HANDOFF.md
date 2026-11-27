@@ -148,7 +148,7 @@ S22 量測（2026-11-23）：Opus 5.5 裝了框架多答對 17.9 個百分點，
 - **Raft 的 `traces check`** 加 `--after 7257862` 之後舊署名是 0，但還是會失敗：它的排除清單少 7 個型樣（`agf traces exclude --apply` 會補），而且追蹤著需求副本 `docs/reference/AGENTS.md`（要不要留由使用者決定）。
 - shm_ipc 追蹤著 4 個工具設定檔（2026-11-22 掃過沒有密鑰、本機路徑或 email）。使用者選擇維持原樣，只裝 hook。
 - 兩個專案都是舊配置：`project update` 不會更新它們的 commit-msg hook，判斷規則改了要各重跑一次 `traces hook --target <專案的絕對路徑> --apply`（給使用者時換成真實路徑）。
-- 資料庫裡 34 筆授權與幾個名稱待確認（`docs/ecosystem/recommendations.md`）；`skill-triggers.yml` 從未在 GitHub 上跑過（會花錢、要 API key）。
+- 資料庫裡還有 8 筆授權與幾個名稱待確認（2026-11-27 核對過 38 筆，見 `docs/ecosystem/recommendations.md`）；`skill-triggers.yml` 從未在 GitHub 上跑過（會花錢、要 API key）。
 - 已決定，不要再做：P5、P6；`save_prompts` 不開，量測也不為了讓題目通過而開；只存使用者核准過的教訓；guard hook 維持裝在工作區上一層。
 
 沒有在真實 session 觸發過的：續接 hook 的 PreCompact、PostCompact、StopFailure、PreModelSwitch。`align-with-me` 在 2026-11-19 第一次被使用者實際叫用，照 skill 寫的流程走完。`debug-root-cause` 新加的「先驗證前提、附證據」量過一次（`debug-wrong-premise`），兩組都做對，量不出作用。

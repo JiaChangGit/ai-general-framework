@@ -14,7 +14,7 @@ CI/CD、秘密掃描、相依漏洞、SBOM、GitHub Actions 的安全檢查、�
 | [OSV-Scanner](https://github.com/google/osv-scanner) | CLI | 2 | 可使用（Apache-2.0） | 2026-11-20 | 只有搜尋摘要 | 用 OSV.dev 資料庫比對鎖檔與 SBOM 中的相依漏洞。 |
 | [pre-commit](https://github.com/pre-commit/pre-commit) | CLI | 2 | 可使用（MIT） | 2026-11-09 | 只有搜尋摘要 | 管理 git hook 的框架，用 .pre-commit-config.yaml 指定各 repo 的 hook 與版本。 |
 | [Prompt injection 防護（實務與工具）](https://owasp.org/www-project-top-10-for-large-language-model-applications/) | 文章 | 2 | 可使用 | — | 只有搜尋摘要 | OWASP 的 LLM 應用 Top 10 把 prompt injection 列為首位風險；防護核心是權限最小化、把外部內容當資料、人工確認高風險動作。 |
-| [ScanCode Toolkit](https://github.com/aboutcode-org/scancode-toolkit) | CLI | 2 | 需人工確認（Apache-2.0（程式碼）；授權規則資料庫另有條款（需核對）） | 2026-11-20 | 只有搜尋摘要 | 掃描原始碼找出授權、著作權聲明與相依套件，輸出 JSON／SPDX／CycloneDX；AboutCode 專案（原 nexB）。 |
+| [ScanCode Toolkit](https://github.com/aboutcode-org/scancode-toolkit) | CLI | 2 | 可使用（Apache-2.0） | 2026-11-20 | 只有搜尋摘要 | 掃描原始碼找出授權、著作權聲明與相依套件，輸出 JSON／SPDX／CycloneDX；AboutCode 專案（原 nexB）。 |
 | [Snyk Agent Scan（原 mcp-scan）](https://github.com/snyk/agent-scan) | CLI | 2 | 有條件（Apache-2.0） | 2026-11-19 | 讀文件 | 發現本機的 agent 元件（harness、MCP server、skill）並掃描 prompt injection、敏感資料處理與惡意負載。 |
 | [Trivy](https://github.com/aquasecurity/trivy) | CLI | 2 | 有條件（Apache-2.0） | 2026-11-20 | 只有搜尋摘要 | 容器映像、檔案系統、IaC 與 SBOM 的漏洞、設定、祕密掃描器。 |
 | [act](https://github.com/nektos/act) | CLI | 3 | 可使用（MIT） | 2026-11-19 | 只有搜尋摘要 | 在本機用 Docker 執行 GitHub Actions workflow。 |
@@ -25,7 +25,7 @@ CI/CD、秘密掃描、相依漏洞、SBOM、GitHub Actions 的安全檢查、�
 | [OSS Review Toolkit（ORT）](https://github.com/oss-review-toolkit/ort) | CLI | 3 | 可使用（Apache-2.0） | 2026-11-20 | 只有搜尋摘要 | Kotlin／JVM 的供應鏈合規流水線：分析相依（analyzer）→ 掃描授權（scanner，可接 ScanCode）→ 評估規則（evaluator）→ 報告（reporter）。 |
 | [OWASP Dependency-Check](https://github.com/dependency-check/DependencyCheck) | CLI | 3 | 可使用（Apache-2.0） | 2026-11-20 | 只有搜尋摘要 | 以 CPE 比對相依與 NVD 漏洞，Java 生態成熟。 |
 | [Renovate](https://github.com/renovatebot/renovate) | 服務 | 3 | 有條件（AGPL-3.0） | 2026-11-21 | 只有搜尋摘要 | 自動開 PR 更新相依與 GitHub Actions 的 SHA；可自架或用 Mend 託管 app。 |
-| [REUSE（fsfe/reuse-tool）](https://github.com/fsfe/reuse-tool) | CLI | 3 | 需人工確認（GPL-3.0／Apache-2.0／CC-BY-SA／CC0 混合（REUSE 專案自身採多授權；GitHub 回報 none）） | 2026-11-01 | 只有搜尋摘要 | FSFE 的 REUSE 規範工具：檢查每個檔案都有 SPDX-License-Identifier 與著作權標頭，lint 並產生 SPDX 物料清單。 |
+| [REUSE（fsfe/reuse-tool）](https://github.com/fsfe/reuse-tool) | CLI | 3 | 有條件（GPL-3.0-or-later） | 2026-11-01 | 只有搜尋摘要 | FSFE 的 REUSE 規範工具：檢查每個檔案都有 SPDX-License-Identifier 與著作權標頭，lint 並產生 SPDX 物料清單。 |
 | [Semgrep（CE）](https://github.com/semgrep/semgrep) | CLI | 3 | 有條件（LGPL-2.1） | 2026-11-20 | 只有搜尋摘要 | 以語法樹模式比對的靜態分析，規則用 YAML 寫，支援多語言。 |
 | [Syft 與 Grype（Anchore）](https://github.com/anchore/syft) | CLI | 3 | 可使用（Apache-2.0） | 2026-11-20 | 只有搜尋摘要 | Syft 產生 SBOM（SPDX、CycloneDX）；Grype 用 SBOM 或映像找漏洞。 |
 | [〈你知道嗎：vibe coding 做的 app，資安要從哪裡顧起？〉（人蔘 Try Catch ep091）](https://ginseng.dnplus.dev/blog/ep091) | 文章 | 3 | 可使用 | — | 讀文件 | 用永豐銀行、91APP、幣安三起 2026 事件講資安三段（事前、事中、事後）與三個 A（認證、授權、稽核）；示範每講一個名詞就跑一次 pstack 的 teach，讓 AI 用自己的專案（PA Cafe）舉例。 |
