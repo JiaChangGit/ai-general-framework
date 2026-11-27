@@ -1,0 +1,1562 @@
+{
+ "model": "claude-opus-5-5",
+ "switch_model": null,
+ "review_model": null,
+ "tools": "Read Grep Glob Edit Write Skill",
+ "skills": [
+  "align-with-me",
+  "debug-root-cause",
+  "guide-learning",
+  "read-research",
+  "review-change",
+  "review-sql",
+  "trace-code"
+ ],
+ "hooks": null,
+ "tasks_sha256": "8b5dbfeff7f9503b87fc31b4d99b5ffd561c03ad5394efaac725d4308c6221e7",
+ "confinement": "s22",
+ "cli_version": "2.1.325",
+ "framework_commit": "a4d082c2dbcb6ee89f67d55e969214c871433fe6",
+ "spent_usd": 6.966252,
+ "stopped": true,
+ "runs": [
+  {
+   "task": "handoff-kconfig-gateway",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "rx-ring": true,
+    "budget": true,
+    "offload": true,
+    "irq": true,
+    "debugfs": true
+   },
+   "setup_sha256": "1c08e8bab468a5fe27f7696474840a6737047129a96fba52c5c0a5f4ace022ff",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.1501752,
+     "first_context_tokens": 11432,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 11005,
+     "cache_read_input_tokens": 44516,
+     "output_tokens": 2660,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.1413986,
+     "first_context_tokens": 11327,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10045,
+     "cache_read_input_tokens": 58393,
+     "output_tokens": 2466,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-voice-sheet",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "exclude": true,
+    "order": true,
+    "cue": true,
+    "rate": true,
+    "takes": true
+   },
+   "setup_sha256": "1e3a7723d17e087626f6209e97a6db3623f94599c75ecd69794de318361e93c4",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.1632848,
+     "first_context_tokens": 11465,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 11652,
+     "cache_read_input_tokens": 59844,
+     "output_tokens": 2903,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.1456164,
+     "first_context_tokens": 11327,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10239,
+     "cache_read_input_tokens": 58522,
+     "output_tokens": 2598,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-orders-api",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "page-zero": true,
+    "default-size": true,
+    "max-size": true,
+    "order": true,
+    "no-cancelled": true
+   },
+   "setup_sha256": "0e668c0b298c6cead45a0025a821d6229281322a9de0b0bef9bea90f3146d6f3",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.1745636,
+     "first_context_tokens": 11428,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 12589,
+     "cache_read_input_tokens": 77718,
+     "output_tokens": 2913,
+     "skills_used": [
+      "debug-root-cause"
+     ]
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.1779068,
+     "first_context_tokens": 11323,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 11136,
+     "cache_read_input_tokens": 58394,
+     "output_tokens": 3855,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-locale-defaults",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "week": true,
+    "date": true,
+    "clock": true,
+    "money": true,
+    "zone": true
+   },
+   "setup_sha256": "48660f7061805f0dcd8703a82411f84d98f6a00487515c0246113cc8f0ab15ed",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.1166014,
+     "first_context_tokens": 11437,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 8297,
+     "cache_read_input_tokens": 53927,
+     "output_tokens": 1970,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.14993599999999999,
+     "first_context_tokens": 11337,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 13007,
+     "cache_read_input_tokens": 47040,
+     "output_tokens": 1822,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-backtest-summary",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "year": true,
+    "warmup": true,
+    "minimum": true,
+    "win": true,
+    "worst": true
+   },
+   "setup_sha256": "d74ea2777106e8b52ef6123b7e1a8508d1d795e9a6fec20f894960b361bfc178",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.16392599999999996,
+     "first_context_tokens": 11434,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 11656,
+     "cache_read_input_tokens": 60490,
+     "output_tokens": 2927,
+     "skills_used": [
+      "debug-root-cause"
+     ]
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.1547366,
+     "first_context_tokens": 11329,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10153,
+     "cache_read_input_tokens": 57763,
+     "output_tokens": 3096,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-figure-style",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "gray": true,
+    "font": true,
+    "size": true,
+    "width": true,
+    "error": true
+   },
+   "setup_sha256": "8c25d9fcbd6b7c506460c464787349fce8f98c1bc3c72dd78edf987f60548da6",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.16066960000000002,
+     "first_context_tokens": 11425,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 12029,
+     "cache_read_input_tokens": 61088,
+     "output_tokens": 2609,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.12916719999999998,
+     "first_context_tokens": 11324,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 9196,
+     "cache_read_input_tokens": 56496,
+     "output_tokens": 2213,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-rust-retry",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "attempts": true,
+    "base": true,
+    "cap": true,
+    "jitter": true,
+    "statuses": true
+   },
+   "setup_sha256": "0c8efbe25246207c9dd90cb3759eca1b4f7d8b0fbd843cb72dec079f0f2d2e84",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.12915680000000002,
+     "first_context_tokens": 11411,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 9612,
+     "cache_read_input_tokens": 43044,
+     "output_tokens": 2181,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.1348274,
+     "first_context_tokens": 11324,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 9725,
+     "cache_read_input_tokens": 57837,
+     "output_tokens": 2271,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-experiment-plan",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "metric": true,
+    "repeats": true,
+    "warmup": true,
+    "host": true,
+    "void": true
+   },
+   "setup_sha256": "e676d63fd13ffc59d3cb6a47077f8c3fdbe0198c85b57aa4114c33c63a1253e7",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.1347578,
+     "first_context_tokens": 11421,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 10070,
+     "cache_read_input_tokens": 45329,
+     "output_tokens": 2255,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.1502268,
+     "first_context_tokens": 11334,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 11589,
+     "cache_read_input_tokens": 44914,
+     "output_tokens": 2425,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-led-states",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "boot": true,
+    "updating": true,
+    "error": true,
+    "brightness": true,
+    "battery": true
+   },
+   "setup_sha256": "3355d8bf8ed3618f5bc8a1d5af0c18bca0d0df07f9a475e6574dc2af21ecae8e",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 11,
+     "cost_usd": 0.1784448,
+     "first_context_tokens": 11433,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 13242,
+     "cache_read_input_tokens": 63644,
+     "output_tokens": 2987,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.1631518,
+     "first_context_tokens": 11324,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 13727,
+     "cache_read_input_tokens": 47819,
+     "output_tokens": 2187,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-experiment-plan",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "metric": true,
+    "repeats": true,
+    "warmup": true,
+    "host": true,
+    "void": true
+   },
+   "setup_sha256": "e676d63fd13ffc59d3cb6a47077f8c3fdbe0198c85b57aa4114c33c63a1253e7",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.1375392,
+     "first_context_tokens": 11429,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 10090,
+     "cache_read_input_tokens": 45336,
+     "output_tokens": 2386,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.142951,
+     "first_context_tokens": 11342,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 10729,
+     "cache_read_input_tokens": 44035,
+     "output_tokens": 2414,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-kconfig-gateway",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "rx-ring": true,
+    "budget": true,
+    "offload": true,
+    "irq": true,
+    "debugfs": true
+   },
+   "setup_sha256": "1c08e8bab468a5fe27f7696474840a6737047129a96fba52c5c0a5f4ace022ff",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.1470826,
+     "first_context_tokens": 11436,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10059,
+     "cache_read_input_tokens": 55453,
+     "output_tokens": 2774,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.14402399999999999,
+     "first_context_tokens": 11331,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10237,
+     "cache_read_input_tokens": 58440,
+     "output_tokens": 2520,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-figure-style",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": false,
+   "items": {
+    "gray": false,
+    "font": false,
+    "size": false,
+    "width": false,
+    "error": false
+   },
+   "setup_sha256": "8c25d9fcbd6b7c506460c464787349fce8f98c1bc3c72dd78edf987f60548da6",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.15628019999999998,
+     "first_context_tokens": 11425,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 11209,
+     "cache_read_input_tokens": 60641,
+     "output_tokens": 2722,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.18545,
+     "first_context_tokens": 11324,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 11697,
+     "cache_read_input_tokens": 76230,
+     "output_tokens": 3829,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-locale-defaults",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "week": true,
+    "date": true,
+    "clock": true,
+    "money": true,
+    "zone": true
+   },
+   "setup_sha256": "48660f7061805f0dcd8703a82411f84d98f6a00487515c0246113cc8f0ab15ed",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.12339399999999999,
+     "first_context_tokens": 11437,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 9005,
+     "cache_read_input_tokens": 56270,
+     "output_tokens": 2003,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.10962259999999999,
+     "first_context_tokens": 11337,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 8680,
+     "cache_read_input_tokens": 42753,
+     "output_tokens": 1580,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-rust-retry",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "attempts": true,
+    "base": true,
+    "cap": true,
+    "jitter": true,
+    "statuses": true
+   },
+   "setup_sha256": "0c8efbe25246207c9dd90cb3759eca1b4f7d8b0fbd843cb72dec079f0f2d2e84",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.1290938,
+     "first_context_tokens": 11411,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 9618,
+     "cache_read_input_tokens": 43089,
+     "output_tokens": 2175,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.1442886,
+     "first_context_tokens": 11324,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10211,
+     "cache_read_input_tokens": 58303,
+     "output_tokens": 2545,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-orders-api",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "page-zero": true,
+    "default-size": true,
+    "max-size": true,
+    "order": true,
+    "no-cancelled": true
+   },
+   "setup_sha256": "0e668c0b298c6cead45a0025a821d6229281322a9de0b0bef9bea90f3146d6f3",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.16251279999999999,
+     "first_context_tokens": 11432,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 11740,
+     "cache_read_input_tokens": 61764,
+     "output_tokens": 2810,
+     "skills_used": [
+      "debug-root-cause"
+     ]
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.1584494,
+     "first_context_tokens": 11327,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10528,
+     "cache_read_input_tokens": 58627,
+     "output_tokens": 3123,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-backtest-summary",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "year": true,
+    "warmup": true,
+    "minimum": true,
+    "win": true,
+    "worst": true
+   },
+   "setup_sha256": "d74ea2777106e8b52ef6123b7e1a8508d1d795e9a6fec20f894960b361bfc178",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.141221,
+     "first_context_tokens": 11430,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 10256,
+     "cache_read_input_tokens": 45405,
+     "output_tokens": 2503,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.1519354,
+     "first_context_tokens": 11325,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10874,
+     "cache_read_input_tokens": 59617,
+     "output_tokens": 2649,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-led-states",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "boot": true,
+    "updating": true,
+    "error": true,
+    "brightness": true,
+    "battery": true
+   },
+   "setup_sha256": "3355d8bf8ed3618f5bc8a1d5af0c18bca0d0df07f9a475e6574dc2af21ecae8e",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.1555804,
+     "first_context_tokens": 11429,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 11008,
+     "cache_read_input_tokens": 44622,
+     "output_tokens": 2928,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.17465879999999998,
+     "first_context_tokens": 11320,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 15073,
+     "cache_read_input_tokens": 63634,
+     "output_tokens": 2065,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "handoff-voice-sheet",
+   "kind": "handoff",
+   "negative": false,
+   "group": "framework",
+   "repeat": 1,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "exclude": true,
+    "order": true,
+    "cue": true,
+    "rate": true,
+    "takes": true
+   },
+   "setup_sha256": "1e3a7723d17e087626f6209e97a6db3623f94599c75ecd69794de318361e93c4",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 9,
+     "cost_usd": 0.1553076,
+     "first_context_tokens": 11469,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10746,
+     "cache_read_input_tokens": 58798,
+     "output_tokens": 2877,
+     "skills_used": []
+    },
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.14107979999999998,
+     "first_context_tokens": 11331,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10073,
+     "cache_read_input_tokens": 58479,
+     "output_tokens": 2438,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-ask-irqstat-min",
+   "kind": "ask",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "filters": true,
+    "inclusive": true,
+    "default": true,
+    "scope": true,
+    "no-question": true
+   },
+   "setup_sha256": "ef9440e689f8901f2c938eef2f414320dce923d492e93d4b7f7eb959ab96a96b",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 4,
+     "cost_usd": 0.0779582,
+     "first_context_tokens": 11337,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 6918,
+     "cache_read_input_tokens": 28851,
+     "output_tokens": 841,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-evidence-heartbeat",
+   "kind": "evidence",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "fixed": true,
+    "reset-kept": true,
+    "scope": true,
+    "no-doubt": true,
+    "no-question": true
+   },
+   "setup_sha256": "b5a7be088674c5be91115683bf940d9c6725f52d4b8dc0fd824d9aa7e0388ddd",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.0999892,
+     "first_context_tokens": 11375,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 8001,
+     "cache_read_input_tokens": 42446,
+     "output_tokens": 1373,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-handoff-node-bump",
+   "kind": "handoff",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "setup_sha256": "269b2e3ac19317100880397279a37ed9c05afd71d5783b1672a3f976c453e27b",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 2,
+     "cost_usd": 0.048619800000000005,
+     "first_context_tokens": 11339,
+     "tools_listed": 6,
+     "input_tokens": 2,
+     "cache_creation_input_tokens": 5798,
+     "cache_read_input_tokens": 5539,
+     "output_tokens": 56,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-judgement-refactor",
+   "kind": "judgement",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "setup_sha256": "469d93f28c54c49f31345454d988381eca69b61845c9e9d0f201173fa32d56c4",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.0839694,
+     "first_context_tokens": 11403,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 7954,
+     "cache_read_input_tokens": 29067,
+     "output_tokens": 725,
+     "skills_used": [
+      "review-change"
+     ]
+    }
+   ]
+  },
+  {
+   "task": "neg-ask-rename-item",
+   "kind": "ask",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "definition": true,
+    "recipes": true,
+    "script": true,
+    "string-key": true,
+    "no-question": true
+   },
+   "setup_sha256": "ff2ae30bafff6915f2552b1b459f6b7b9375d6f697662722f3cdf11175ba71c3",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 12,
+     "cost_usd": 0.1418688,
+     "first_context_tokens": 11382,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10393,
+     "cache_read_input_tokens": 59124,
+     "output_tokens": 2343,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-handoff-regs-json",
+   "kind": "handoff",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "names": true,
+    "offsets": true,
+    "access": true,
+    "resets": true,
+    "no-extra": true
+   },
+   "setup_sha256": "ff4f8f5f50737d499b4fed45528db4b3df3ac6e284133a3c74acb16bfb0f23cb",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 3,
+     "cost_usd": 0.084604,
+     "first_context_tokens": 11351,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 7753,
+     "cache_read_input_tokens": 27480,
+     "output_tokens": 853,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-handoff-node-bump",
+   "kind": "handoff",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "image": true,
+    "key": true,
+    "test-job": true,
+    "steps": true,
+    "no-extra": true
+   },
+   "setup_sha256": "269b2e3ac19317100880397279a37ed9c05afd71d5783b1672a3f976c453e27b",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 6,
+     "cost_usd": 0.0969298,
+     "first_context_tokens": 11331,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 8131,
+     "cache_read_input_tokens": 62969,
+     "output_tokens": 962,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "neg-judgement-refactor",
+   "kind": "judgement",
+   "negative": true,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "approved": true,
+    "no-defect": true,
+    "same-output": true,
+    "callers": true,
+    "scope": true
+   },
+   "setup_sha256": "469d93f28c54c49f31345454d988381eca69b61845c9e9d0f201173fa32d56c4",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 10,
+     "cost_usd": 0.1390822,
+     "first_context_tokens": 11387,
+     "tools_listed": 6,
+     "input_tokens": 12,
+     "cache_creation_input_tokens": 10994,
+     "cache_read_input_tokens": 70911,
+     "output_tokens": 1845,
+     "skills_used": [
+      "review-change"
+     ]
+    }
+   ]
+  },
+  {
+   "task": "ask-backtest-costs",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "engine-left": true,
+    "ask-cost": true,
+    "ask-stop-size": true,
+    "ask-stop-base": true,
+    "ask-stop-fill": true
+   },
+   "setup_sha256": "e9d553db2ff7415ef10b570f3af3c5f7dcae0aebd03f13dc55ce3f7f9c985659",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.1073344,
+     "first_context_tokens": 11337,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 7792,
+     "cache_read_input_tokens": 29172,
+     "output_tokens": 1957,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-prune-artifacts",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "report-sorted": true,
+    "rules-left": true,
+    "ask-kinds": true,
+    "ask-limit": true,
+    "ask-action": true
+   },
+   "setup_sha256": "586f4c998870be07f65010df4463fe8250a0f13129283a724e3203dc5a4dc70b",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 8,
+     "cost_usd": 0.12348279999999999,
+     "first_context_tokens": 11367,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 9013,
+     "cache_read_input_tokens": 43234,
+     "output_tokens": 2135,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-rust-sync",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "depth": true,
+    "sync-left": true,
+    "ask-direction": true,
+    "ask-conflict": true,
+    "ask-deletion": true
+   },
+   "setup_sha256": "2debf713a0b1c783fcc374fd6d3d0b6315733f1f16fa1a2a9e02d97c59948070",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.16154019999999997,
+     "first_context_tokens": 11377,
+     "tools_listed": 6,
+     "input_tokens": 10,
+     "cache_creation_input_tokens": 10359,
+     "cache_read_input_tokens": 58341,
+     "output_tokens": 3348,
+     "skills_used": [
+      "align-with-me"
+     ]
+    }
+   ]
+  },
+  {
+   "task": "ask-firmware-failsafe",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "crc-name": true,
+    "control-left": true,
+    "ask-threshold": true,
+    "ask-safe-state": true,
+    "ask-recovery": true
+   },
+   "setup_sha256": "c0c55b52e4b9b06637e4e6ba59d41e9d2da7efca007f09e7b59fa6910493cf4c",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.12302779999999999,
+     "first_context_tokens": 11348,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 8848,
+     "cache_read_input_tokens": 42859,
+     "output_tokens": 2182,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-render-jobs",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "jobs-left": true,
+    "ask-raster": true,
+    "ask-fps": true,
+    "ask-subtitles": true,
+    "ask-duration": true
+   },
+   "setup_sha256": "1fa00fa56c18353fef6a03ec7310eff4d6586bd0de9202f3382b24dab9ee1255",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 5,
+     "cost_usd": 0.16022920000000002,
+     "first_context_tokens": 11336,
+     "tools_listed": 6,
+     "input_tokens": 6,
+     "cache_creation_input_tokens": 11974,
+     "cache_read_input_tokens": 29666,
+     "output_tokens": 2924,
+     "skills_used": []
+    }
+   ]
+  },
+  {
+   "task": "ask-account-delete",
+   "kind": "ask",
+   "negative": false,
+   "group": "framework",
+   "repeat": 0,
+   "position": 0,
+   "passed": true,
+   "items": {
+    "backend-left": true,
+    "ask-mode": true,
+    "ask-posts": true,
+    "ask-invoices": true,
+    "ask-owner": true
+   },
+   "setup_sha256": "fbac11dad8a5300e3d52d041378d53620c1e905e16c5a54dcd44e465f0b233bc",
+   "outside_reads": 0,
+   "parts": [
+    {
+     "model": "claude-opus-5-5",
+     "served": [
+      "claude-opus-5-5"
+     ],
+     "cli_version": "2.1.325",
+     "subtype": "success",
+     "failed": null,
+     "turns": 7,
+     "cost_usd": 0.13859639999999998,
+     "first_context_tokens": 11332,
+     "tools_listed": 6,
+     "input_tokens": 8,
+     "cache_creation_input_tokens": 9846,
+     "cache_read_input_tokens": 42882,
+     "output_tokens": 2561,
+     "skills_used": [
+      "align-with-me"
+     ]
+    }
+   ]
+  }
+ ]
+}
