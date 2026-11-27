@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 import sys
 import tempfile
+import time
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -276,6 +277,17 @@ class TaskCheckTests(unittest.TestCase):
         # Tied to a topic the quote does not mention, the cue still earns the item.
         task["checks"]["items"][4]["answer"] = [r"(?:請問|回[「『]?照建議)[\s\S]*(逾時|timeout)"]
         self.assertEqual(taskcheck.echoes(task, rules), ["i1: 照建議", "i2: 記下了", "i4: 照建議"])
+
+    def test_a_pattern_that_backtracks_for_ever_is_reported_not_waited_for(self):
+        task = self.task()
+        task["checks"]["items"][0]["answer"] = ["(a+)+$"]
+        rules = {"skill.md": "「" + "a" * 40 + "!」"}
+        started = time.monotonic()
+        found = taskcheck.echoes_bounded(task, rules, timeout=2)
+        self.assertLess(time.monotonic() - started, 30)
+        self.assertEqual(len(found), 1)
+        self.assertIn("did not finish", found[0])
+        self.assertEqual(taskcheck.echoes_bounded(self.task(), rules, timeout=20), [])
 
     def test_short_coaching_is_listed_even_where_no_rule_is_quoted(self):
         task = self.task()

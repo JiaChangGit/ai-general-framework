@@ -493,7 +493,7 @@ def _session(args, out, cli, work, model, prompt, name, ledger, given, env, expe
     elif result.get("is_error") and SUBJECT_ERROR.search(str(result.get("text"))):
         failed = "the session broke off on the subject's own error"
     estimated = cost is None
-    cost = args.budget if estimated else cost
+    cost = ledger.hold if estimated else cost  # what the ledger charged for it
     planned_cut = bool(extra) and result.get("subtype") == "error_max_turns"
     part = {"model": model, "served": summary["models"], "cli_version": summary["version"], **({"review": True} if review else {}), "exit": code, "subtype": result.get("subtype"),
             "planned_cut": planned_cut, "failed": failed, "turns": result.get("turns"), "cost_usd": cost,

@@ -86,10 +86,14 @@ class AuditTests(unittest.TestCase):
         self.assertRegex(text, r"- which: judge A says (holds|fails), judge B says (holds|fails)")
         self.assertNotIn("program", text)
         self.assertNotIn("- left:", text.split("## disputed items")[1])
+        # The program never says unclear, so a pair with "unclear" in it would tell which one is the program.
+        unsure = (referee_packet / f"{framework}.md").read_text(encoding="utf-8").split("## disputed items")[1]
+        self.assertIn("- which: decide it yourself; no earlier verdict is shown", unsure)
+        self.assertNotIn("unclear", unsure)
         referee = self.root / "referee.jsonl"
         referee.write_text(lines((control, "which", ruling), (framework, "which", "unclear")), encoding="utf-8")
         audit.settle(self.packet, [reader], referee_packet, [referee], [self.folder / "results.json"], self.root / "settled")
-        return json.loads((self.root / "settled/results.audited.json").read_text(encoding="utf-8"))
+        return json.loads((self.root / "settled/stage-results.audited.json").read_text(encoding="utf-8"))
 
     def test_the_referee_decides_and_an_unclear_ruling_leaves_the_program_verdict(self):
         data = self.settle_with("holds")
@@ -102,6 +106,17 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(summary["by_cell"]["ask/control"], {"items": 2, "program_wrong": 1})
         self.assertEqual(summary["reader_differs_from_final"], 1)
 
+    def test_results_files_with_the_same_name_do_not_overwrite_each_other(self):
+        self.settle_with("holds")
+        twin = self.root / "other/stage"
+        twin.mkdir(parents=True)
+        (twin / "results.json").write_text((self.folder / "results.json").read_text(encoding="utf-8"), encoding="utf-8")
+        reader, referee = self.root / "reader.jsonl", self.root / "referee.jsonl"
+        with self.assertRaises(SystemExit) as stop:
+            audit.settle(self.packet, [reader], self.root / "audit/referee", [referee],
+                         [self.folder / "results.json", twin / "results.json"], self.root / "settled-twice")
+        self.assertIn("same name", str(stop.exception))
+
     def test_a_referee_who_sides_with_the_program_changes_nothing(self):
         data = self.settle_with("fails")
         control = [row for row in data["runs"] if row["group"] == "control" and not row["negative"]][0]
@@ -109,14 +124,16 @@ class AuditTests(unittest.TestCase):
 
     @unittest.skipIf(sys.platform == "win32", "the stand-in CLI is a POSIX script")
     def test_ask_runs_the_cli_per_batch_without_stdin_and_cleans_its_stage(self):
-        fake = self.root / "codex"
+        fake, calls = self.root / "codex", str(self.root / "calls.txt")
         fake.write_text(f"""#!{sys.executable}
 import json, re, sys
 assert sys.stdin.read() == ""  # a CLI that waits for input would hang here
 args = sys.argv[1:]
 assert args[:2] == ["exec", "-m"] and "read-only" in args
 root, out, prompt = args[args.index("-C") + 1], args[args.index("-o") + 1], args[-1]
-with open(root + "/calls.txt", "a") as calls:
+import os
+assert not os.path.exists(os.path.join(root, "..", "keys")), "the keys sit next to the folder the reader works in"
+with open({calls!r}, "a") as calls:
     calls.write(prompt + "\\n")
 pages = re.findall(r"(p\\d+)\\.md", prompt)
 assert all(__import__("os").path.exists(root + "/" + page + ".md") for page in pages)
@@ -133,7 +150,10 @@ with open(out, "w") as answer:
         self.assertEqual(got, ["p01", "p02"])
         self.assertEqual(list(stage_dir.iterdir()), [])
         audit.ask(self.packet, self.root / "asked/again.jsonl", str(fake), "m", "high", batch=5, jobs=1, stage=None, timeout=60)
-        self.assertEqual(len((self.packet / "calls.txt").read_text(encoding="utf-8").splitlines()), 1)
+        self.assertEqual(len((self.root / "calls.txt").read_text(encoding="utf-8").splitlines()), 3)
+        self.assertEqual(sorted(path.name for path in (self.root / "asked").iterdir() if "batch" in path.name), [])
+        with self.assertRaises(SystemExit):  # a Windows CLI cannot read a WSL temp folder
+            audit.ask(self.packet, self.root / "asked/exe.jsonl", "codex.exe", "m", "high", batch=5, jobs=1, stage=None, timeout=60)
 
     def test_the_command_line_runs_the_steps(self):
         result = subprocess.run([sys.executable, "-B", str(Path(audit.__file__)), "pages", str(self.folder), "--tasks", str(self.tasks),

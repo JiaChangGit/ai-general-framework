@@ -21,6 +21,7 @@ import argparse
 import json
 from pathlib import Path, PurePosixPath
 import re
+import subprocess
 import sys
 import tempfile
 
@@ -40,6 +41,7 @@ COACHING = re.compile(
     r"|不要假|誠實|本次範圍|不推送|不部署|handoff|hand-over|checkpoint|ask me|don't guess|minimal (change|diff)", re.IGNORECASE)
 TOKEN = re.compile(r"[㐀-鿿]|[a-z0-9_]+")
 QUOTED = re.compile(r"「[^」\n]{2,60}」|『[^』\n]{2,60}』")
+ECHO_DEADLINE = 30.0  # seconds for one task
 ECHO = 3.0  # of a quoted phrase a pattern has to match, counted as LEAK counts: three Chinese characters or two words
 
 
@@ -210,6 +212,18 @@ def echoes(task: dict, rules: dict[str, str]) -> list[str]:
     return found
 
 
+def echoes_bounded(task: dict, rules: dict[str, str], timeout: float = ECHO_DEADLINE) -> list[str]:
+    """echoes() in a child process: a grading pattern can backtrack for ever on the rules' text."""
+    try:
+        done = subprocess.run([sys.executable, "-I", "-B", str(Path(__file__).resolve()), "--echoes"],
+                              input=json.dumps({"task": task, "rules": rules}).encode("utf-8"), capture_output=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return [f"the check against the rules' quotes did not finish in {timeout:g} s: a grading pattern may backtrack for ever"]
+    if done.returncode != 0:
+        return ["the check against the rules' quotes failed: " + done.stderr.decode("utf-8", "replace").strip()[-200:]]
+    return json.loads(done.stdout)
+
+
 def coaching(task: dict) -> list[str]:
     """Short ways to tell a subject how to work, quoted from the rules or not."""
     return [found.group(0) for part in task["parts"] for found in COACHING.finditer(part["prompt"])]
@@ -243,7 +257,7 @@ def main() -> int:
         if rules:
             problems += [f"shared with the rules: {text}" for text in leaks(tasks[name], rules)]
             problems += [f"coaching: {text}" for text in coaching(tasks[name])]
-            problems += [f"grading rewards a phrase the rules quote: {text}" for text in echoes(tasks[name], rules)]
+            problems += [f"grading rewards a phrase the rules quote: {text}" for text in echoes_bounded(tasks[name], rules)]
         bad += bool(problems)
         for problem in problems:
             print(f"{name}: {problem}")
@@ -252,4 +266,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if sys.argv[1:] == ["--echoes"]:  # the child of echoes_bounded
+        given = json.loads(sys.stdin.buffer.read().decode("utf-8"))
+        sys.stdout.write(json.dumps(echoes(given["task"], given["rules"]), ensure_ascii=False))
+        raise SystemExit(0)
     raise SystemExit(main())

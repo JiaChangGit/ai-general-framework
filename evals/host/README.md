@@ -85,8 +85,8 @@ python evals/host/impact.py report /tmp/agf-impact-out
 抽樣看截斷的摘錄撐不起「判錯 0 項」（[V 報告](../../studies/research-2026-11/V-s22-review.md)）。要用來下結論的類別，改由另一個讀者讀完整頁面逐項重判：
 
 1. `audit.py pages 輸出目錄… --tasks 題目檔 --to 空目錄 --kinds ask,handoff`：每次執行一頁，遮掉組別，不放程式的判定，每項只留說明，另附判斷說明 `INSTRUCTIONS.md`。key（組別與程式的判定）放在旁邊的 `keys/`，不放進頁面目錄。
-2. `audit.py ask 頁面目錄 --out 讀者.jsonl --codex codex 的路徑 --model gpt-6-luna`：叫 Codex CLI 在唯讀沙箱裡分批讀，stdin 關掉（不然它會等輸入）。從 WSL 叫 Windows 的 `codex.exe` 時加 `--stage-dir` 指到 Windows 的暫存目錄：每批先複製過去，用完刪掉，路徑也會換成 Windows 的寫法。也可以不用這一步，由人或別的模型照 `INSTRUCTIONS.md` 寫出同樣格式的 JSON 行。
-3. `audit.py compare 頁面目錄 --reader 讀者.jsonl --to 空目錄`：每一頁每一項都要剛好一個判定。和程式不同或「看不出來」的，做成給裁決者的頁面：兩個判定標成 A、B，順序隨機，不說哪個是程式的。
+2. `audit.py ask 頁面目錄 --out 讀者.jsonl --codex codex 的路徑 --model gpt-6-luna`：叫 Codex CLI 在唯讀沙箱裡分批讀，stdin 關掉（不然它會等輸入）。每批先複製到一個新的暫存資料夾，旁邊沒有 key，用完刪掉。從 WSL 叫 Windows 的 `codex.exe` 時要加 `--stage-dir` 指到 Windows 的暫存目錄，路徑也會換成 Windows 的寫法。唯讀沙箱仍然讀得到磁碟上的其他檔，所以這只防得住照頁面做事的讀者，防不住刻意去找 key 的讀者。也可以不用這一步，由人或別的模型照 `INSTRUCTIONS.md` 寫出同樣格式的 JSON 行。
+3. `audit.py compare 頁面目錄 --reader 讀者.jsonl --to 空目錄`：每一頁每一項都要剛好一個判定。和程式不同或「看不出來」的，做成給裁決者的頁面：兩個判定標成 A、B，順序隨機，不說哪個是程式的。讀者判「看不出來」的項目不附任何判定，因為程式不會說看不出來，附了就等於指出哪個是程式的。
 4. 裁決者照樣用 `ask` 讀那個目錄（例如 `--model gpt-5.6-terra --effort xhigh`）。
 5. `audit.py settle 頁面目錄 --reader … --referee-packet 裁決目錄 --referee 裁決.jsonl --results 結果檔… --to 目錄`：裁決是「成立／不成立」就算最終，「看不出來」維持程式的判定。輸出每項一列的 `audit.json`（含各格的判錯數）與改判後的結果檔，可以直接 `judge.py judge`。
 

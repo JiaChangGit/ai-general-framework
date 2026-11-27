@@ -12,8 +12,10 @@ the program's verdicts; each item is listed by its meaning. The packet carries I
 key, with the groups and the program's verdicts, goes to keys/ beside the packet, not into it.
 
 ask: has the Codex CLI read a packet in a read-only sandbox, one batch of pages per call, with stdin closed (the CLI
-waits for input otherwise). --stage-dir copies each batch there first, for a CLI that cannot read the packet where it
-is (a Windows codex.exe called from WSL reads a Windows folder); paths are given to a .exe in Windows form.
+waits for input otherwise). Each batch is copied into a fresh folder away from the keys, under --stage-dir or the
+system's temp folder, and removed afterwards; a Windows codex.exe called from WSL needs --stage-dir on the Windows side,
+and gets its paths in Windows form. A read-only sandbox still lets the reader read other files on the disk, so this
+keeps the keys out of reach of a reader that follows the pages, not of one that goes looking.
 
 compare: a reader's verdicts against the program's. Every page and item must be there exactly once. Disagreements and
 "unclear" go to a referee packet, where the two verdicts are labelled A and B in random order and nothing says which
@@ -166,6 +168,11 @@ def compare(packet: Path, readers: list[Path], to: Path, seed: int) -> int:
     for page, items in by_page.items():
         lines = ["", "## disputed items", ""]
         for item in items:
+            if reader[(page, item)]["verdict"] == "unclear":
+                # The program never says unclear, so showing the pair would tell which verdict is the program's.
+                labels[f"{page}/{item}"] = []
+                lines.append(f"- {item}: decide it yourself; no earlier verdict is shown")
+                continue
             pair = [("program", program[(page, item)]), ("reader", reader[(page, item)]["verdict"])]
             rng.shuffle(pair)
             labels[f"{page}/{item}"] = [who for who, _ in pair]
@@ -206,8 +213,11 @@ def settle(packet: Path, readers: list[Path], referee_packet: Path, referees: li
                "by_cell": {f"{kind}/{group}": {"items": count, "program_wrong": wrong[(kind, group)]} for (kind, group), count in sorted(total.items())},
                "reader_differs_from_final": sum(row["reader"] != row["final"] for row in rows)}
     impact.write_json(to / "audit.json", {"summary": summary, "rows": rows})
+    names = [f"{file.resolve().parent.name}-{file.stem}.audited.json" for file in results]
+    if len(set(names)) != len(names):
+        raise SystemExit(f"two results files have the same name in folders of the same name: {sorted(names)}")
     replaced = 0
-    for file in results:
+    for file, name in zip(results, names):
         data = json.loads(file.read_text(encoding="utf-8"))
         for row in data["runs"]:
             run = (row.get("task"), row.get("group"), row.get("repeat"))
@@ -215,7 +225,7 @@ def settle(packet: Path, readers: list[Path], referee_packet: Path, referees: li
                 row["items"] = {**row["items"], **final[run]}
                 row["passed"] = all(row["items"].values())
                 replaced += 1
-        impact.write_json(to / f"{file.stem}.audited.json", data)
+        impact.write_json(to / name, data)
     if replaced != len(final):
         raise SystemExit(f"{len(final)} audited runs, but {replaced} rows of the results matched them")
     print(json.dumps(summary, ensure_ascii=False))
@@ -231,18 +241,19 @@ def _native(codex: str, path: Path) -> str:
 
 def ask(packet: Path, out: Path, codex: str, model: str, effort: str, batch: int, jobs: int, stage: Path | None, timeout: int) -> int:
     names = sorted(page.stem for page in packet.glob("p*.md"))
+    if stage is None and sys.platform != "win32" and codex.lower().endswith(".exe"):
+        raise SystemExit("a Windows codex.exe cannot read this system's temp folder: give --stage-dir on the Windows side")
     if not names or not (packet / "INSTRUCTIONS.md").is_file():
         raise SystemExit(f"no pages or no INSTRUCTIONS.md in {packet}")
     batches = [names[at:at + batch] for at in range(0, len(names), batch)]
 
     def one(number: int, chosen: list[str]) -> str:
-        work = Path(tempfile.mkdtemp(prefix="agf-audit-", dir=stage)) if stage else None
+        work = Path(tempfile.mkdtemp(prefix="agf-audit-", dir=stage))
         try:
-            root = work or packet
-            if work:
-                for name in ("INSTRUCTIONS", *chosen):
-                    shutil.copyfile(packet / f"{name}.md", work / f"{name}.md")
-            answer = (work or out.parent) / f"{out.stem}.batch-{number}.txt"
+            root = work
+            for name in ("INSTRUCTIONS", *chosen):
+                shutil.copyfile(packet / f"{name}.md", work / f"{name}.md")
+            answer = work / f"{out.stem}.batch-{number}.txt"
             prompt = (f"Read INSTRUCTIONS.md and follow it for these pages: {', '.join(name + '.md' for name in chosen)}. "
                       "Your final message must be only the JSON lines, in page order.")
             argv = [codex, "exec", "-m", model, "-c", f'model_reasoning_effort="{effort}"', "-s", "read-only",
@@ -253,8 +264,7 @@ def ask(packet: Path, out: Path, codex: str, model: str, effort: str, batch: int
                 raise SystemExit(f"batch {number} ({chosen[0]}..{chosen[-1]}): exit {code}, see {out.stem}.log-{number}.txt")
             return answer.read_text(encoding="utf-8", errors="replace").replace("\r", "")
         finally:
-            if work:
-                shutil.rmtree(work, ignore_errors=True)
+            shutil.rmtree(work, ignore_errors=True)
 
     out.parent.mkdir(parents=True, exist_ok=True)
     with ThreadPoolExecutor(max_workers=max(1, jobs)) as pool:

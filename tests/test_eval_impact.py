@@ -491,6 +491,15 @@ class ImpactTests(unittest.TestCase):
         _, data = self.run_impact("--runs", "1", "--group", "control", "--timeout", "2", mode="hang")
         self.assertEqual(list(data["runs"][0]["items"].values()), [False] * 5)
 
+    def test_a_session_without_a_cost_records_what_was_charged_for_it(self):
+        # Reports and cost ratios add up the parts, so a part has to say what the ledger charged.
+        _, data = self.run_impact("--ids", "edit", "--runs", "1", "--group", "control", "--timeout", "2",
+                                  "--budget", "0.05", "--overshoot", "0.02", mode="hang")
+        part = data["runs"][0]["parts"][0]
+        self.assertTrue(part["cost_is_upper_bound"])
+        self.assertAlmostEqual(part["cost_usd"], 0.07)
+        self.assertAlmostEqual(data["spent_usd"], 0.07)
+
     def test_an_empty_startup_adds_nothing_to_the_prompt(self):
         tasks = json.loads(self.tasks.read_text())
         tasks["startup"] = ""
