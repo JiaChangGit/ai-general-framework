@@ -2,6 +2,18 @@
 
 每一輪寫：改了什麼、為什麼、怎麼驗證、還沒驗證什麼。細節在各 commit 的訊息與 [docs/verification.md](docs/verification.md)。
 
+## 2026-11-27：逐項覆核的工具、hook 與授權（分支 `s22-tools`，接在 `s22-review-fixes` 之後）
+
+| 修改 | 為什麼 | 驗證 |
+|---|---|---|
+| `evals/host/audit.py`：`pages`、`ask`（自動叫 Codex CLI）、`compare`、`settle` | 上一輪的逐項覆核是手動做的，中途出過頁面藏檔、裁決模型不能用等問題 | 測試；故意弄壞三處都被抓到；用第三次修改的 6 次先問實跑，找到 1 項程式判錯（判定不變） |
+| `judge.py`：寫頁面的部分抽成 `sheet()` | 給 `audit.py` 共用 | 新舊版產生的 108 頁與 key 逐位元組相同 |
+| `agf/traces.py`：擋 `Assisted-by`／`Generated-by`、`Anthropic Claude`、`claude-3` 這類版本 | 已知的兩個漏擋，加上 kernel 的 Assisted-by 寫法 | 測試先寫；兩個專案重裝後實測，AI 尾行擋下、人名放行 |
+| 生態系資料庫：38 筆「需人工確認」的授權 | 原本寫 34 筆，沒有核對 | 公開的 LICENSE 與 README；gpt-6-luna 獨立分類，不同時取保守的；剩 8 筆 |
+| gpt-5.6-terra 審程式找到的 6 條 | 中止的 session 少記花費、讀者判「看不出來」時會洩漏哪個是程式、同名結果檔互相覆蓋、key 就在讀者旁邊、批次檔留著、regex 可能卡死 | 每條先寫會失敗的測試再修；「把 framework、control 遮掉」沒有照做，理由在 commit 訊息 |
+
+還沒驗證：修正沒有再請另一家確認（Codex 額度用完）。Linux 與 Windows 各 450 個測試通過。
+
 ## 2026-11-27：獨立審查之後的修正（分支 `s22-review-fixes`）
 
 另開的 Claude session 唯讀審查 S22 之後的各輪，找到 9 條問題，主導的 session 逐條重現。使用者決定：瘦身保留、出 v3 評分、由 Codex 重新盲查、次要的全部修。規格與結果在 [V 報告](studies/research-2026-11/V-s22-review.md)。
