@@ -9,6 +9,7 @@
 | `preflight.py` | 開跑前檢查受試目錄：檔案裡有沒有不該出現的路徑、有沒有指到外面的連結、上層目錄有沒有會被一起載入的規則或 skill、旁邊有沒有讀得到的別次材料、會不會傳下像宿主通道的環境變數 |
 | `trigger.py` | 每次執行建一個私有目錄，只在框架組安裝框架，預檢後執行並記錄，最後刪掉目錄；`stop` 用 PID 停止，`report` 彙總 |
 | `grading.py`、`judge.py`、`taskcheck.py` | 分項評分、從分項到判定、花錢之前驗題（見最下面「分項評分與判定」） |
+| `audit.py` | 由另一個讀者（例如另一家的模型）逐項重判，分歧交給裁決者，算出程式的判錯率與改判後的結果（見「逐項覆核」） |
 | `sandbox.py` | 受試者程式唯一會執行的地方：斷網、唯讀、沒有權限與憑證、限制資源的 Docker 容器；也產生受試 session 的限制（檔案工具只能在工作目錄、不能改宿主會載入的檔、hook 與 skill 的 shell 關閉） |
 | `usage.py` | 從本機的 Claude Code 對話紀錄，統計框架的 skill 與 `agf` 子命令實際被用了幾次；只輸出總數 |
 
@@ -77,6 +78,19 @@ python evals/host/impact.py report /tmp/agf-impact-out
 - **執行**：`--seed` 把題目順序與誰先固定成可重現的亂數，`--jobs` 同時跑幾題，`--resume` 只補缺的並把先前花的算進上限，`--cli-version` 釘住版本。服務的模型或版本不對就停下。
 - **先查再算**：`judge.py sample` 抽出隱去組別的執行給人核對判定，看完才跑 `judge.py judge`。評分錯了用 `impact.py regrade` 以保存的成品重算，不必再花錢。
 - **公開**：只公開 `judge.py export` 的輸出（分項、次數與花費）。串流、回覆與成品都留在本機。
+- **驗題時**，`taskcheck.py --framework` 也會列出評分裡獎勵框架引號句的樣式（例如 skill 叫模型說的「照建議」）。只有裝了框架的組會這樣說，所以這種樣式會偏向它。
+
+### 逐項覆核（2026-11-27 起）
+
+抽樣看截斷的摘錄撐不起「判錯 0 項」（[V 報告](../../studies/research-2026-11/V-s22-review.md)）。要用來下結論的類別，改由另一個讀者讀完整頁面逐項重判：
+
+1. `audit.py pages 輸出目錄… --tasks 題目檔 --to 空目錄 --kinds ask,handoff`：每次執行一頁，遮掉組別，不放程式的判定，每項只留說明，另附判斷說明 `INSTRUCTIONS.md`。key（組別與程式的判定）放在旁邊的 `keys/`，不放進頁面目錄。
+2. `audit.py ask 頁面目錄 --out 讀者.jsonl --codex codex 的路徑 --model gpt-6-luna`：叫 Codex CLI 在唯讀沙箱裡分批讀，stdin 關掉（不然它會等輸入）。從 WSL 叫 Windows 的 `codex.exe` 時加 `--stage-dir` 指到 Windows 的暫存目錄：每批先複製過去，用完刪掉，路徑也會換成 Windows 的寫法。也可以不用這一步，由人或別的模型照 `INSTRUCTIONS.md` 寫出同樣格式的 JSON 行。
+3. `audit.py compare 頁面目錄 --reader 讀者.jsonl --to 空目錄`：每一頁每一項都要剛好一個判定。和程式不同或「看不出來」的，做成給裁決者的頁面：兩個判定標成 A、B，順序隨機，不說哪個是程式的。
+4. 裁決者照樣用 `ask` 讀那個目錄（例如 `--model gpt-5.6-terra --effort xhigh`）。
+5. `audit.py settle 頁面目錄 --reader … --referee-packet 裁決目錄 --referee 裁決.jsonl --results 結果檔… --to 目錄`：裁決是「成立／不成立」就算最終，「看不出來」維持程式的判定。輸出每項一列的 `audit.json`（含各格的判錯數）與改判後的結果檔，可以直接 `judge.py judge`。
+
+讀者與裁決者最好都不是寫題目、寫評分的那一家；判斷說明是事先公開的類別定義，送出前掃描頁面有沒有本機路徑與個人資料。這個帳號的 Codex CLI 不能用 gpt-6.1-sol。
 
 `.github/workflows/skill-triggers.yml` 讓同一套觸發檢查在 GitHub Actions 上跑：只在手動按下時執行，需要 `ANTHROPIC_API_KEY` secret，結果上傳成 artifact，不讓 build 失敗。
 

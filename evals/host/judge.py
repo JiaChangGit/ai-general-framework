@@ -245,44 +245,60 @@ def _globs(items: list[dict]) -> list[str]:
     return found
 
 
-def sample(folders: list[Path], task_file: Path, seed: int, share: float, to: Path) -> int:
-    """Runs to read without knowing their group. The key goes to keys/, apart from the sheets."""
-    _, tasks = impact.load_tasks(task_file)
+def runs_of(folders: list[Path]) -> tuple[list[tuple[Path, dict]], set[str]]:
+    """Every run with kept work and item verdicts, with the folder its work is in, and the skills to hide."""
     runs, skills = [], set()
     for folder in folders:
         data = json.loads((folder / "results.json").read_text(encoding="utf-8"))
         skills.update(data.get("skills") or [])
         runs += [(Path(row.get("kept_in") or folder), row) for row in data["runs"] if row.get("artifact") and row.get("items") is not None]
+    return runs, skills
+
+
+def sheet(name: str, folder: Path, row: dict, task: dict, skills, verdicts: bool = True) -> str:
+    """One run to read without its group: the prompts, the answer, the changed files and the items.
+
+    Without verdicts the items are listed by meaning only, for a reader who judges them afresh."""
+    items, work = task["checks"]["items"], folder / "artifacts" / row["artifact"]
+    start = json.loads((folder / "artifacts" / f"{row['artifact']}.start.json").read_text(encoding="utf-8"))
+    lines = [f"# {name}: {row['task']}", "", *(f"> {part['prompt']}" for part in task["parts"]), "", "## answer", "",
+             redact((folder / "outputs" / f"{row['artifact']}.md").read_text(encoding="utf-8"), skills), "## changes", ""]
+    judged_text, extra, globs = json.dumps(items, ensure_ascii=False), 0, _globs(items)
+    for changed in grading.changes(start, work):
+        if changed not in task.get("files", {}) and changed not in judged_text \
+                and not any(fnmatchcase(changed, glob) for glob in globs):
+            # Notes, by whatever name, would tell the group; only change-based items look at them.
+            extra += 1
+            lines += [f"### another file, number {extra}", ""]
+            continue
+        file = work / changed
+        text = file.read_text(encoding="utf-8", errors="replace") if file.is_file() and not file.is_symlink() else "(gone or not a file)"
+        lines += [f"### {redact(changed, skills)}", "", redact(text[:6000], skills), ""]
+    if not verdicts:
+        return "\n".join([*lines, "## items to judge", "", *(f"- {item['id']}: {item.get('means', '')}" for item in items)]) + "\n"
+    lines += ["## judgements", ""]
+    if any(part.get("failed") for part in row.get("parts", [])):
+        lines += ["The session failed, so by the rule every item fails.", ""]
+    for item in items:
+        conditions = {key: value for key, value in item.items() if key not in ("id", "means")}
+        lines += [f"- {item['id']}: {'holds' if row['items'].get(item['id']) else 'fails'} -- {item.get('means', '')}",
+                  f"  `{json.dumps(conditions, ensure_ascii=False)}`"]
+    return "\n".join(lines) + "\n"
+
+
+def sample(folders: list[Path], task_file: Path, seed: int, share: float, to: Path) -> int:
+    """Runs to read without knowing their group. The key goes to keys/, apart from the sheets."""
+    _, tasks = impact.load_tasks(task_file)
+    runs, skills = runs_of(folders)
     chosen = random.Random(f"audit/{seed}").sample(runs, ceil(share * len(runs)))
     to.mkdir(parents=True, exist_ok=True)
     if any(to.iterdir()):
         raise SystemExit(f"--to must be empty: {to}")
     key = {}
     for number, (folder, row) in enumerate(chosen, 1):
-        name, task = f"r{number:03d}", tasks[row["task"]]
-        items, work = task["checks"]["items"], folder / "artifacts" / row["artifact"]
-        start = json.loads((folder / "artifacts" / f"{row['artifact']}.start.json").read_text(encoding="utf-8"))
-        lines = [f"# {name}: {row['task']}", "", *(f"> {part['prompt']}" for part in task["parts"]), "", "## answer", "",
-                 redact((folder / "outputs" / f"{row['artifact']}.md").read_text(encoding="utf-8"), skills), "## changes", ""]
-        judged_text, extra, globs = json.dumps(items, ensure_ascii=False), 0, _globs(items)
-        for changed in grading.changes(start, work):
-            if changed not in task.get("files", {}) and changed not in judged_text \
-                    and not any(fnmatchcase(changed, glob) for glob in globs):
-                # Notes, by whatever name, would tell the group; only change-based items look at them.
-                extra += 1
-                lines += [f"### another file, number {extra}", ""]
-                continue
-            file = work / changed
-            text = file.read_text(encoding="utf-8", errors="replace") if file.is_file() and not file.is_symlink() else "(gone or not a file)"
-            lines += [f"### {redact(changed, skills)}", "", redact(text[:6000], skills), ""]
-        lines += ["## judgements", ""]
-        if any(part.get("failed") for part in row.get("parts", [])):
-            lines += ["The session failed, so by the rule every item fails.", ""]
-        for item in items:
-            conditions = {key: value for key, value in item.items() if key not in ("id", "means")}
-            lines += [f"- {item['id']}: {'holds' if row['items'].get(item['id']) else 'fails'} -- {item.get('means', '')}",
-                      f"  `{json.dumps(conditions, ensure_ascii=False)}`"]
-        (to / f"{name}.md").write_text("\n".join(lines) + "\n", encoding="utf-8", errors="replace")
+        name = f"r{number:03d}"
+        text = sheet(name, folder, row, tasks[row["task"]], skills)
+        (to / f"{name}.md").write_text(text, encoding="utf-8", errors="replace")
         key[name] = {"dir": folder.name, "artifact": row["artifact"], "group": row["group"]}
     (to.parent / "keys").mkdir(exist_ok=True)
     impact.write_json(to.parent / "keys" / f"{to.name}.json", key)
