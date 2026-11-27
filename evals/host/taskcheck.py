@@ -39,6 +39,8 @@ COACHING = re.compile(
     r"|只(改|修)必要|最小[^。\n]{0,3}(修改|改動)|(怎麼|如何)驗證|交接|記下來|寫下來|不必(詢)?問|沒跑[^。\n]{0,4}(說|講)"
     r"|不要假|誠實|本次範圍|不推送|不部署|handoff|hand-over|checkpoint|ask me|don't guess|minimal (change|diff)", re.IGNORECASE)
 TOKEN = re.compile(r"[㐀-鿿]|[a-z0-9_]+")
+QUOTED = re.compile(r"「[^」\n]{2,60}」|『[^』\n]{2,60}』")
+ECHO = 3.0  # of a quoted phrase a pattern has to match, counted as LEAK counts: three Chinese characters or two words
 
 
 def unsafe(name: str) -> bool:
@@ -128,6 +130,86 @@ def leaks(task: dict, rules: dict[str, str]) -> list[str]:
     return found
 
 
+def _rewarding(item: dict):
+    # Patterns that must not match are left out: there the rules quote what not to claim, and the item checks that.
+    yield from item.get("answer", [])
+    yield from (claim["match"] for claim in item.get("claims", []))
+    for option in item.get("one_of", []):
+        yield from _rewarding(option)
+
+
+def _split(pattern: str) -> tuple[list[str], list[str]]:
+    """The alternatives at the top of a pattern, and the bodies of its top-level groups (lookarounds left out)."""
+    alternatives, groups, depth, in_class, current, body, at = [], [], 0, False, "", "", 0
+    while at < len(pattern):
+        char = pattern[at]
+        step = pattern[at:at + 2] if char == "\\" else char
+        at += len(step)
+        if in_class:
+            in_class = step != "]"
+        elif step == "[":
+            in_class = True
+        elif step == "(":
+            depth += 1
+            if depth == 1:
+                body = ""
+                continue
+        elif step == ")":
+            depth -= 1
+            if depth == 0:
+                if not body.startswith(("?=", "?!", "?<=", "?<!")):
+                    groups.append(re.sub(r"^\?(:|P<\w+>)", "", body))
+                current += f"({body})"
+                continue
+        elif step == "|" and depth == 0:
+            alternatives.append(current)
+            current = ""
+            continue
+        if depth >= 1:
+            body += step
+        else:
+            current += step
+    return alternatives + [current], groups
+
+
+def _branches(pattern: str) -> list[str]:
+    # A cue inside a group, such as (?:cue|cue)[\s\S]*topic, only shows when that group is tried alone.
+    alternatives, groups = _split(pattern)
+    if len(alternatives) > 1:
+        return alternatives
+    return [pattern, *(branch for group in groups for branch in _branches(group))]
+
+
+def echoes(task: dict, rules: dict[str, str]) -> list[str]:
+    """Patterns that give credit for a phrase the rules quote, which only the group with the framework is told to say."""
+    quoted = []
+    for text in rules.values():
+        for found in QUOTED.finditer(text):
+            begin = max(0, found.start() - 3)  # room for a word before the quote, such as 回「照建議」
+            quoted.append((text[begin:found.end()], found.start() + 1 - begin, found.end() - 1 - begin))
+    found = []
+    for item in task["checks"]["items"]:
+        phrases = []
+        for pattern in (branch for whole in _rewarding(item) for branch in _branches(whole)):
+            try:
+                compiled = re.compile(pattern, re.IGNORECASE | re.MULTILINE)
+            except re.error:  # a branch that only makes sense with the rest of the pattern
+                continue
+            for window, start, end in quoted:
+                at = 0
+                while (hit := compiled.search(window, at)) is not None:
+                    shared = TOKEN.findall(window[max(hit.start(), start):min(hit.end(), end)].lower())
+                    if sum(1 if "㐀" <= word[0] <= "鿿" else 1.6 for word in shared) >= ECHO - 1e-9 \
+                            and window[start:end] not in phrases:
+                        phrases.append(window[start:end])
+                        break
+                    at = hit.start() + 1
+                    if at > len(window):
+                        break
+        found += [f"{item['id']}: {phrase}" for phrase in phrases]
+    return found
+
+
 def coaching(task: dict) -> list[str]:
     """Short ways to tell a subject how to work, quoted from the rules or not."""
     return [found.group(0) for part in task["parts"] for found in COACHING.finditer(part["prompt"])]
@@ -161,6 +243,7 @@ def main() -> int:
         if rules:
             problems += [f"shared with the rules: {text}" for text in leaks(tasks[name], rules)]
             problems += [f"coaching: {text}" for text in coaching(tasks[name])]
+            problems += [f"grading rewards a phrase the rules quote: {text}" for text in echoes(tasks[name], rules)]
         bad += bool(problems)
         for problem in problems:
             print(f"{name}: {problem}")

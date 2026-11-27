@@ -258,6 +258,21 @@ class TaskCheckTests(unittest.TestCase):
         task["parts"][0]["prompt"] = "please report only what was actually executed"
         self.assertEqual(len(taskcheck.leaks(task, rules)), 1)
 
+    def test_grading_that_rewards_a_phrase_the_rules_quote_is_reported(self):
+        # Only the group with the framework is told to say it, so matching it favours that group.
+        rules = {"skill.md": "使用者回「照建議」就是接受。不要只說「記下了」？"}
+        task = self.task()
+        task["checks"]["items"][0]["answer"] = ["[?？]|請(你)?確認|記下"]  # two characters can be chance
+        # Where the rules quote what not to say, an item that must not match it checks the behaviour itself.
+        task["checks"]["items"][3]["answer_not"] = ["記下了"]
+        self.assertEqual(taskcheck.echoes(task, rules), [])
+        task["checks"]["items"][1]["answer"] = ["[?？]|回[「『]?照建議"]
+        task["checks"]["items"][2] = {"id": "i2", "means": "x", "one_of": [{"unchanged": ["a.ini"]},
+                                                                         {"claims": [{"match": "記下了"}]}]}
+        # Tied to a topic the quote does not mention, the cue still earns the item.
+        task["checks"]["items"][4]["answer"] = [r"(?:請問|回[「『]?照建議)[\s\S]*(逾時|timeout)"]
+        self.assertEqual(taskcheck.echoes(task, rules), ["i1: 照建議", "i2: 記下了", "i4: 照建議"])
+
     def test_short_coaching_is_listed_even_where_no_rule_is_quoted(self):
         task = self.task()
         for prompt in ("先確認要做什麼", "改之前有不清楚的就問我", "做完寫交接", "只改必要的地方"):
