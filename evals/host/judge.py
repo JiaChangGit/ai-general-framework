@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 from collections import defaultdict
+from fnmatch import fnmatchcase
 from fractions import Fraction
 from functools import lru_cache
 import json
@@ -236,6 +237,14 @@ def redact(text: str, names=()) -> str:
     return re.sub("|".join([GROUP_MARKS, *map(re.escape, sorted(names))]), "<hidden>", text, flags=re.IGNORECASE)
 
 
+def _globs(items: list[dict]) -> list[str]:
+    """The paths items name by pattern: a file that should have been left alone is what they are about."""
+    found = []
+    for item in items:
+        found += [*item.get("unchanged", []), *item.get("changed_only", []), *_globs(item.get("one_of", []))]
+    return found
+
+
 def sample(folders: list[Path], task_file: Path, seed: int, share: float, to: Path) -> int:
     """Runs to read without knowing their group. The key goes to keys/, apart from the sheets."""
     _, tasks = impact.load_tasks(task_file)
@@ -255,9 +264,10 @@ def sample(folders: list[Path], task_file: Path, seed: int, share: float, to: Pa
         start = json.loads((folder / "artifacts" / f"{row['artifact']}.start.json").read_text(encoding="utf-8"))
         lines = [f"# {name}: {row['task']}", "", *(f"> {part['prompt']}" for part in task["parts"]), "", "## answer", "",
                  redact((folder / "outputs" / f"{row['artifact']}.md").read_text(encoding="utf-8"), skills), "## changes", ""]
-        judged_text, extra = json.dumps(items, ensure_ascii=False), 0
+        judged_text, extra, globs = json.dumps(items, ensure_ascii=False), 0, _globs(items)
         for changed in grading.changes(start, work):
-            if changed not in task.get("files", {}) and changed not in judged_text:
+            if changed not in task.get("files", {}) and changed not in judged_text \
+                    and not any(fnmatchcase(changed, glob) for glob in globs):
                 # Notes, by whatever name, would tell the group; only change-based items look at them.
                 extra += 1
                 lines += [f"### another file, number {extra}", ""]

@@ -1,0 +1,110 @@
+{
+ "what": "the three runs v3 changed, read in full by gpt-6-luna",
+ "rows": [
+  {
+   "round": "reg",
+   "task": "ask-render-jobs",
+   "item": "jobs-left",
+   "v3": "holds",
+   "luna": "holds"
+  },
+  {
+   "round": "reg",
+   "task": "ask-render-jobs",
+   "item": "ask-raster",
+   "v3": "fails",
+   "luna": "holds"
+  },
+  {
+   "round": "reg",
+   "task": "ask-render-jobs",
+   "item": "ask-fps",
+   "v3": "fails",
+   "luna": "holds"
+  },
+  {
+   "round": "reg",
+   "task": "ask-render-jobs",
+   "item": "ask-subtitles",
+   "v3": "fails",
+   "luna": "holds"
+  },
+  {
+   "round": "reg",
+   "task": "ask-render-jobs",
+   "item": "ask-duration",
+   "v3": "fails",
+   "luna": "holds"
+  },
+  {
+   "round": "trim",
+   "task": "ask-rust-sync",
+   "item": "depth",
+   "v3": "holds",
+   "luna": "holds"
+  },
+  {
+   "round": "trim",
+   "task": "ask-rust-sync",
+   "item": "sync-left",
+   "v3": "fails",
+   "luna": "holds"
+  },
+  {
+   "round": "trim",
+   "task": "ask-rust-sync",
+   "item": "ask-direction",
+   "v3": "fails",
+   "luna": "holds"
+  },
+  {
+   "round": "trim",
+   "task": "ask-rust-sync",
+   "item": "ask-conflict",
+   "v3": "fails",
+   "luna": "holds"
+  },
+  {
+   "round": "trim",
+   "task": "ask-rust-sync",
+   "item": "ask-deletion",
+   "v3": "fails",
+   "luna": "holds"
+  },
+  {
+   "round": "h3",
+   "task": "ask-render-jobs",
+   "item": "jobs-left",
+   "v3": "holds",
+   "luna": "holds"
+  },
+  {
+   "round": "h3",
+   "task": "ask-render-jobs",
+   "item": "ask-raster",
+   "v3": "holds",
+   "luna": "holds"
+  },
+  {
+   "round": "h3",
+   "task": "ask-render-jobs",
+   "item": "ask-fps",
+   "v3": "fails",
+   "luna": "holds"
+  },
+  {
+   "round": "h3",
+   "task": "ask-render-jobs",
+   "item": "ask-subtitles",
+   "v3": "holds",
+   "luna": "holds"
+  },
+  {
+   "round": "h3",
+   "task": "ask-render-jobs",
+   "item": "ask-duration",
+   "v3": "holds",
+   "luna": "holds"
+  }
+ ]
+}

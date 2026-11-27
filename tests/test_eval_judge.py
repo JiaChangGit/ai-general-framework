@@ -211,16 +211,20 @@ class SampleTests(unittest.TestCase):
             (folder / "outputs").mkdir()
             (work / "out.txt").write_text("the deliverable", encoding="utf-8")
             (work / "my-notes.md").write_text("a tell-tale note", encoding="utf-8")
+            # A file the run should have left alone is what an "unchanged" item is about, so the reader has to see it.
+            (work / "src").mkdir()
+            (work / "src/sync.rs").write_text("fn guessed_sync() {}", encoding="utf-8")
             (folder / "artifacts/t-framework-0.start.json").write_text("{}", encoding="utf-8")
             (folder / "outputs/t-framework-0.md").write_text("done\n", encoding="utf-8")
-            items = [{"id": "i", "files": {"out.txt": ["deliver"]}}]
+            items = [{"id": "i", "files": {"out.txt": ["deliver"]}}, {"id": "left", "unchanged": ["src/*"]}]
             (folder / "results.json").write_text(json.dumps({"runs": [{"task": "t", "group": "framework", "artifact": "t-framework-0",
-                                                                       "items": {"i": True}, "parts": []}]}), encoding="utf-8")
+                                                                       "items": {"i": True, "left": False}, "parts": []}]}), encoding="utf-8")
             tasks = Path(temp) / "tasks.json"
             tasks.write_text(json.dumps({"tasks": [{"id": "t", "parts": [{"prompt": "p"}], "checks": {"items": items}}]}), encoding="utf-8")
             judge.sample([folder], tasks, 1, 1.0, Path(temp) / "blind")
             sheet = (Path(temp) / "blind/r001.md").read_text(encoding="utf-8")
             self.assertIn("the deliverable", sheet)
+            self.assertIn("guessed_sync", sheet)
             self.assertIn("deliver", sheet.split("## judgements")[1])
             for hidden in ("my-notes", "tell-tale", "framework"):
                 self.assertNotIn(hidden, sheet)

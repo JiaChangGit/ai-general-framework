@@ -149,6 +149,15 @@ class SandboxTests(unittest.TestCase):
         self.assertIsNotNone(ledger.reserve("b"))
         self.assertIsNone(ledger.reserve("a, part 2", started=True))
 
+    def test_a_session_that_reports_no_cost_is_charged_all_it_had_set_aside(self):
+        # Killed or crashed, it may have gone past its budget by the margin, as the design says.
+        results = {"spent_usd": 0.0, "runs": [], "stopped": None}
+        ledger = impact.Ledger(results, lambda: None, budget=0.8, total=2.0, overshoot=0.2)
+        self.assertIsNone(ledger.reserve("a"))
+        ledger.charge(None)
+        self.assertAlmostEqual(results["spent_usd"], 1.0)
+        self.assertEqual(results["reserved_usd"], 0)
+
     def test_a_task_id_may_appear_once(self):
         path = self.work / "tasks.json"
         path.write_text(json.dumps({"tasks": [{"id": "a", "checks": {}}, {"id": "a", "checks": {}}]}), encoding="utf-8")

@@ -186,8 +186,10 @@ class Ledger:
                 return f"setup of {task}-{group} differs from earlier runs: files, framework or hidden checks changed"
             return None
 
-    def charge(self, cost: float) -> None:
+    def charge(self, cost: float | None) -> None:
+        """What a session cost; one that reports none is charged all that was set aside for it."""
         with self.changed:
+            cost = self.hold if cost is None else cost
             self.reserved -= 1
             self.results["reserved_usd"] = round(self.reserved * self.hold, 6)
             self.results["spent_usd"] = round(self.results["spent_usd"] + cost, 6)
@@ -481,7 +483,7 @@ def _session(args, out, cli, work, model, prompt, name, ledger, given, env, expe
         cost = result.get("cost_usd")
     finally:
         # A killed or crashed session reports no cost; charge the most it could have spent.
-        ledger.charge(args.budget if cost is None else cost)
+        ledger.charge(cost)
     after = fingerprint(work)
     failed = None
     if code == 124 and not summary["retrying"]:
