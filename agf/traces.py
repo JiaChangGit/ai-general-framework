@@ -24,19 +24,22 @@ TOOLS = (r"claude(?: code)?|anthropic|openai(?: codex)?|codex(?: cli)?|chatgpt|g
          r"(?:github )?copilot|cursor(?: agent)?|aider|devin(?: ai)?|windsurf")
 # A co-author is a tool when the whole name is a tool's (optionally with its model) or the account is a tool's.
 # "Jane Claude", "Devin Smith" and "Cursor Lee" are people (S18 and S19 reviews).
-AUTHOR_NAMES = (r"claude(?: code| ai|[- ](?:opus|sonnet|haiku|fable|\d)[^<\n]*)?|anthropic|openai(?: codex)?|codex(?: cli)?|chatgpt|"
+AUTHOR_NAMES = (r"claude(?: code| ai|[- ](?:opus|sonnet|haiku|fable|\d)[^<\n]*)?|anthropic(?: claude[^<\n]*)?|openai(?: codex)?|codex(?: cli)?|chatgpt|"
                 r"gpt-\d[\w.-]*|gemini(?: cli| code assist|[- ]\d[^<\n]*)?|(?:github )?copilot(?: autofix[^<\n]*)?|cursor(?: agent)?|"
                 r"aider|devin ai|windsurf")
 AUTHOR_ACCOUNTS = (r"noreply@anthropic\.com|(?:noreply|codex)@openai\.com|cursoragent|devin-ai|gemini-code-assist|"
                    r"copilot(?:-swe-agent)?\[bot\]|\+copilot@users\.noreply|copilot@github\.com|@aider\.chat|claude\[bot\]")
-# "generated with/by <tool>" counts only where the tool's name ends the phrase: not "generated with cursor offset".
+# Trailers that name who helped: Co-authored-by, and Assisted-by / Generated-by, which the Linux kernel writes as
+# "Assisted-by: AGENT:MODEL [TOOLS]". "generated with/by <tool>" counts only where the tool's name ends the phrase,
+# or a version follows it (claude-3): not "generated with cursor offset".
+TRAILERS = r"(?:co-authored|assisted|generated)-by:"
 COMMIT_MARKERS = re.compile(
-    rf"^\s*co-authored-by:[ \t]*(?:(?:{AUTHOR_NAMES})(?:\[bot\])?[ \t]*(?:\([^)\n]*\)[ \t]*)?(?:<|$)|[^\n]*(?:{AUTHOR_ACCOUNTS}))"
-    rf"|generated (?:with|by) \[?(?:{TOOLS})(?=[ \t]*(?:$|[\])(.!,:;<*]|\d|via\b|opus\b|sonnet\b|haiku\b|fable\b))"
+    rf"^\s*{TRAILERS}[ \t]*(?:(?:{AUTHOR_NAMES})(?:\[bot\])?[ \t]*(?:\([^)\n]*\)[ \t]*)?(?:<|$|:)|[^\n]*(?:{AUTHOR_ACCOUNTS}))"
+    rf"|generated (?:with|by) \[?(?:{TOOLS})(?=[ \t]*(?:$|[\])(.!,:;<*]|-?\d|via\b|opus\b|sonnet\b|haiku\b|fable\b))"
     r"|\U0001F916 ?generated",
     re.IGNORECASE | re.MULTILINE)
 # git grep only finds candidate lines; _file_marker decides with the tool list that commits use.
-FILE_CANDIDATES = r"generated (with|by) |co-authored-by:|🤖 ?generated"
+FILE_CANDIDATES = r"generated (with|by) |(co-authored|assisted|generated)-by:|🤖 ?generated"
 # Claude's own lines also count when quoted in the middle of a sentence or cut short.
 CLAUDE_IN_FILES = re.compile(r"generated with \[?claude code|co-authored-by: *claude\b", re.IGNORECASE)
 HOOK_MARK = "# agf: commit-msg hook that rejects AI co-author lines (agf traces hook)"
@@ -53,7 +56,7 @@ import re, sys
 text = open(sys.argv[1], encoding="utf-8", errors="replace").read()
 body = "\\n".join(line for line in text.splitlines() if not line.startswith("#"))
 if re.search(r"""{pattern}""", body, re.IGNORECASE | re.MULTILINE):
-    sys.stderr.write("commit-msg: 這個專案不留 AI 痕跡，commit 訊息裡有 AI 共同作者或「Generated with」一類的字樣。"
+    sys.stderr.write("commit-msg: 這個專案不留 AI 痕跡，commit 訊息裡有 AI 共同作者、Assisted-by 或「Generated with」一類的字樣。"
                      "刪掉那幾行再 commit；真的要保留，用 git commit --no-verify。\\n")
     sys.exit(1)
 PYEOF
@@ -178,8 +181,8 @@ def hook(target, apply: bool = False, remove: bool = False) -> dict:
 def _file_marker(line: str) -> bool:
     if CLAUDE_IN_FILES.search(line) or COMMIT_MARKERS.search(line):
         return True
-    start = line.lower().find("co-authored-by:")  # a trailer behind "# ", "// " and the like
-    return start > 0 and bool(COMMIT_MARKERS.search(line[start:]))
+    found = re.search(TRAILERS, line, re.IGNORECASE)  # a trailer behind "# ", "// " and the like
+    return bool(found) and found.start() > 0 and bool(COMMIT_MARKERS.search(line[found.start():]))
 
 
 def _settled(root: Path, after: str) -> str:
